@@ -1,0 +1,2097 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>AI 数据分析工作台 · 《统计与数据分析基础》</title>
+<style>
+/* ===== 全内联 CSS（保证 file:// 协议 100% 渲染，零外部依赖） ===== */
+:root{
+  --brand:#005DA2; --brand-dark:#00447A; --brand-light:#E8F1F8;
+  --accent:#F2A900; --ok:#1E8E5A; --bad:#C0392B; --purple:#6B46C1; --teal:#2C7A7B;
+  --gray:#8A94A0; --text:#2D3748; --line:#E2E8F0; --bg:#F4F7FA; --card:#fff;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+html{scroll-behavior:smooth}
+body{
+  font-family:"Microsoft YaHei","微软雅黑","PingFang SC","Helvetica Neue",Arial,sans-serif;
+  background:var(--bg);color:var(--text);font-size:15px;line-height:1.75;
+  padding-bottom:env(safe-area-inset-bottom);
+}
+.ic{width:18px;height:18px;vertical-align:-3px;margin-right:5px;flex:0 0 18px}
+.ic-lg{width:30px;height:30px;flex:0 0 30px}
+.container{max-width:1200px;margin:0 auto;padding:28px 24px 60px}
+.hidden{display:none!important}
+button{font-family:inherit;cursor:pointer}
+.btn{
+  display:inline-flex;align-items:center;gap:6px;justify-content:center;
+  background:var(--brand);color:#fff;border:none;border-radius:9px;
+  padding:11px 22px;font-size:15px;font-weight:600;min-height:44px;
+  transition:background .15s,transform .1s;
+}
+.btn:hover{background:var(--brand-dark)}
+.btn:active{transform:scale(.97)}
+.btn.ghost{background:transparent;color:var(--brand);border:1.5px solid var(--brand)}
+.btn.ghost:hover{background:var(--brand-light)}
+.btn:disabled{background:var(--gray);cursor:not-allowed}
+.btn svg{width:16px;height:16px}
+
+/* ---------- Hero ---------- */
+.hero{
+  background:linear-gradient(135deg,var(--brand) 0%,var(--brand-dark) 100%);
+  color:#fff;padding:54px 48px 46px;border-radius:16px;margin-bottom:30px;
+  position:relative;overflow:hidden;
+}
+.hero::after{
+  content:"";position:absolute;right:-60px;top:-60px;width:280px;height:280px;
+  border-radius:50%;background:rgba(255,255,255,.06);
+}
+.hero::before{
+  content:"";position:absolute;right:60px;bottom:-90px;width:220px;height:220px;
+  border-radius:50%;background:rgba(242,169,0,.12);
+}
+.top-tag{
+  display:inline-flex;align-items:center;gap:7px;
+  background:rgba(255,255,255,.14);border:1px solid rgba(255,255,255,.35);
+  color:#fff;font-size:12.5px;font-weight:700;letter-spacing:2.2px;
+  padding:6px 14px;border-radius:999px;margin-bottom:18px;
+}
+.hero h1{font-size:38px;font-weight:800;letter-spacing:.5px;margin-bottom:12px;position:relative;z-index:1}
+.hero-sub{font-size:16.5px;color:rgba(255,255,255,.85);max-width:760px;position:relative;z-index:1}
+.hero-sub b{color:var(--accent)}
+.hero-feats{display:flex;gap:14px;margin-top:26px;flex-wrap:wrap;position:relative;z-index:1}
+.feat{
+  display:flex;align-items:center;gap:9px;background:rgba(255,255,255,.12);
+  border:1px solid rgba(255,255,255,.22);border-radius:10px;padding:10px 16px;
+  font-size:13.5px;font-weight:600;
+}
+.feat svg{width:17px;height:17px;color:var(--accent);flex:0 0 17px}
+
+/* ---------- 向导步骤条 ---------- */
+.wizard{display:flex;align-items:center;gap:0;margin:6px 0 26px;background:var(--card);
+  border:1px solid var(--line);border-radius:12px;padding:12px 18px;flex-wrap:wrap}
+.wstep{display:flex;align-items:center;gap:8px;font-size:14px;font-weight:600;color:var(--gray)}
+.wstep .dot{width:26px;height:26px;border-radius:50%;background:#E8ECF1;color:var(--gray);
+  display:inline-flex;align-items:center;justify-content:center;font-size:13px;font-weight:700}
+.wstep.on{color:var(--brand)}
+.wstep.on .dot{background:var(--brand);color:#fff}
+.wstep.done{color:var(--ok)}
+.wstep.done .dot{background:var(--ok);color:#fff}
+.warrow{color:#CBD5E0;margin:0 14px;font-size:13px;font-weight:700}
+
+/* ---------- 通用卡片 ---------- */
+.card{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:22px;margin-bottom:20px}
+.card h3{font-size:16.5px;font-weight:700;margin-bottom:6px;display:flex;align-items:center;gap:8px}
+.card h3 svg{width:19px;height:19px;color:var(--brand);flex:0 0 19px}
+.sec-title{font-size:19px;font-weight:800;margin:30px 0 6px;display:flex;align-items:center;gap:9px}
+.sec-title svg{width:22px;height:22px;color:var(--brand)}
+.sec-sub{color:var(--gray);font-size:13.5px;margin-bottom:16px}
+
+/* ---------- Step1 数据源 ---------- */
+.src-grid{display:grid;grid-template-columns:1fr 1.7fr;gap:20px;margin-bottom:6px}
+.upload-box{
+  border:2px dashed #B8C9DB;border-radius:12px;padding:34px 22px;text-align:center;
+  background:#FBFDFE;transition:border-color .15s,background .15s;cursor:pointer;
+}
+.upload-box:hover{border-color:var(--brand);background:var(--brand-light)}
+.upload-box svg{width:42px;height:42px;color:var(--brand);margin-bottom:10px}
+.upload-box .up-t{font-size:15.5px;font-weight:700;color:var(--brand-dark)}
+.upload-box .up-s{font-size:12.5px;color:var(--gray);margin-top:4px}
+#fileInput{display:none}
+.sample-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:10px;margin-top:10px}
+.sample-card{
+  border:1px solid var(--line);border-radius:10px;padding:12px 12px 10px;cursor:pointer;
+  background:#fff;transition:border-color .15s,box-shadow .15s,transform .1s;text-align:left;
+}
+.sample-card:hover{border-color:var(--brand);box-shadow:0 4px 14px rgba(0,93,162,.12);transform:translateY(-1px)}
+.sample-card .sc-no{font-size:11px;font-weight:800;color:var(--brand);letter-spacing:1px}
+.sample-card .sc-name{font-size:13.5px;font-weight:700;margin:2px 0 1px}
+.sample-card .sc-desc{font-size:11.5px;color:var(--gray);line-height:1.5}
+.sample-card .sc-type{display:inline-block;font-size:10.5px;color:var(--ok);background:#EAF6F0;
+  border-radius:5px;padding:1px 7px;margin-top:6px;font-weight:600}
+.sample-card.placeholder{opacity:.62;cursor:not-allowed;background:#F7F9FB}
+.sample-card.placeholder .sc-no{color:var(--gray)}
+.sample-card.placeholder .sc-type{background:#EEF0F3;color:var(--gray)}
+.sample-card.sel{border-color:var(--accent);box-shadow:0 0 0 2px rgba(242,169,0,.35)}
+
+/* ---------- 数据预览 ---------- */
+.table-wrap{overflow-x:auto;margin:12px 0 14px;border:1px solid var(--line);border-radius:9px}
+table.tbl{border-collapse:collapse;width:100%;font-size:13px}
+.tbl th{background:#F1F5F9;color:var(--brand-dark);font-weight:700;text-align:left;
+  padding:8px 12px;border-bottom:2px solid var(--line);white-space:nowrap}
+.tbl td{padding:7px 12px;border-bottom:1px solid #EEF2F6;white-space:nowrap}
+.tbl tr:last-child td{border-bottom:none}
+.tbl tbody tr:hover{background:#F8FBFE}
+.data-meta{font-size:12.5px;color:var(--gray);margin-left:10px;font-weight:400}
+.col-tags{margin:10px 0 4px;display:flex;flex-wrap:wrap;gap:7px}
+.col-tag{font-size:12px;background:#F1F5F9;color:var(--text);border-radius:7px;padding:3px 10px}
+.col-tag.num{background:#EAF2FB;color:var(--brand-dark)}
+.col-tag.txt{background:#F3F0FB;color:var(--purple)}
+
+/* ---------- Step2 分析类型 ---------- */
+.an-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(250px,1fr));gap:14px}
+.an-card{
+  border:1px solid var(--line);border-radius:11px;padding:16px;cursor:pointer;background:#fff;
+  transition:border-color .15s,box-shadow .15s,transform .1s;
+}
+.an-card:hover{border-color:var(--brand);box-shadow:0 4px 14px rgba(0,93,162,.12);transform:translateY(-1px)}
+.an-card.sel{border-color:var(--accent);box-shadow:0 0 0 2px rgba(242,169,0,.3)}
+.an-card .an-top{display:flex;align-items:center;gap:10px;margin-bottom:7px}
+.an-card .an-top svg{width:24px;height:24px;color:var(--brand);flex:0 0 24px}
+.an-card .an-name{font-size:15px;font-weight:800}
+.an-card .an-desc{font-size:12.5px;color:var(--gray);line-height:1.6}
+.an-card .an-fit{font-size:11px;color:var(--ok);background:#EAF6F0;display:inline-block;
+  border-radius:5px;padding:1px 8px;margin-top:8px;font-weight:600}
+.an-card.reco{border-color:var(--ok);box-shadow:0 0 0 2px rgba(30,142,90,.22)}
+.an-card.reco .an-top::after{content:"推荐";font-size:10px;color:#fff;background:var(--ok);
+  border-radius:5px;padding:1px 7px;margin-left:auto;font-weight:700;letter-spacing:.5px}
+.an-config{margin-top:16px}
+.an-config .cfg-row{display:flex;align-items:center;gap:12px;flex-wrap:wrap;margin-bottom:12px}
+.an-config label{font-size:13px;font-weight:700;color:var(--brand-dark);min-width:110px}
+.an-config select,.an-config input[type=number]{
+  font-family:inherit;font-size:14.5px;padding:8px 10px;border:1.5px solid var(--line);
+  border-radius:8px;background:#fff;min-height:40px;min-width:180px;color:var(--text);
+}
+.an-config select:focus,.an-config input:focus{outline:none;border-color:var(--brand)}
+.an-config input[type=number]{width:150px}
+.an-config .hint{font-size:12px;color:var(--gray);width:100%}
+
+/* ---------- Step3 结果 ---------- */
+.result-toolbar{display:flex;gap:10px;margin-bottom:18px;flex-wrap:wrap;align-items:center}
+.result-toolbar .rt-status{font-size:13px;color:var(--ok);font-weight:700;display:inline-flex;align-items:center;gap:6px;margin-left:auto}
+.result-toolbar .rt-status svg{width:16px;height:16px}
+.res-block{background:var(--card);border:1px solid var(--line);border-radius:12px;
+  padding:20px 22px;margin-bottom:16px;scroll-margin-top:12px}
+.res-block .rb-title{font-size:15.5px;font-weight:800;color:var(--brand-dark);margin-bottom:12px;
+  display:flex;align-items:center;gap:8px}
+.res-block .rb-title .rb-no{background:var(--brand);color:#fff;font-size:12px;font-weight:800;
+  width:24px;height:24px;border-radius:7px;display:inline-flex;align-items:center;justify-content:center;flex:0 0 24px}
+.res-block .rb-title svg{width:18px;height:18px;color:var(--brand);flex:0 0 18px}
+.metric-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:10px;margin-bottom:6px}
+.metric{background:#F8FBFE;border:1px solid var(--line);border-radius:9px;padding:10px 12px}
+.metric .m-label{font-size:11.5px;color:var(--gray);font-weight:600}
+.metric .m-value{font-size:18px;font-weight:800;color:var(--brand-dark);line-height:1.35}
+.metric .m-unit{font-size:11.5px;color:var(--gray);margin-left:3px;font-weight:400}
+.metric.hl{background:var(--brand-light);border-color:var(--brand)}
+.metric.hl .m-value{color:var(--brand)}
+.metric.warn{background:#FDF6EC;border-color:#F2D8A7}
+.metric.warn .m-value{color:#B7791F}
+.chart-box{margin:10px 0 4px}
+.chart-box svg{width:100%;height:auto;display:block}
+.chart-cap{font-size:12px;color:var(--gray);margin-top:4px}
+.formula-card{background:#F8FAFC;border-left:4px solid var(--accent);border-radius:8px;
+  padding:12px 16px;margin:10px 0;font-size:13.5px}
+.formula-card .f-label{font-size:11.5px;font-weight:800;color:#B7791F;letter-spacing:1px;margin-bottom:3px}
+.formula-card .f-expr{font-weight:700;color:var(--text);font-family:"Cambria Math","STIXGeneral",Georgia,serif;font-size:14.5px}
+.formula-card .f-sub{color:#4A5568;font-size:13px;margin-top:2px}
+.formula-card .f-res{color:var(--brand);font-weight:800;margin-top:2px}
+.finding{display:flex;gap:10px;padding:9px 12px;border-radius:9px;margin:7px 0;align-items:flex-start;font-size:13.5px}
+.finding .f-badge{flex:0 0 auto;font-size:11.5px;font-weight:800;padding:2px 9px;border-radius:6px;margin-top:2px}
+.finding .f-body{flex:1}
+.finding .f-title{font-weight:700}
+.f-fact{background:#F0F6FF}.f-fact .f-badge{background:var(--brand);color:#fff}
+.f-anl{background:#FFF7E6}.f-anl .f-badge{background:#DD8B00;color:#fff}
+.f-sug{background:#EAF6F0}.f-sug .f-badge{background:var(--ok);color:#fff}
+.f-warn{background:#FBEEEC}.f-warn .f-badge{background:var(--bad);color:#fff}
+.prompt-box{background:#0F2B45;border-radius:11px;padding:16px 18px;margin:10px 0;color:#E8F1F8}
+.prompt-box .pb-label{font-size:11.5px;font-weight:800;color:var(--accent);letter-spacing:1.5px;margin-bottom:8px;display:flex;align-items:center;gap:7px}
+.prompt-box .pb-label svg{width:15px;height:15px}
+.prompt-box .pb-text{font-size:13px;line-height:1.8;white-space:pre-wrap;font-family:"Consolas","Courier New",monospace}
+.prompt-box .pb-copy{margin-top:10px;font-size:12px;background:rgba(255,255,255,.12);color:#fff;
+  border:1px solid rgba(255,255,255,.3);border-radius:7px;padding:6px 14px;min-height:36px;font-weight:600}
+.prompt-box .pb-copy:hover{background:rgba(255,255,255,.22)}
+.prompt-box .pb-copied{color:#7FD8A8;font-size:12px;margin-left:10px}
+.qa-note{font-size:12px;color:var(--gray);margin-top:10px;display:flex;gap:8px;align-items:center}
+.qa-note svg{width:15px;height:15px;color:var(--ok);flex:0 0 15px}
+.warn-box{background:#FBEEEC;border:1px solid #F2C4BD;border-radius:9px;padding:12px 16px;
+  margin:10px 0;font-size:13px;display:flex;gap:10px}
+.warn-box svg{width:18px;height:18px;color:var(--bad);flex:0 0 18px;margin-top:2px}
+
+/* ---------- 示例报告墙 ---------- */
+.wall-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:12px}
+.wall-card{
+  display:flex;align-items:center;gap:11px;border:1px solid var(--line);border-radius:10px;
+  padding:13px 15px;background:#fff;text-decoration:none;color:var(--text);
+  transition:border-color .15s,box-shadow .15s,transform .1s;
+}
+.wall-card:hover{border-color:var(--brand);box-shadow:0 4px 14px rgba(0,93,162,.12);transform:translateY(-1px)}
+.wall-card svg{width:22px;height:22px;color:var(--brand);flex:0 0 22px}
+.wall-card .wc-name{font-size:13.5px;font-weight:700;line-height:1.4}
+.wall-card .wc-no{font-size:11px;color:var(--gray);font-weight:600}
+.wall-card.ppt{border-color:#E9D8A6;background:#FFFDF3}
+.wall-card.ppt svg{color:#B7791F}
+
+footer{text-align:center;color:var(--gray);font-size:12.5px;padding:26px 0 10px;border-top:1px solid var(--line);margin-top:34px}
+footer b{color:var(--brand-dark)}
+
+/* ---------- 移动端 ---------- */
+@media (max-width:768px){
+  .hero{padding:36px 24px 32px}
+  .hero h1{font-size:27px}
+  .hero-sub{font-size:14.5px}
+  .container{padding:18px 14px 48px}
+  .src-grid{grid-template-columns:1fr}
+  .warrow{margin:0 7px}
+  .wstep{font-size:12.5px}
+  .an-grid{grid-template-columns:1fr 1fr}
+  .metric-grid{grid-template-columns:repeat(2,1fr)}
+  .btn{padding:10px 16px}
+  .an-config select,.an-config input[type=number]{min-width:130px}
+}
+@media (max-width:420px){
+  .an-grid{grid-template-columns:1fr}
+}
+</style>
+</head>
+<body>
+<div class="container">
+
+  <!-- ================= Hero ================= -->
+  <header class="hero">
+    <div class="top-tag">
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="M12 8v4l3 3"/></svg>
+      AI DATA ANALYSIS
+    </div>
+    <h1>AI 数据分析工作台</h1>
+    <p class="hero-sub">上传你自己的数据，或一键加载十个课堂实训示例 —— 描述统计、抽样估计、相关回归、时间序列、统计指数、数据清洗……<b>选择分析，秒出结果、图表与解读</b>。纯本地运行，数据不出浏览器。</p>
+    <div class="hero-feats">
+      <div class="feat"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>上传即分析</div>
+      <div class="feat"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><polygon points="12 2 2 7 12 12 22 7 12 2"/><polyline points="2 17 12 22 22 17"/><polyline points="2 12 12 17 22 12"/></svg>十项预设能力</div>
+      <div class="feat"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>离线零依赖</div>
+    </div>
+  </header>
+
+  <!-- ================= 向导步骤条 ================= -->
+  <div class="wizard">
+    <div class="wstep on" id="ws1"><span class="dot">1</span>选择数据源</div>
+    <span class="warrow">›</span>
+    <div class="wstep" id="ws2"><span class="dot">2</span>选择分析类型</div>
+    <span class="warrow">›</span>
+    <div class="wstep" id="ws3"><span class="dot">3</span>结果与解读</div>
+  </div>
+
+  <!-- ================= Step 1 数据源 ================= -->
+  <section id="step1">
+    <div class="src-grid">
+      <div class="card" style="padding:0">
+        <div class="upload-box" id="uploadBox">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
+          <div class="up-t">上传 CSV 数据文件</div>
+          <div class="up-s">第一行为表头，支持 UTF-8 编码（Excel 另存为 CSV-UTF8）</div>
+        </div>
+        <input type="file" id="fileInput" accept=".csv,.txt">
+      </div>
+      <div class="card">
+        <h3><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"/></svg>示例库 · 十个课堂实训</h3>
+        <div class="sample-grid" id="sampleGrid"></div>
+      </div>
+    </div>
+
+    <div class="card hidden" id="dataCard">
+      <h3><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><ellipse cx="12" cy="5" rx="9" ry="3"/><path d="M21 12c0 1.66-4 3-9 3s-9-1.34-9-3"/><path d="M3 5v14c0 1.66 4 3 9 3s9-1.34 9-3V5"/></svg>数据预览<span class="data-meta" id="dataMeta"></span></h3>
+      <div class="col-tags" id="colTags"></div>
+      <div class="table-wrap"><table class="tbl" id="previewTable"></table></div>
+      <div style="display:flex;gap:10px;flex-wrap:wrap">
+        <button class="btn" id="btnStep2">下一步：选择分析类型</button>
+        <button class="btn ghost" id="btnReset1">重新选择</button>
+      </div>
+    </div>
+  </section>
+
+  <!-- ================= Step 2 分析类型 ================= -->
+  <section id="step2" class="hidden">
+    <div class="sec-title"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><polygon points="12 2 2 7 12 12 22 7 12 2"/><polyline points="2 17 12 22 22 17"/><polyline points="2 12 12 17 22 12"/></svg>选择分析类型</div>
+    <div class="sec-sub">系统已根据你的数据列结构给出推荐（绿色标出），也可手动选择其它分析。</div>
+    <div class="an-grid" id="anGrid"></div>
+    <div class="card an-config hidden" id="anConfig">
+      <h3><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="4" y1="21" x2="4" y2="14"/><line x1="4" y1="10" x2="4" y2="3"/><line x1="12" y1="21" x2="12" y2="12"/><line x1="12" y1="8" x2="12" y2="3"/><line x1="20" y1="21" x2="20" y2="16"/><line x1="20" y1="12" x2="20" y2="3"/><line x1="1" y1="14" x2="7" y2="14"/><line x1="9" y1="8" x2="15" y2="8"/><line x1="17" y1="16" x2="23" y2="16"/></svg>分析参数<span class="data-meta">按需调整，均有默认值</span></h3>
+      <div id="cfgFields"></div>
+      <div style="display:flex;gap:10px;flex-wrap:wrap;margin-top:8px">
+        <button class="btn" id="btnRun">开始分析</button>
+        <button class="btn ghost" id="btnBack1">返回选数据</button>
+      </div>
+    </div>
+  </section>
+
+  <!-- ================= Step 3 结果 ================= -->
+  <section id="step3" class="hidden">
+    <div class="sec-title"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/></svg>分析结果</div>
+    <div class="result-toolbar">
+      <button class="btn" id="btnExport"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>导出 HTML 报告</button>
+      <button class="btn ghost" id="btnRestart">重新开始</button>
+      <span class="rt-status" id="rtStatus"></span>
+    </div>
+    <div id="resultArea"></div>
+  </section>
+
+  <!-- ================= 示例报告墙 ================= -->
+  <section>
+    <div class="sec-title"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg>示例报告墙</div>
+    <div class="sec-sub">十份实训报告由同一套确定性引擎预生成（Python 侧），与工作台内计算结果口径一致，供课堂演示与对照。</div>
+    <div class="wall-grid" id="wallGrid"></div>
+  </section>
+
+  <footer>AI 数据分析工作台 · 配套课程《统计与数据分析基础》（人民邮电出版社） · <b>纯本地运行，数据不出浏览器</b></footer>
+</div>
+
+<script>
+"use strict";
+/* =====================================================================
+ * AI 数据分析工作台 —— 全内联 JavaScript 引擎
+ * 确定性计算（无随机）、零外部依赖、file:// 可直接运行
+ * ===================================================================== */
+
+/* ---------- 主题色（对齐人邮蓝） ---------- */
+var C = {brand:"#005DA2", brandD:"#00447A", accent:"#F2A900", ok:"#1E8E5A", bad:"#C0392B",
+  purple:"#6B46C1", teal:"#2C7A7B", gray:"#8A94A0", text:"#2D3748", line:"#E2E8F0"};
+
+/* ---------- 数字格式化 ---------- */
+function fmtNum(v, d){ if(v===null||v===undefined||!isFinite(v)) return "—";
+  d = (d===undefined?1:d); return v.toLocaleString("zh-CN",{minimumFractionDigits:0,maximumFractionDigits:d}); }
+function fmtPct(v, d){ return (v*100).toFixed(d===undefined?1:d)+"%"; }
+function fmtSigned(v, d){ var s=fmtNum(v,d); return (v>0?"+":"")+s; }
+function round(v, d){ var p=Math.pow(10,d===undefined?2:d); return Math.round(v*p)/p; }
+function sum(a){ return a.reduce(function(s,v){return s+v;},0); }
+function mean(a){ return a.length? sum(a)/a.length : NaN; }
+
+/* =====================================================================
+ * 1. CSV 解析（支持引号包裹、逗号、BOM；UTF-8）
+ * ===================================================================== */
+function parseCSV(text){
+  text = text.replace(/^\uFEFF/, "").replace(/\r\n?/g, "\n");
+  var rows=[], row=[], cell="", inQ=false, i, c;
+  for(i=0;i<text.length;i++){
+    c=text[i];
+    if(inQ){
+      if(c==='"'){ if(text[i+1]==='"'){cell+='"';i++;} else inQ=false; }
+      else cell+=c;
+    } else {
+      if(c==='"'){ inQ=true; }
+      else if(c===','){ row.push(cell); cell=""; }
+      else if(c==='\n'){ row.push(cell); rows.push(row); row=[]; cell=""; }
+      else cell+=c;
+    }
+  }
+  if(cell!==""||row.length){ row.push(cell); rows.push(row); }
+  rows = rows.filter(function(r){ return r.some(function(x){ return x.trim()!==""; }); });
+  if(rows.length<2) return null;
+  var headers = rows[0].map(function(h){ return String(h).trim(); });
+  var data = rows.slice(1).map(function(r){
+    while(r.length<headers.length) r.push("");
+    return headers.map(function(_,k){ return (r[k]!==undefined? String(r[k]).trim() : ""); });
+  });
+  return {headers:headers, rows:data};
+}
+
+/* 单元格数值解析："" → null(缺失)；可解析 → number；否则 NaN(文本) */
+function parseNum(s){
+  if(s===null||s===undefined) return null;
+  var t=String(s).trim();
+  if(t==="") return null;
+  t=t.replace(/,/g,"").replace(/[¥￥]/g,"").replace(/\s+/g,"");
+  if(t==="-"||t==="--"||t==="NA"||t==="N/A"||t==="null") return null;
+  // 严格数字格式：残缺日期（2024-2-30）与日期串不得被 parseFloat 截断吞掉
+  if(!/^[-+]?(\d+(\.\d+)?|\.\d+)$/.test(t)) return NaN;
+  var v=parseFloat(t);
+  return isNaN(v)? NaN : v;
+}
+function isNumCol(rows, k){
+  var n=0, ok=0;
+  for(var i=0;i<rows.length;i++){ var v=parseNum(rows[i][k]); if(v!==null){ n++; if(!isNaN(v)) ok++; } }
+  return n>0 && ok/n>=0.85;
+}
+function colValues(rows, k){ // 数值化后的数组（null 跳过）
+  var out=[];
+  for(var i=0;i<rows.length;i++){ var v=parseNum(rows[i][k]); if(v!==null&&!isNaN(v)) out.push(v); }
+  return out;
+}
+
+/* =====================================================================
+ * 2. 描述统计引擎（口径对齐教材：样本方差 ddof=1、众数取最小、Excel 分位数）
+ * ===================================================================== */
+function quantileSorted(s, p){
+  var pos=(s.length-1)*p, lo=Math.floor(pos), hi=Math.ceil(pos);
+  return s[lo]+(s[hi]-s[lo])*(pos-lo);
+}
+function describe(arr){
+  var n=arr.length, s=arr.slice().sort(function(a,b){return a-b;}), i, m=sum(s)/n;
+  var median = n%2? s[(n-1)/2] : (s[n/2-1]+s[n/2])/2;
+  var freq={}, mode=null, mf=0, k;
+  for(i=0;i<n;i++){ freq[s[i]]=(freq[s[i]]||0)+1; }
+  for(k in freq){ if(freq[k]>mf){ mf=freq[k]; mode=parseFloat(k); } }
+  var min=s[0], max=s[n-1], range=max-min;
+  var q1=quantileSorted(s,0.25), q3=quantileSorted(s,0.75), iqr=q3-q1;
+  var varr=0, m3=0, m4=0;
+  for(i=0;i<n;i++){ var d=s[i]-m; varr+=d*d; m3+=d*d*d; m4+=d*d*d*d; }
+  var variance=varr/(n-1), std=Math.sqrt(variance), cv=m? std/m : NaN;
+  var skew = std>0? (m3/n)/(std*std*std) : NaN;
+  var kurt = std>0? (m4/n)/(std*std*std*std)-3 : NaN;
+  return {n:n,min:min,max:max,range:range,mean:m,median:median,mode:mode,
+    q1:q1,q3:q3,iqr:iqr,variance:variance,std:std,cv:cv,skew:skew,kurt:kurt,sum:m*n};
+}
+
+/* =====================================================================
+ * 3. 相关与回归（最小二乘一元线性回归 + 皮尔逊 r）
+ * ===================================================================== */
+function linreg(xs, ys){
+  var n=Math.min(xs.length,ys.length), i, mx=mean(xs), my=mean(ys);
+  var sxy=0, sxx=0, syy=0;
+  for(i=0;i<n;i++){ var dx=xs[i]-mx, dy=ys[i]-my; sxy+=dx*dy; sxx+=dx*dx; syy+=dy*dy; }
+  var b=sxx!==0? sxy/sxx : NaN, a=my-b*mx;
+  var r=Math.sqrt(sxx)*Math.sqrt(syy)!==0? sxy/Math.sqrt(sxx*syy) : NaN;
+  var r2=r*r;
+  function predict(x0){ return a+b*x0; }
+  return {n:n,a:a,b:b,r:r,r2:r2,predict:predict,meanX:mx,meanY:my};
+}
+function corrStrength(r){
+  var a=Math.abs(r);
+  if(a>=0.8) return "高度相关";
+  if(a>=0.5) return "显著相关";
+  if(a>=0.3) return "低度相关";
+  return "弱相关（几乎不相关）";
+}
+
+/* =====================================================================
+ * 4. 时间序列分析（发展水平/增长量/环比定基速度/几何平均/趋势方程/预测）
+ * ===================================================================== */
+function tsAnalysis(ys){
+  var n=ys.length, i, first=ys[0], last=ys[n-1];
+  var avgLevel=sum(ys)/n;
+  var avgGrowth=(last-first)/(n-1);
+  var chain=[], fixed=[];
+  for(i=1;i<n;i++){ chain.push(ys[i]/ys[i-1]); fixed.push(ys[i]/first); }
+  fixed.unshift(1);
+  var geoMean=first>0? Math.pow(last/first, 1/(n-1)) : NaN;
+  var t=ys.map(function(_,k){return k;});
+  var tr=linreg(t, ys);
+  return {n:n, first:first, last:last, avgLevel:avgLevel, avgGrowth:avgGrowth,
+    chain:chain, fixed:fixed, geoMean:geoMean, trend:tr};
+}
+function tsForecast(tr, targetT){ return tr.predict(targetT); }
+
+/* =====================================================================
+ * 5. 统计指数（拉氏/帕氏综合指数 + 因素分析，口径对齐教材）
+ * ===================================================================== */
+function indexAnalysis(q0, q1, p0, p1){
+  var n=q0.length, i;
+  var s00=0, s10=0, s01=0, s11=0;
+  for(i=0;i<n;i++){ s00+=q0[i]*p0[i]; s10+=q1[i]*p0[i]; s01+=q0[i]*p1[i]; s11+=q1[i]*p1[i]; }
+  var kqL=s00? s10/s00 : NaN,   // 拉氏产量指数 Σq1p0/Σq0p0
+      kqP=s01? s11/s01 : NaN,   // 帕氏产量指数 Σq1p1/Σq0p1
+      kpL=s00? s01/s00 : NaN,   // 拉氏价格指数 Σq0p1/Σq0p0
+      kpP=s10? s11/s10 : NaN,   // 帕氏价格指数 Σq1p1/Σq1p0
+      kTotal=s00? s11/s00 : NaN;
+  var eQ=s10-s00, eP=s11-s10, eTotal=s11-s00;
+  var qEffects=[], pEffects=[], iq=[], ip=[];
+  for(i=0;i<n;i++){
+    iq.push(q1[i]/q0[i]); ip.push(p1[i]/p0[i]);
+    qEffects.push(q1[i]*p0[i]-q0[i]*p0[i]); pEffects.push(q1[i]*p1[i]-q1[i]*p0[i]);
+  }
+  var relConsistent=Math.abs(kqL*kpP-kTotal)<1e-6;
+  var absConsistent=Math.abs(eQ+eP-eTotal)<1e-6;
+  return {s00:s00,s10:s10,s01:s01,s11:s11,kqL:kqL,kqP:kqP,kpL:kpL,kpP:kpP,
+    kTotal:kTotal,eQ:eQ,eP:eP,eTotal:eTotal,iq:iq,ip:ip,
+    qEffects:qEffects,pEffects:pEffects,relConsistent:relConsistent,absConsistent:absConsistent};
+}
+
+/* =====================================================================
+ * 6. 抽样估计（z=1.96 大样本均值区间 / 比例区间 / 样本量）
+ * ===================================================================== */
+var Z95=1.96;
+function meanInterval(arr){
+  var st=describe(arr), se=st.std/Math.sqrt(st.n), margin=Z95*se;
+  return {n:st.n, mean:st.mean, std:st.std, se:se, margin:margin,
+    lower:st.mean-margin, upper:st.mean+margin, large:st.n>=30};
+}
+function propInterval(binaries){
+  var n=binaries.length, k=binaries.filter(Boolean).length, p=k/n;
+  var se=Math.sqrt(p*(1-p)/n), margin=Z95*se;
+  return {n:n,k:k,p:p,se:se,margin:margin,lower:p-margin,upper:p+margin,
+    np:k, nq:n-k, checkOK:k>=5 && (n-k)>=5};
+}
+function requiredSampleSize(sigma, E, z){ z=z||Z95; return Math.ceil((z*sigma/E)*(z*sigma/E)); }
+
+/* =====================================================================
+ * 7. 数据清洗诊断（缺失 / 文本数字 / 异常 IQR / 重复行 / 类型问题）
+ * ===================================================================== */
+function cleanDiagnose(ds){
+  var issues=[], i, j;
+  // ds: {headers, rows}
+  var missByCol=[], textNumByCol=[];
+  for(j=0;j<ds.headers.length;j++){
+    var miss=0, tn=0;
+    for(i=0;i<ds.rows.length;i++){
+      var raw=ds.rows[i][j], v=parseNum(raw);
+      if(v===null) miss++;
+      else if(isNaN(v)) { /* 真文本 */ }
+      else if(String(raw).match(/[,\s¥￥]/)) tn++;
+    }
+    missByCol.push(miss); textNumByCol.push(tn);
+    if(miss>0) issues.push({type:"缺失", col:ds.headers[j], detail:miss+" 个缺失值（"+fmtPct(miss/ds.rows.length)+"）", act:"用该列均值/行业均值填充，或直接删除缺失行"});
+    if(tn>0) issues.push({type:"文本数字", col:ds.headers[j], detail:tn+" 个单元格含千分位逗号/货币符号/空格（如 1,250.5）", act:"去除杂质后转为数值类型"});
+  }
+  // 数值列异常值（IQR）
+  for(j=0;j<ds.headers.length;j++){
+    if(!isNumCol(ds.rows,j)) continue;
+    var vals=colValues(ds.rows,j), st=describe(vals);
+    var lo=st.q1-1.5*st.iqr, hi=st.q3+1.5*st.iqr, outs=vals.filter(function(v){return v<lo||v>hi;});
+    if(outs.length) issues.push({type:"异常值", col:ds.headers[j], detail:outs.length+" 个超出 IQR 界限 ["+fmtNum(lo,0)+", "+fmtNum(hi,0)+"]，如 "+outs.slice(0,3).map(function(v){return fmtNum(v,0);}).join("、")+"…", act:"核对原始记录，确认录入错误后剔除或修正"});
+  }
+  // 重复行
+  var seen={}, dups=0;
+  for(i=0;i<ds.rows.length;i++){ var key=ds.rows[i].join("\u0001"); if(seen[key]) dups++; else seen[key]=1; }
+  if(dups>0) issues.push({type:"重复行", col:"—", detail:dups+" 行完全重复", act:"去重后仅保留一行"});
+  // 脏名称（首尾空格）
+  var dirtyNames=0;
+  for(j=0;j<ds.headers.length;j++) for(i=0;i<ds.rows.length;i++) if(/^\s|\s$/.test(ds.rows[i][j])){ dirtyNames++; break; }
+  if(dirtyNames>0) issues.push({type:"脏名称", col:"—", detail:dirtyNames+" 个字段首尾含多余空格", act:"trim() 去除首尾空格"});
+  return {issues:issues, missByCol:missByCol, textNumByCol:textNumByCol, nRows:ds.rows.length};
+}
+
+/* =====================================================================
+ * 8. 分类汇总 / 数据透视
+ * ===================================================================== */
+function groupSummary(rows, catIdx, valIdx){
+  var g={}, order=[];
+  for(var i=0;i<rows.length;i++){
+    var key=rows[i][catIdx]||"(空)";
+    if(!g[key]){ g[key]={key:key,vals:[]}; order.push(key); }
+    var v=parseNum(rows[i][valIdx]);
+    if(v!==null&&!isNaN(v)) g[key].vals.push(v);
+  }
+  return order.map(function(k){
+    var vs=g[k].vals, s=describe(vs);
+    return {key:k, count:vs.length, sum:s.sum, mean:s.mean, min:s.min, max:s.max};
+  }).sort(function(a,b){return b.sum-a.sum;});
+}
+function pivotTable(rows, rowIdx, colIdx, valIdx){
+  var rowKeys=[], colKeys=[], map={}, ri, ci, rk, ck, v;
+  for(var i=0;i<rows.length;i++){
+    rk=rows[i][rowIdx]||"(空)"; ck=rows[i][colIdx]||"(空)";
+    if(rowKeys.indexOf(rk)<0) rowKeys.push(rk);
+    if(colKeys.indexOf(ck)<0) colKeys.push(ck);
+    v=parseNum(rows[i][valIdx]); if(v===null||isNaN(v)) v=0;
+    map[rk] = map[rk]||{}; map[rk][ck]=(map[rk][ck]||0)+v;
+  }
+  return {rowKeys:rowKeys, colKeys:colKeys, map:map};
+}
+
+/* =====================================================================
+ * 9. 内联 SVG 图表工厂（手写，零依赖）
+ * ===================================================================== */
+function svgWrap(inner, w, h, opts){
+  opts=opts||{};
+  var title = opts.title? '<text x="'+(w/2)+'" y="26" text-anchor="middle" font-size="15" font-weight="700" fill="'+C.text+'">'+escXML(opts.title)+'</text>' : "";
+  var sub = opts.subtitle? '<text x="'+(w/2)+'" y="44" text-anchor="middle" font-size="11.5" fill="'+C.gray+'">'+escXML(opts.subtitle)+'</text>' : "";
+  var padTop = (opts.title? 26:8) + (opts.subtitle? 20:0);
+  return '<svg viewBox="0 0 '+w+' '+h+'" xmlns="http://www.w3.org/2000/svg" role="img">'
+    +'<rect x="0" y="0" width="'+w+'" height="'+h+'" fill="white" rx="8"/>'+title+sub+inner+'</svg>';
+}
+function escXML(s){ return String(s).replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;"); }
+function niceTicks(min, max, want){
+  want=want||5; if(min===max){ min-=1; max+=1; }
+  var span=max-min, step=Math.pow(10, Math.floor(Math.log10(span/want)));
+  var err=span/want/step;
+  step*= err>=7.5?10 : err>=3.5?5 : err>=1.5?2 : 1;
+  var start=Math.ceil(min/step)*step, ticks=[];
+  for(var t=start; t<=max+1e-9; t+=step) ticks.push(t);
+  if(ticks.length>10){ step*=2; ticks=[]; for(var t2=Math.ceil(min/step)*step; t2<=max+1e-9; t2+=step) ticks.push(t2); }
+  return ticks;
+}
+
+function svgBar(labels, values, opts){
+  opts=opts||{};
+  var w=760, h=400, ml=64, mr=14, mt=(opts.title?46:10), mb=58;
+  var maxV=Math.max.apply(null, values.concat([0])), ticks=niceTicks(0, maxV*1.08, 5);
+  var yMax=ticks[ticks.length-1], plotW=w-ml-mr, plotH=h-mt-mb;
+  var n=labels.length, bw=Math.min(56, plotW/n*0.62);
+  var g="";
+  ticks.forEach(function(t){
+    var y=mt+plotH-(t/yMax)*plotH;
+    g+='<line x1="'+ml+'" y1="'+y+'" x2="'+(w-mr)+'" y2="'+y+'" stroke="'+C.line+'" stroke-width="1"/>';
+    g+='<text x="'+(ml-8)+'" y="'+(y+4)+'" text-anchor="end" font-size="11" fill="'+C.gray+'">'+fmtNum(t,0)+'</text>';
+  });
+  labels.forEach(function(lb,i){
+    var x=ml+(i+0.5)*(plotW/n)-bw/2, y=mt+plotH-(values[i]/yMax)*plotH;
+    g+='<rect x="'+x+'" y="'+y+'" width="'+bw+'" height="'+(mt+plotH-y)+'" rx="3" fill="'+C.brand+'" opacity="0.9"/>';
+    g+='<text x="'+(x+bw/2)+'" y="'+(y-6)+'" text-anchor="middle" font-size="11.5" font-weight="700" fill="'+C.brandD+'">'+fmtNum(values[i],0)+'</text>';
+    var lx=ml+(i+0.5)*(plotW/n);
+    g+='<text x="'+lx+'" y="'+(h-mb+22)+'" text-anchor="middle" font-size="11" fill="'+C.text+'">'+escXML(String(lb))+'</text>';
+  });
+  g+='<line x1="'+ml+'" y1="'+(mt+plotH)+'" x2="'+(w-mr)+'" y2="'+(mt+plotH)+'" stroke="#9AA7B4" stroke-width="1.4"/>';
+  return svgWrap(g, w, h, opts);
+}
+
+function svgLine(labels, series, opts){
+  opts=opts||{};
+  var w=760, h=400, ml=64, mr=20, mt=(opts.title?46:10), mb=58;
+  var all=[], si, i;
+  series.forEach(function(s){ all=all.concat(s.values); });
+  var minV=Math.min.apply(null, all.concat([0])), maxV=Math.max.apply(null, all);
+  var pad=(maxV-minV)*0.12||1; minV-=pad; maxV+=pad;
+  var ticks=niceTicks(minV, maxV, 5), yMin=ticks[0], yMax=ticks[ticks.length-1];
+  var plotW=w-ml-mr, plotH=h-mt-mb;
+  var cols=[C.brand, C.accent, C.teal, C.purple, C.bad];
+  var g="";
+  ticks.forEach(function(t){
+    var y=mt+plotH-(t-yMin)/(yMax-yMin)*plotH;
+    g+='<line x1="'+ml+'" y1="'+y+'" x2="'+(w-mr)+'" y2="'+y+'" stroke="'+C.line+'" stroke-width="1"/>';
+    g+='<text x="'+(ml-8)+'" y="'+(y+4)+'" text-anchor="end" font-size="11" fill="'+C.gray+'">'+fmtNum(t,0)+'</text>';
+  });
+  series.forEach(function(s, si){
+    var col=cols[si%cols.length], pts=[];
+    s.values.forEach(function(v,i){
+      var x=ml+(i/(s.values.length-1||1))*plotW, y=mt+plotH-(v-yMin)/(yMax-yMin)*plotH;
+      pts.push(x+","+y);
+      if(i===s.values.length-1) g+='<text x="'+(x+6)+'" y="'+(y+4)+'" font-size="11" font-weight="700" fill="'+col+'">'+escXML(s.name)+'</text>';
+    });
+    g+='<polyline points="'+pts.join(" ")+'" fill="none" stroke="'+col+'" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"/>';
+  });
+  labels.forEach(function(lb,i){
+    g+='<text x="'+(ml+(i/(labels.length-1||1))*plotW)+'" y="'+(h-mb+22)+'" text-anchor="middle" font-size="11" fill="'+C.text+'">'+escXML(String(lb))+'</text>';
+  });
+  g+='<line x1="'+ml+'" y1="'+(mt+plotH)+'" x2="'+(w-mr)+'" y2="'+(mt+plotH)+'" stroke="#9AA7B4" stroke-width="1.4"/>';
+  if(series.length>1){
+    var lgX=w-220, lgY=mt+6;
+    series.forEach(function(s,si){ var col=cols[si%cols.length];
+      g+='<rect x="'+lgX+'" y="'+(lgY+si*18)+'" width="11" height="11" rx="2" fill="'+col+'"/>';
+      g+='<text x="'+(lgX+16)+'" y="'+(lgY+si*18+10)+'" font-size="11.5" fill="'+C.text+'">'+escXML(s.name)+'</text>';
+    });
+  }
+  return svgWrap(g, w, h, opts);
+}
+
+function svgPie(labels, values, opts){
+  opts=opts||{};
+  var w=760, h=420, cx=250, cy=210, r=150, total=sum(values);
+  var cols=[C.brand, C.accent, C.teal, C.purple, "#C05621", "#3182CE", "#B7791F", "#38A169"];
+  var g="", acc=0, i;
+  values.forEach(function(v,i){
+    var ang=v/total*360, start=acc, end=acc+ang;
+    acc=end;
+    var x1=cx+r*Math.cos(Math.PI/180*(start-90)), y1=cy+r*Math.sin(Math.PI/180*(start-90));
+    var x2=cx+r*Math.cos(Math.PI/180*(end-90)),   y2=cy+r*Math.sin(Math.PI/180*(end-90));
+    var large=ang>180?1:0;
+    var col=cols[i%cols.length];
+    g+='<path d="M '+cx+' '+cy+' L '+x1+' '+y1+' A '+r+' '+r+' 0 '+large+' 1 '+x2+' '+y2+' Z" fill="'+col+'" stroke="white" stroke-width="2"/>';
+    var mid=Math.PI/180*(start+end-180)/2, lx=cx+(r+26)*Math.cos(mid), ly=cy+(r+26)*Math.sin(mid);
+    if(v/total>=0.055){
+      g+='<text x="'+lx+'" y="'+(ly+4)+'" text-anchor="middle" font-size="11.5" font-weight="700" fill="'+C.text+'">'+escXML(String(labels[i]))+'</text>';
+      g+='<text x="'+lx+'" y="'+(ly+19)+'" text-anchor="middle" font-size="10.5" fill="'+C.gray+'">'+fmtPct(v/total,1)+'</text>';
+    }
+  });
+  g+='<text x="'+cx+'" y="'+(cy-6)+'" text-anchor="middle" font-size="24" font-weight="800" fill="'+C.brandD+'">'+fmtNum(total,0)+'</text>';
+  g+='<text x="'+cx+'" y="'+(cy+16)+'" text-anchor="middle" font-size="12" fill="'+C.gray+'">合计</text>';
+  // 图例（右侧）
+  var lx=470, ly=70;
+  cols.slice(0,labels.length).forEach(function(col,i){
+    var pct=values[i]/total*100;
+    g+='<rect x="'+lx+'" y="'+(ly+i*26)+'" width="13" height="13" rx="3" fill="'+col+'"/>';
+    g+='<text x="'+(lx+20)+'" y="'+(ly+i*26+11)+'" font-size="12.5" fill="'+C.text+'">'+escXML(String(labels[i]))+'</text>';
+    g+='<text x="'+(lx+20)+'" y="'+(ly+i*26+24)+'" font-size="10.5" fill="'+C.gray+'">'+fmtNum(values[i],0)+' · '+fmtPct(pct,1)+'</text>';
+  });
+  return svgWrap(g, w, h, opts);
+}
+
+function svgHist(values, opts){
+  opts=opts||{};
+  var n=values.length, bins=opts.bins||Math.max(5,Math.min(10,Math.round(Math.sqrt(n))));
+  var minV=Math.min.apply(null,values), maxV=Math.max.apply(null,values);
+  if(minV===maxV){ minV-=1; maxV+=1; }
+  var bw=(maxV-minV)/bins, counts=new Array(bins).fill(0), i;
+  for(i=0;i<n;i++){ var b=Math.min(bins-1, Math.floor((values[i]-minV)/bw)); counts[b]++; }
+  var labels=[], l;
+  for(l=0;l<bins;l++) labels.push(fmtNum(minV+bw*l,1)+"~"+fmtNum(minV+bw*(l+1),1));
+  return svgBar(labels, counts, {title:opts.title, subtitle:opts.subtitle});
+}
+
+function svgBox(values, opts){
+  opts=opts||{};
+  var st=describe(values), w=760, h=300, ml=64, mr=24, mt=(opts.title?46:10), mb=40;
+  var ticks=niceTicks(st.min, st.max, 5), yMin=ticks[0], yMax=ticks[ticks.length-1];
+  var plotW=w-ml-mr, plotH=h-mt-mb;
+  function X(v){ return ml+(v-yMin)/(yMax-yMin)*plotW; }
+  var g="";
+  ticks.forEach(function(t){ var x=X(t);
+    g+='<line x1="'+x+'" y1="'+mt+'" x2="'+x+'" y2="'+(mt+plotH)+'" stroke="'+C.line+'" stroke-width="1"/>';
+    g+='<text x="'+x+'" y="'+(h-14)+'" text-anchor="middle" font-size="11" fill="'+C.gray+'">'+fmtNum(t,0)+'</text>';
+  });
+  var yMid=mt+plotH/2;
+  g+='<line x1="'+X(st.min)+'" y1="'+yMid+'" x2="'+X(st.q1)+'" y2="'+yMid+'" stroke="#9AA7B4" stroke-width="1.6"/>';
+  g+='<line x1="'+X(st.q3)+'" y1="'+yMid+'" x2="'+X(st.max)+'" y2="'+yMid+'" stroke="#9AA7B4" stroke-width="1.6"/>';
+  g+='<line x1="'+X(st.min)+'" y1="'+(yMid-26)+'" x2="'+X(st.min)+'" y2="'+(yMid+26)+'" stroke="#9AA7B4" stroke-width="1.6"/>';
+  g+='<line x1="'+X(st.max)+'" y1="'+(yMid-26)+'" x2="'+X(st.max)+'" y2="'+(yMid+26)+'" stroke="#9AA7B4" stroke-width="1.6"/>';
+  g+='<rect x="'+X(st.q1)+'" y="'+(yMid-44)+'" width="'+(X(st.q3)-X(st.q1))+'" height="88" fill="'+C.brand+'" opacity="0.85" rx="3"/>';
+  g+='<line x1="'+X(st.median)+'" y1="'+(yMid-44)+'" x2="'+X(st.median)+'" y2="'+(yMid+44)+'" stroke="white" stroke-width="2.6"/>';
+  g+='<line x1="'+X(st.mean)+'" y1="'+(yMid-44)+'" x2="'+X(st.mean)+'" y2="'+(yMid+44)+'" stroke="'+C.accent+'" stroke-width="2.6" stroke-dasharray="5 4"/>';
+  g+='<circle cx="'+X(st.mean)+'" cy="'+(yMid-58)+'" r="4" fill="'+C.accent+'"/><text x="'+(X(st.mean)+8)+'" y="'+(yMid-54)+'" font-size="11" fill="'+C.accent+'" font-weight="700">均值</text>';
+  g+='<circle cx="'+X(st.median)+'" cy="'+(yMid+58)+'" r="4" fill="white" stroke="'+C.brand+'" stroke-width="2"/><text x="'+(X(st.median)+8)+'" y="'+(yMid+62)+'" font-size="11" fill="'+C.brand+'" font-weight="700">中位数</text>';
+  return svgWrap(g, w, h, opts);
+}
+
+function svgScatter(xs, ys, opts){
+  opts=opts||{};
+  var w=760, h=410, ml=64, mr=24, mt=(opts.title?46:10), mb=56;
+  var xMin=Math.min.apply(null,xs), xMax=Math.max.apply(null,xs);
+  var yMin=Math.min.apply(null,ys), yMax=Math.max.apply(null,ys);
+  var padX=(xMax-xMin)*0.08||1, padY=(yMax-yMin)*0.1||1;
+  xMin-=padX; xMax+=padX; yMin-=padY; yMax+=padY;
+  var xt=niceTicks(xMin,xMax,5), yt=niceTicks(yMin,yMax,5);
+  xMin=xt[0]; xMax=xt[xt.length-1]; yMin=yt[0]; yMax=yt[yt.length-1];
+  var plotW=w-ml-mr, plotH=h-mt-mb;
+  function X(v){ return ml+(v-xMin)/(xMax-xMin)*plotW; }
+  function Y(v){ return mt+plotH-(v-yMin)/(yMax-yMin)*plotH; }
+  var g="";
+  yt.forEach(function(t){ var y=Y(t);
+    g+='<line x1="'+ml+'" y1="'+y+'" x2="'+(w-mr)+'" y2="'+y+'" stroke="'+C.line+'" stroke-width="1"/>';
+    g+='<text x="'+(ml-8)+'" y="'+(y+4)+'" text-anchor="end" font-size="11" fill="'+C.gray+'">'+fmtNum(t,1)+'</text>';
+  });
+  xt.forEach(function(t){ var x=X(t);
+    g+='<text x="'+x+'" y="'+(h-mb+22)+'" text-anchor="middle" font-size="11" fill="'+C.gray+'">'+fmtNum(t,1)+'</text>';
+  });
+  xs.forEach(function(x,i){
+    g+='<circle cx="'+X(x)+'" cy="'+Y(ys[i])+'" r="5.5" fill="'+C.brand+'" opacity="0.75" stroke="white" stroke-width="1"/>';
+  });
+  if(opts.a!==undefined&&opts.b!==undefined){
+    var x0=xMin, x1=xMax;
+    var y0=opts.a+opts.b*x0, y1=opts.a+opts.b*x1;
+    g+='<line x1="'+X(x0)+'" y1="'+Y(y0)+'" x2="'+X(x1)+'" y2="'+Y(y1)+'" stroke="'+C.accent+'" stroke-width="2.6" stroke-dasharray="7 5"/>';
+    g+='<text x="'+(X(x0)+20)+'" y="'+(Y(y1)+18)+'" font-size="12" font-weight="800" fill="#B7791F">y = '+fmtNum(opts.a,2)+' + '+fmtNum(opts.b,2)+'x　R²='+fmtNum(opts.r2,3)+'</text>';
+  }
+  if(opts.predictX!==undefined&&opts.a!==undefined){
+    var px=opts.predictX, py=opts.a+opts.b*px;
+    g+='<circle cx="'+X(px)+'" cy="'+Y(py)+'" r="7" fill="'+C.bad+'" stroke="white" stroke-width="2"/>';
+    g+='<text x="'+(X(px)+10)+'" y="'+(Y(py)-10)+'" font-size="12" font-weight="800" fill="'+C.bad+'">预测 x='+fmtNum(px,0)+' → y='+fmtNum(py,0)+'</text>';
+  }
+  g+='<line x1="'+ml+'" y1="'+(mt+plotH)+'" x2="'+(w-mr)+'" y2="'+(mt+plotH)+'" stroke="#9AA7B4" stroke-width="1.4"/>';
+  g+='<line x1="'+ml+'" y1="'+mt+'" x2="'+ml+'" y2="'+(mt+plotH)+'" stroke="#9AA7B4" stroke-width="1.4"/>';
+  return svgWrap(g, w, h, opts);
+}
+
+function svgLineForecast(labels, ys, opts){
+  // 时序图：实际折线 + 趋势虚线延伸 + 预测点（红星）
+  opts=opts||{};
+  var w=760, h=400, ml=64, mr=30, mt=(opts.title?46:10), mb=56;
+  var n=ys.length, fcN=opts.forecastN||1;
+  var extYs=ys.concat(opts.forecastVals||[]);
+  var all=extYs, minV=Math.min.apply(null,all), maxV=Math.max.apply(null,all);
+  var pad=(maxV-minV)*0.12||1; minV-=pad; maxV+=pad;
+  var ticks=niceTicks(minV,maxV,5), yMin=ticks[0], yMax=ticks[ticks.length-1];
+  var plotW=w-ml-mr, plotH=h-mt-mb;
+  function X(i){ return ml+(i/(n-1+fcN))*plotW; }
+  function Y(v){ return mt+plotH-(v-yMin)/(yMax-yMin)*plotH; }
+  var g="";
+  ticks.forEach(function(t){ var y=Y(t);
+    g+='<line x1="'+ml+'" y1="'+y+'" x2="'+(w-mr)+'" y2="'+y+'" stroke="'+C.line+'" stroke-width="1"/>';
+    g+='<text x="'+(ml-8)+'" y="'+(y+4)+'" text-anchor="end" font-size="11" fill="'+C.gray+'">'+fmtNum(t,1)+'</text>';
+  });
+  var pts=[], trendPts=[], i;
+  for(i=0;i<n;i++){ pts.push(X(i)+","+Y(ys[i])); trendPts.push(X(i)+","+Y(opts.trend.predict(i))); }
+  g+='<polyline points="'+pts.join(" ")+'" fill="none" stroke="'+C.brand+'" stroke-width="2.8" stroke-linecap="round" stroke-linejoin="round"/>';
+  g+='<polyline points="'+trendPts.join(" ")+'" fill="none" stroke="'+C.accent+'" stroke-width="2.2" stroke-dasharray="7 5" opacity="0.85"/>';
+  var tEnd=X(n-1+fcN), yEnd=Y(opts.trend.predict(n-1+fcN));
+  var lastX=X(n-1), lastY=Y(ys[n-1]);
+  g+='<line x1="'+lastX+'" y1="'+lastY+'" x2="'+tEnd+'" y2="'+yEnd+'" stroke="'+C.accent+'" stroke-width="2.2" stroke-dasharray="7 5" opacity="0.85"/>';
+  g+='<circle cx="'+tEnd+'" cy="'+yEnd+'" r="7" fill="'+C.bad+'" stroke="white" stroke-width="2"/>';
+  var fcLabel=opts.forecastLabel||("预测 "+(labels[labels.length-1]+1));
+  g+='<text x="'+Math.min(tEnd+8, w-mr-6)+'" y="'+(yEnd-10)+'" font-size="12" font-weight="800" fill="'+C.bad+'">'+escXML(fcLabel)+' '+fmtNum(opts.forecastVals[0],1)+'</text>';
+  for(i=0;i<labels.length;i++){
+    g+='<text x="'+X(i)+'" y="'+(h-mb+22)+'" text-anchor="middle" font-size="10.5" fill="'+C.text+'">'+escXML(String(labels[i]))+'</text>';
+  }
+  g+='<text x="'+tEnd+'" y="'+(h-mb+22)+'" text-anchor="middle" font-size="11" font-weight="800" fill="'+C.bad+'">'+escXML(String(labels[labels.length-1]+1))+'</text>';
+  g+='<line x1="'+ml+'" y1="'+(mt+plotH)+'" x2="'+(w-mr)+'" y2="'+(mt+plotH)+'" stroke="#9AA7B4" stroke-width="1.4"/>';
+  return svgWrap(g, w, h, opts);
+}
+
+function svgGroupedBar(labels, series, opts){
+  opts=opts||{};
+  var w=760, h=400, ml=64, mr=16, mt=(opts.title?46:10), mb=58;
+  var all=[]; series.forEach(function(s){ all=all.concat(s.values); });
+  var maxV=Math.max.apply(null,all.concat([0])), ticks=niceTicks(0,maxV*1.08,5);
+  var yMax=ticks[ticks.length-1], plotW=w-ml-mr, plotH=h-mt-mb;
+  var n=labels.length, m=series.length, groupW=plotW/n, bw=Math.min(30, groupW/(m+1.1));
+  var cols=[C.brand, C.accent, C.teal, C.purple, "#C05621"];
+  var g="";
+  ticks.forEach(function(t){ var y=mt+plotH-(t/yMax)*plotH;
+    g+='<line x1="'+ml+'" y1="'+y+'" x2="'+(w-mr)+'" y2="'+y+'" stroke="'+C.line+'" stroke-width="1"/>';
+    g+='<text x="'+(ml-8)+'" y="'+(y+4)+'" text-anchor="end" font-size="11" fill="'+C.gray+'">'+fmtNum(t,0)+'</text>';
+  });
+  series.forEach(function(s,si){
+    var col=cols[si%cols.length];
+    s.values.forEach(function(v,i){
+      var x=ml+i*groupW+(si-(m-1)/2)*bw + groupW/2 - bw/2;
+      var y=mt+plotH-(v/yMax)*plotH;
+      g+='<rect x="'+x+'" y="'+y+'" width="'+Math.max(2,bw*0.88)+'" height="'+(mt+plotH-y)+'" rx="2" fill="'+col+'" opacity="0.92"/>';
+    });
+  });
+  labels.forEach(function(lb,i){
+    g+='<text x="'+(ml+i*groupW+groupW/2)+'" y="'+(h-mb+22)+'" text-anchor="middle" font-size="10.5" fill="'+C.text+'">'+escXML(String(lb))+'</text>';
+  });
+  var lgX=w-240, lgY=mt+6;
+  series.forEach(function(s,si){ var col=cols[si%cols.length];
+    g+='<rect x="'+lgX+'" y="'+(lgY+si*18)+'" width="11" height="11" rx="2" fill="'+col+'"/>';
+    g+='<text x="'+(lgX+16)+'" y="'+(lgY+si*18+10)+'" font-size="11.5" fill="'+C.text+'">'+escXML(s.name)+'</text>';
+  });
+  g+='<line x1="'+ml+'" y1="'+(mt+plotH)+'" x2="'+(w-mr)+'" y2="'+(mt+plotH)+'" stroke="#9AA7B4" stroke-width="1.4"/>';
+  return svgWrap(g, w, h, opts);
+}
+
+/* =====================================================================
+ * 10. 报告块构造器（对齐参考 PPT 风格：编号块 / 公式卡 / 结论 / Prompt）
+ * ===================================================================== */
+function resBlock(title, innerHtml){
+  return '<div class="res-block"><div class="rb-title">'+title+'</div>'+innerHtml+'</div>';
+}
+function metricCard(label, value, unit, cls){
+  cls=cls||"";
+  unit=unit||"";
+  return '<div class="metric'+(cls?" "+cls:"")+'"><div class="m-label">'+escXML(label)+'</div>'
+    +'<div class="m-value">'+value+(unit?'<span class="m-unit">'+escXML(unit)+'</span>':'')+'</div></div>';
+}
+function formulaCard(label, expr, sub, res){
+  return '<div class="formula-card"><div class="f-label">'+escXML(label)+'</div>'
+    +'<div class="f-expr">'+expr+'</div>'
+    +(sub?'<div class="f-sub">'+sub+'</div>':'')
+    +(res!==undefined?'<div class="f-res">= '+res+'</div>':'')+'</div>';
+}
+function finding(level, title, text){
+  return '<div class="finding f-'+level+'"><span class="f-badge">'+({fact:"事实",anl:"分析",sug:"建议",warn:"警示"}[level]||level)+'</span>'
+    +'<div class="f-body"><span class="f-title">'+escXML(title)+'</span>　'+escXML(text)+'</div></div>';
+}
+function promptBlock(promptText, note){
+  return '<div class="prompt-box"><div class="pb-label">'
+    +'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>'
+    +'推荐 Prompt · 学生可复制此提示词，课后用真实 AI 复现同款分析</div>'
+    +'<div class="pb-text">'+escXML(promptText)+'</div>'
+    +(note?'<div class="pb-note" style="font-size:11.5px;color:#9FB6CC;margin-top:8px">'+escXML(note)+'</div>':'')
+    +'<button class="pb-copy" onclick="copyPrompt(this)">复制 Prompt</button></div>';
+}
+function copyPrompt(btn){
+  var box=btn.closest(".prompt-box"), txt=box.querySelector(".pb-text").innerText;
+  if(navigator.clipboard && navigator.clipboard.writeText){
+    navigator.clipboard.writeText(txt).then(function(){ flashCopied(btn); }, function(){ fallbackCopy(txt, btn); });
+  } else fallbackCopy(txt, btn);
+}
+function fallbackCopy(txt, btn){
+  var ta=document.createElement("textarea"); ta.value=txt; document.body.appendChild(ta);
+  ta.select(); try{ document.execCommand("copy"); flashCopied(btn); }catch(e){}
+  document.body.removeChild(ta);
+}
+function flashCopied(btn){
+  var old=btn.textContent; btn.textContent="已复制 ✓";
+  setTimeout(function(){ btn.textContent=old; }, 1600);
+}
+function qaNote(text){
+  return '<div class="qa-note"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>'+escXML(text)+'</div>';
+}
+function warnBox(text){
+  return '<div class="warn-box"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>'+escXML(text)+'</div>';
+}
+
+/* =====================================================================
+ * 11. 分析类型定义（8 项预设能力 = 十个实训能力集合）
+ * ===================================================================== */
+function colOptions(ds){
+  return ds.headers.map(function(h,k){ return {name:h, idx:k, num:isNumCol(ds.rows,k)}; });
+}
+function selHtml(opts, sel, id){
+  var html='<select id="'+id+'">';
+  opts.forEach(function(o){
+    html+='<option value="'+o.idx+'"'+(String(o.idx)===String(sel)?" selected":"")+'>'+escXML(o.name)+(o.num?"（数值）":"")+'</option>';
+  });
+  return html+'</select>';
+}
+function multiSelHtml(opts, sels, id, max){
+  var html='<select id="'+id+'" multiple size="'+Math.min(max||4, opts.length)+'">';
+  opts.forEach(function(o){
+    html+='<option value="'+o.idx+'"'+(sels.indexOf(o.idx)>=0?" selected":"")+'>'+escXML(o.name)+'</option>';
+  });
+  return html+'</select>';
+}
+
+var ANALYSES = {
+  desc: {
+    name:"描述统计分析", short:"单列数值 · 集中趋势/离散/形态",
+    desc:"均值、中位数、众数、方差、标准差、变异系数、偏度峰度，配直方图与箱线图，全面刻画一列数值数据的分布。",
+    fit:"适合任意一列数值型数据（价格、电费、产量…）",
+    icon:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/></svg>',
+    detect:function(ds){ var nums=colOptions(ds).filter(function(o){return o.num;}); return nums.length>=1; },
+    config:function(ds){
+      var opts=colOptions(ds).filter(function(o){return o.num;});
+      var first=opts.length? opts[0].idx : 0;
+      return '<div class="cfg-row"><label>数值列</label>'+selHtml(opts, first, "cfg_col")+'</div>'
+        +'<div class="hint">选择要描述的一列数值。直方图分箱数自动按样本量确定。</div>';
+    },
+    run:function(ds, cfg){
+      var idx=parseInt(cfg.col||0,10), col=ds.headers[idx], vals=colValues(ds.rows, idx);
+      var st=describe(vals);
+      return {col:col, st:st};
+    },
+    render:function(ds, cfg, res){
+      var st=res.st, col=res.col, h="";
+      var vals=colValues(ds.rows, parseInt(cfg.col||0,10));
+      h+=resBlock('① 数据概况', metricCard("样本量 n", fmtNum(st.n,0)) + metricCard("最小值", fmtNum(st.min,2)) + metricCard("最大值", fmtNum(st.max,2)) + metricCard("极差", fmtNum(st.range,2)) + metricCard("合计", fmtNum(st.sum,1)));
+      h+=resBlock('② 集中趋势',
+        metricCard("均值", fmtNum(st.mean,2), "", "hl") + metricCard("中位数", fmtNum(st.median,2)) + metricCard("众数", fmtNum(st.mode,2)) +
+        '<div style="margin-top:8px">'+
+        formulaCard("均值", "x̄ = Σxᵢ / n", "Σxᵢ = "+fmtNum(st.sum,2)+"，n = "+st.n, fmtNum(st.mean,2)) +
+        formulaCard("中位数", "排序后取中间位置的值", "n="+st.n+"（"+(st.n%2?"奇数→第 "+(st.n+1)/2+" 个":"偶数→第 "+st.n/2+"、"+ (st.n/2+1)+" 个的平均")+"）", fmtNum(st.median,2)) +
+        '</div>');
+      h+=resBlock('③ 离散程度',
+        metricCard("方差(无偏)", fmtNum(st.variance,2)) + metricCard("标准差", fmtNum(st.std,2), "", "hl") + metricCard("变异系数", fmtPct(st.cv,2), "%") + metricCard("四分位差 IQR", fmtNum(st.iqr,2)) +
+        '<div style="margin-top:8px">'+
+        formulaCard("样本方差(教材口径 ddof=1)", "s² = Σ(xᵢ−x̄)² / (n−1)", "n = "+st.n, fmtNum(st.variance,2)) +
+        formulaCard("标准差", "s = √s²", "", fmtNum(st.std,2)) +
+        formulaCard("变异系数", "CV = s / x̄ × 100%", "s="+fmtNum(st.std,2)+"，x̄="+fmtNum(st.mean,2), fmtPct(st.cv,2)) +
+        '</div>');
+      h+=resBlock('④ 分布形态',
+        metricCard("偏度", fmtNum(st.skew,2)) + metricCard("峰度", fmtNum(st.kurt,2)) +
+        '<div class="chart-box">'+svgHist(vals, {title:col+" 分布直方图", subtitle:"分箱自动计算 · 观察分布形态"})+'</div>' +
+        '<div class="chart-box">'+svgBox(vals, {title:col+" 箱线图", subtitle:"须线 = 最小值/最大值（IQR 界限内）"})+'</div>');
+      h+=resBlock('⑤ 分层解读',
+        finding("fact","数据规模", "共 "+st.n+" 条记录，"+(st.n<30?"样本较小（n<30），后续推断需谨慎。":"样本量 ≥ 30，符合大样本条件，可作区间估计。"))+
+        finding("anl","中心与偏态", "均值 "+fmtNum(st.mean,2)+" 与中位数 "+fmtNum(st.median,2)+" "+(st.mean>st.median? "均值更高，分布呈右偏（长尾在右侧，存在少数较大值拉高均值）。" : st.mean<st.median? "中位数更高，分布呈左偏。" : "基本一致，分布近似对称。")+ " 偏度系数 "+fmtNum(st.skew,2)+" 佐证该判断。")+
+        finding("anl","离散程度", "标准差 "+fmtNum(st.std,2)+"，变异系数 "+fmtPct(st.cv,2)+"。CV "+(st.cv<0.15?"< 15%，数据波动小、较稳定。":st.cv<0.35?"介于 15%~35%，波动中等。":"≥ 35%，波动较大，需关注极端值影响。"))+
+        finding("anl","分布形态", "峰度 "+fmtNum(st.kurt,2)+"，"+(st.kurt>0?"比正态分布更尖陡（厚尾），极端值出现概率更高。":st.kurt<0?"比正态分布更平坦（薄尾），数据更分散。":"接近正态分布。"))+
+        finding("sug","使用建议", "报告均值时请同时给出标准差；若分布明显右偏，中位数比均值更适合代表一般水平。"));
+      h+=resBlock('⑥ 推荐 Prompt（课后用 AI 复现）', promptBlock(
+        "我有一列数据："+col+"，共 "+st.n+" 个观测值。\n请用 Python（pandas/numpy/scipy）计算：均值、中位数、众数、样本标准差（ddof=1）、方差、变异系数、四分位数、偏度、峰度，\n并绘制直方图和箱线图，最后用 100 字以内解释分布形态。\n数据："+vals.slice(0,8).join(", ")+" …",
+        "工作台已按教材口径（无偏方差、Excel 分位数法）给出标准答案，可与 AI 输出互相对照。"));
+      return h;
+    }
+  },
+
+  multi: {
+    name:"多列对比与趋势", short:"类别 + 多列数值 · 柱/折/饼 + 环比",
+    desc:"对多个序列（如各月各渠道流量）做分组柱状对比、趋势折线、占比饼图，并自动计算首列数值的环比增速。",
+    fit:"适合 1 列类别/标签 + ≥2 列数值（如月份×渠道×访客）",
+    icon:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>',
+    detect:function(ds){
+      var c=colOptions(ds), nums=c.filter(function(o){return o.num;});
+      return nums.length>=2;
+    },
+    config:function(ds){
+      var c=colOptions(ds);
+      var catIdx=-1, i;
+      for(i=0;i<c.length;i++) if(!c[i].num){ catIdx=c[i].idx; break; }
+      var numIdx=c.filter(function(o){return o.num;}).map(function(o){return o.idx;});
+      if(numIdx.length>6) numIdx=numIdx.slice(0,6);
+      return '<div class="cfg-row"><label>类别/标签列</label>'+selHtml(c, catIdx>=0?catIdx:c[0].idx, "cfg_cat")+'</div>'
+        +'<div class="cfg-row"><label>数值列（可多选）</label>'+multiSelHtml(c, numIdx, "cfg_nums", 6)+'</div>'
+        +'<div class="hint">按住 Ctrl 多选数值列；最多 6 列。类别列用于 X 轴标签。</div>';
+    },
+    run:function(ds, cfg){
+      var catIdx=parseInt(cfg.cat||0,10);
+      var numIdx=[].concat(cfg.nums||[]).map(function(x){return parseInt(x,10);});
+      if(!numIdx.length) numIdx=colOptions(ds).filter(function(o){return o.num;}).slice(0,2).map(function(o){return o.idx;});
+      var labels=ds.rows.map(function(r){return r[catIdx];});
+      var series=numIdx.map(function(k){ return {name:ds.headers[k], values:ds.rows.map(function(r){ var v=parseNum(r[k]); return v===null||isNaN(v)?0:v; })}; });
+      // 环比：第一数值列
+      var first=series[0].values, mom=[];
+      for(var i=1;i<first.length;i++) mom.push(first[i]/first[i-1]-1);
+      return {catCol:ds.headers[catIdx], labels:labels, series:series, mom:mom};
+    },
+    render:function(ds, cfg, res){
+      var h="";
+      var cat=res.catCol, labels=res.labels;
+      h+=resBlock('① 分组柱状对比（各序列横向对比）',
+        '<div class="chart-box">'+svgGroupedBar(labels, res.series, {title:cat+" × 各指标 对比柱状图", subtitle:"柱高可直接比较同类别下不同序列的规模"})+'</div>');
+      h+=resBlock('② 趋势折线（随时间变化）',
+        '<div class="chart-box">'+svgLine(labels, res.series, {title:"趋势折线图", subtitle:cat+" 维度下的走势"})+'</div>');
+      // 饼图：合计占比
+      var totalBy=res.series.map(function(_,si){ return sum(res.series[si].values); });
+      h+=resBlock('③ 合计占比（各序列对总量的贡献）',
+        '<div class="chart-box">'+svgPie(res.series.map(function(s){return s.name;}), totalBy, {title:"各序列合计占比"})+'</div>');
+      // 环比表
+      var rowsHtml='<tr><th>'+escXML(cat)+'</th><th>'+escXML(res.series[0].name)+'</th><th>较上期</th><th>增速</th></tr>';
+      for(var i=1;i<res.mom.length;i++){
+        rowsHtml+='<tr><td>'+escXML(res.labels[i])+'</td><td>'+fmtNum(res.series[0].values[i],1)+'</td><td>'+fmtSigned(res.series[0].values[i]-res.series[0].values[i-1],1)+'</td><td><b style="color:'+(res.mom[i]>=0?C.ok:C.bad)+'">'+fmtSigned(res.mom[i]*100,1)+'%</b></td></tr>';
+      }
+      h+=resBlock('④ 环比增速表（'+escXML(res.series[0].name)+'）',
+        '<div class="table-wrap"><table class="tbl">'+rowsHtml+'</table></div>');
+      var lastIdx=res.mom.length-1, lastMom=res.mom[lastIdx];
+      var peak=0, pi=0;
+      for(var j=1;j<res.series[0].values.length;j++) if(res.series[0].values[j]>peak){peak=res.series[0].values[j];pi=j;}
+      h+=resBlock('⑤ 分层解读',
+        finding("fact","增长势头", res.series[0].name+" 从 "+fmtNum(res.series[0].values[0],0)+" 增至 "+fmtNum(res.series[0].values[res.series[0].values.length-1],0)+"，累计增长 "+fmtSigned(res.series[0].values[res.series[0].values.length-1]-res.series[0].values[0],0)+"。")+
+        finding("anl","最新一期环比", "最近一期较上期"+(lastMom>=0?"增长":"下降")+" "+Math.abs(lastMom*100).toFixed(1)+"%，"+(Math.abs(lastMom)>=0.1?"属明显波动，需查原因。":"属温和变化，趋势平稳。"))+
+        finding("anl","峰值定位", "最高值出现在 "+res.labels[pi]+"（"+fmtNum(peak,0)+"），可结合业务事件解释该高点。")+
+        finding("sug","结构建议", "对比饼图看占比结构：占比最大序列是总量的主要贡献者，建议优先保障其投入产出。"),
+        '三种分析思维提示：对比（横向比序列）、趋势（纵向看时间）、结构（饼图看占比），一次分析同时用上。');
+      h+=resBlock('⑥ 推荐 Prompt（课后用 AI 复现）', promptBlock(
+        "我有按月统计的多渠道访客数据（"+res.series.map(function(s){return s.name;}).join("、")+"），共 "+res.labels.length+" 期。\n请绘制：① 分组柱状图对比；② 多系列折线图看趋势；③ 饼图看各渠道合计占比；④ 计算"+res.series[0].name+"的环比增速表。\n最后用不超过 150 字总结：谁在增长、峰值在哪、结构如何变化。\n数据："+res.labels.slice(0,5).map(function(l,i){return l+"→"+res.series[0].values[i];}).join("，")+" …",
+        "工作台的柱/折/饼三图与环比表即标准答案，可与 AI 输出互相对照。"));
+      return h;
+    }
+  },
+
+  clean: {
+    name:"数据清洗诊断", short:"全列扫描 · 缺失/文本数字/异常/重复",
+    desc:"自动扫描全表，识别缺失值、文本型数字（千分位逗号/货币符号）、IQR 异常值、完全重复行、首尾空格，并给出处理建议。",
+    fit:"适合任何待检查的数据表（有脏数据更佳）",
+    icon:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 6h18"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6"/><path d="M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/><line x1="10" y1="11" x2="10" y2="17"/><line x1="14" y1="11" x2="14" y2="17"/></svg>',
+    detect:function(ds){ return true; },
+    config:function(ds){ return '<div class="hint">无需配置参数：自动扫描全部列。异常值采用 IQR 准则（< Q1−1.5IQR 或 > Q3+1.5IQR）。</div>'; },
+    run:function(ds){
+      return cleanDiagnose(ds);
+    },
+    render:function(ds, cfg, res){
+      var h="", i;
+      h+=resBlock('① 数据总体',
+        metricCard("总行数", fmtNum(res.nRows,0), "行", "hl") +
+        metricCard("总列数", fmtNum(ds.headers.length,0), "列") +
+        metricCard("发现问题", fmtNum(res.issues.length,0), "项", res.issues.length? "warn" : ""));
+      if(!res.issues.length){
+        h+=resBlock('② 诊断结论', '<div class="finding f-sug"><span class="f-badge">结论</span><div class="f-body">未发现缺失、文本数字、异常值、重复行或首尾空格问题，数据质量良好，可直接进入分析。</div></div>');
+      } else {
+        var list='';
+        res.issues.forEach(function(iss, k){
+          var badgeCls = iss.type==="异常值"?"f-warn":iss.type==="重复行"?"f-anl":"f-fact";
+          list+='<div class="finding '+badgeCls+'"><span class="f-badge">'+iss.type+'</span><div class="f-body">'
+            +'<span class="f-title">'+escXML(iss.col)+'</span>　'+escXML(iss.detail)+'<br><b>处理建议：</b>'+escXML(iss.act)+'</div></div>';
+        });
+        h+=resBlock('② 问题清单与处理建议（共 '+res.issues.length+' 项）', list);
+      }
+      h+=resBlock('③ 清洗工作流（推荐顺序）',
+        '<div class="table-wrap"><table class="tbl"><tr><th>步骤</th><th>动作</th><th>方法</th></tr>'+
+        '<tr><td>1</td><td>去重</td><td>完全重复行仅保留 1 条</td></tr>'+
+        '<tr><td>2</td><td>处理缺失</td><td>少量：删除该行；重要列：按类别均值/中位数填充</td></tr>'+
+        '<tr><td>3</td><td>类型归一</td><td>去除千分位逗号/货币符号/空格，转数值类型；日期统一格式</td></tr>'+
+        '<tr><td>4</td><td>异常排查</td><td>IQR 界限外的值逐条核对原始记录，确认录入错误再剔除</td></tr>'+
+        '<tr><td>5</td><td>字段规整</td><td>分类字段 trim 首尾空格、统一大小写</td></tr></table></div>');
+      h+=resBlock('④ 分层解读',
+        finding("fact","问题构成", "共发现 "+res.issues.length+" 项数据质量问题，其中缺失/文本数字/异常值/重复/脏名称各类均有专门处理流程。")+
+        finding("anl","风险提示", "脏数据不处理就分析，会直接污染均值、方差与回归系数——尤其异常值对均值影响最大。")+
+        finding("sug","清洗闭环", "清洗后务必重新做一次描述统计对比：均值、标准差在清洗前后的变化幅度，能说明脏数据的影响程度。"));
+      h+=resBlock('⑤ 推荐 Prompt（课后用 AI 复现）', promptBlock(
+        "我有一份数据表（"+ds.headers.length+" 列，"+res.nRows+" 行），列名："+ds.headers.join("、")+"。\n请用 pandas 完成数据清洗诊断并输出报告：① 缺失值统计；② 文本型数字（如 \"1,250.5\"、\"¥3200\"）检测与转换；③ IQR 异常值检测；④ 完全重复行；⑤ 分类字段首尾空格。\n对每个问题给出处理代码与建议。",
+        "工作台的清洗诊断即标准答案，重点看「处理建议」列——清洗流程在真实项目中占 60% 以上时间。"));
+      return h;
+    }
+  },
+
+  sampling: {
+    name:"抽样估计", short:"均值区间 + 比例区间 + 样本量",
+    desc:"对样本做总体均值的 95% 置信区间估计（大样本 z 法），并可对「数值 > 阈值」的比例做区间估计，给出所需样本量建议。",
+    fit:"适合一列样本数值（如 100 户电费）+ 可选比例阈值",
+    icon:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>',
+    detect:function(ds){ return colOptions(ds).some(function(o){return o.num;}); },
+    config:function(ds){
+      var opts=colOptions(ds).filter(function(o){return o.num;});
+      var first=opts.length? opts[0].idx : 0;
+      return '<div class="cfg-row"><label>数值列</label>'+selHtml(opts, first, "cfg_col")+'</div>'
+        +'<div class="cfg-row"><label>比例阈值（可空）</label><input type="number" id="cfg_thr" placeholder="如 80（>80 元的占比）" style="min-height:40px"></div>'
+        +'<div class="hint">均值区间采用 z=1.96（95% 置信，大样本）；填了阈值则额外估计「该列大于阈值」的比例区间，并做 np≥5 检验。</div>';
+    },
+    run:function(ds, cfg){
+      var idx=parseInt(cfg.col||0,10), col=ds.headers[idx], vals=colValues(ds.rows, idx);
+      var mi=meanInterval(vals);
+      var res={col:col, vals:vals, mi:mi, pi:null, thr:null};
+      var thrTxt=cfg.thr;
+      if(thrTxt!==undefined && thrTxt!==null && String(thrTxt).trim()!==""){
+        var thr=parseFloat(thrTxt);
+        if(!isNaN(thr)){
+          res.thr=thr;
+          res.pi=propInterval(vals.map(function(v){return v>thr;}));
+        }
+      }
+      return res;
+    },
+    render:function(ds, cfg, res){
+      var mi=res.mi, h="";
+      h+=resBlock('① 样本统计量',
+        metricCard("样本量 n", fmtNum(mi.n,0), "", "hl") +
+        metricCard("样本均值 x̄", fmtNum(mi.mean,2)) +
+        metricCard("样本标准差 s", fmtNum(mi.std,2)) +
+        metricCard("标准误 SE", fmtNum(mi.se,2)) +
+        (mi.large? '<div class="finding f-fact"><span class="f-badge">判定</span><div class="f-body"><span class="f-title">大样本成立</span>　n='+mi.n+' ≥ 30，可用 z 分布（中心极限定理）做区间估计。</div></div>' : ''));
+      h+=resBlock('② 总体均值 95% 置信区间',
+        metricCard("区间下限", fmtNum(mi.lower,2), "", "hl") +
+        metricCard("区间上限", fmtNum(mi.upper,2), "", "hl") +
+        metricCard("允许误差 E", fmtNum(mi.margin,2)) +
+        formulaCard("置信区间公式", "x̄ ± z·(s/√n)", "x̄="+fmtNum(mi.mean,2)+"，z=1.96，s="+fmtNum(mi.std,2)+"，n="+mi.n, "["+fmtNum(mi.lower,2)+", "+fmtNum(mi.upper,2)+"]") +
+        '<div class="chart-box">'+svgHist(res.vals, {title:res.col+" 分布与置信区间", subtitle:"蓝色区间 = 总体均值的 95% 置信区间"})+'</div>');
+      if(res.pi){
+        var pi=res.pi;
+        h+=resBlock('③ 「'+res.col+' > '+fmtNum(res.thr,0)+'」的比例估计',
+          metricCard("样本比例 p̂", fmtPct(pi.p,1), "", "hl") +
+          metricCard("比例下限", fmtPct(pi.lower,1)) +
+          metricCard("比例上限", fmtPct(pi.upper,1)) +
+          (pi.checkOK? '<div class="finding f-fact"><span class="f-badge">检验</span><div class="f-body">np̂='+fmtNum(pi.np,0)+' ≥ 5 且 n(1−p̂)='+fmtNum(pi.nq,0)+' ≥ 5，正态近似条件满足。</div></div>' :
+            '<div class="warn-box">np̂='+fmtNum(pi.np,1)+' 或 n(1−p̂)='+fmtNum(pi.nq,1)+' 小于 5，正态近似不可靠，需增大样本量或改用精确法。</div>') +
+          formulaCard("比例区间公式", "p̂ ± z·√(p̂(1−p̂)/n)", "p̂="+fmtPct(pi.p,1)+"，n="+pi.n, "["+fmtPct(pi.lower,1)+", "+fmtPct(pi.upper,1)+"]"));
+      }
+      h+=resBlock('④ 样本量建议（控制误差 E 时所需样本量）',
+        metricCard("E=3 时 n", fmtNum(requiredSampleSize(mi.std,3),0)) +
+        metricCard("E=5 时 n", fmtNum(requiredSampleSize(mi.std,5),0)) +
+        metricCard("E=10 时 n", fmtNum(requiredSampleSize(mi.std,10),0)) +
+        formulaCard("样本量公式", "n = (z·s/E)²", "z=1.96，s="+fmtNum(mi.std,2)+"，取整", ""));
+      h+=resBlock('⑤ 分层解读',
+        finding("fact","区间结论", "有 95% 的把握认为总体均值落在 ["+fmtNum(mi.lower,2)+", "+fmtNum(mi.upper,2)+"] 之间，区间宽度 "+fmtNum(mi.upper-mi.lower,2)+"。")+
+        finding("anl","精度评价", "区间半宽（允许误差）为 "+fmtNum(mi.margin,2)+"，"+(mi.margin/mi.mean<0.1?"相对均值约 "+fmtPct(mi.margin/mi.mean,1)+"，估计精度较高。":"相对均值约 "+fmtPct(mi.margin/mi.mean,1)+"，若需更精确可增大样本量。"))+
+        finding("anl","正确解读", "「95% 置信」指重复抽样 100 次约 95 次区间覆盖真值——不是「真值有 95% 概率落在区间内」，这是经典易错点。")+
+        (res.pi? finding("sug","比例决策", "超过 "+fmtNum(res.thr,0)+" 的占比估计为 "+fmtPct(res.pi.p,1)+"，区间 ["+fmtPct(res.pi.lower,1)+", "+fmtPct(res.pi.upper,1)+"]，可作为业务达标判断依据。") : ""));
+      h+=resBlock('⑥ 推荐 Prompt（课后用 AI 复现）', promptBlock(
+        "我有一份样本数据（"+res.col+"，n="+mi.n+"）："+res.vals.slice(0,6).join(", ")+" …\n请用 Python（scipy.stats 或手写公式）计算：① 总体均值的 95% 置信区间（大样本 z=1.96）；② 若以阈值 "+ (res.thr!==null?res.thr:80) +" 划分，估计「大于阈值」的比例及其 95% 置信区间，并做 np≥5 检验；③ 若要控制误差在 5 以内，所需样本量。给出公式、代入过程与结论。",
+        "工作台已给出标准答案（z=1.96、无偏标准差），学生可用它校验自己的 AI 输出。"));
+      return h;
+    }
+  },
+
+  index: {
+    name:"统计指数分析", short:"拉氏/帕氏综合指数 + 因素分析",
+    desc:"对多产品「产量 q0/q1、价格 p0/p1」数据计算个体指数、拉氏与帕氏综合指数、加权平均指数，并做产量×成本的因素分析（指数体系自洽）。",
+    fit:"适合含 q0、q1、p0、p1 四列的指数数据",
+    icon:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 3v18h18"/><path d="M7 14l4-4 3 3 5-6"/></svg>',
+    detect:function(ds){
+      var names=ds.headers.map(function(h){return h.toLowerCase();});
+      var has=function(pat){ return names.some(function(n){return n.indexOf(pat)>=0;}); };
+      return has("q0")&&has("q1")&&has("p0")&&has("p1");
+    },
+    config:function(ds){
+      var c=colOptions(ds);
+      function find(pat){ for(var i=0;i<c.length;i++){ if(c[i].name.toLowerCase().indexOf(pat)>=0) return c[i].idx; } return 0; }
+      return '<div class="cfg-row"><label>产量 q0</label>'+selHtml(c, find("q0"), "cfg_q0")+'</div>'
+        +'<div class="cfg-row"><label>产量 q1</label>'+selHtml(c, find("q1"), "cfg_q1")+'</div>'
+        +'<div class="cfg-row"><label>价格 p0</label>'+selHtml(c, find("p0"), "cfg_p0")+'</div>'
+        +'<div class="cfg-row"><label>价格 p1</label>'+selHtml(c, find("p1"), "cfg_p1")+'</div>'
+        +'<div class="hint">默认自动识别含 q0/q1/p0/p1 的列；可手动调整。基期=0，报告期=1。</div>';
+    },
+    run:function(ds, cfg){
+      var q0=colValues(ds.rows, parseInt(cfg.q0||0,10));
+      var q1=colValues(ds.rows, parseInt(cfg.q1||1,10));
+      var p0=colValues(ds.rows, parseInt(cfg.p0||2,10));
+      var p1=colValues(ds.rows, parseInt(cfg.p1||3,10));
+      return {q0:q0,q1:q1,p0:p0,p1:p1, products:ds.rows.map(function(r){return r[0];}), ia:indexAnalysis(q0,q1,p0,p1)};
+    },
+    render:function(ds, cfg, res){
+      var ia=res.ia, h="", i;
+      var prod=res.products.length===res.q0.length? res.products : res.q0.map(function(_,k){return "产品"+(k+1);});
+      // 个体指数表
+      var tr='<tr><th>产品</th><th>q0</th><th>q1</th><th>p0</th><th>p1</th><th>产量个体指数 %</th><th>价格个体指数 %</th></tr>';
+      for(i=0;i<res.q0.length;i++){
+        tr+='<tr><td>'+escXML(prod[i])+'</td><td>'+fmtNum(res.q0[i],0)+'</td><td>'+fmtNum(res.q1[i],0)+'</td><td>'+fmtNum(res.p0[i],2)+'</td><td>'+fmtNum(res.p1[i],2)+'</td><td>'+fmtNum(ia.iq[i]*100,1)+'%</td><td>'+fmtNum(ia.ip[i]*100,1)+'%</td></tr>';
+      }
+      h+=resBlock('① 个体指数表', '<div class="table-wrap"><table class="tbl">'+tr+'</table></div>');
+      h+=resBlock('② 综合指数（拉氏 / 帕氏）',
+        '<div class="metric-grid">'+
+        metricCard("拉氏产量指数", fmtNum(ia.kqL*100,1), "%", "hl") + metricCard("帕氏产量指数", fmtNum(ia.kqP*100,1), "%") +
+        metricCard("拉氏价格指数", fmtNum(ia.kpL*100,1), "%") + metricCard("帕氏价格指数", fmtNum(ia.kpP*100,1), "%") +
+        metricCard("总成本指数", fmtNum(ia.kTotal*100,1), "%", "hl") + metricCard("总成本变动额", fmtSigned(ia.eTotal,1), "") +
+        '</div>'+
+        formulaCard("拉氏产量指数（教材口径）", "Kq = Σq₁p₀ / Σq₀p₀", "Σq₁p₀="+fmtNum(ia.s10,1)+"，Σq₀p₀="+fmtNum(ia.s00,1), fmtNum(ia.kqL*100,1)+"%") +
+        formulaCard("帕氏价格指数（教材口径）", "Kp = Σq₁p₁ / Σq₁p₀", "Σq₁p₁="+fmtNum(ia.s11,1)+"，Σq₁p₀="+fmtNum(ia.s10,1), fmtNum(ia.kpP*100,1)+"%"));
+      h+=resBlock('③ 因素分析（产量影响 × 价格影响 = 总变动）',
+        '<div class="table-wrap"><table class="tbl"><tr><th>项目</th><th>相对数（指数）</th><th>绝对影响额</th><th>说明</th></tr>'+
+        '<tr><td>产量变动影响</td><td>'+fmtNum(ia.kqL*100,1)+'%（拉氏）</td><td>'+fmtSigned(ia.eQ,1)+'</td><td>Σ(q₁−q₀)p₀，价格固定在基期</td></tr>'+
+        '<tr><td>价格变动影响</td><td>'+fmtNum(ia.kpP*100,1)+'%（帕氏）</td><td>'+fmtSigned(ia.eP,1)+'</td><td>Σq₁(p₁−p₀)，产量固定在报告期</td></tr>'+
+        '<tr><td><b>总成本变动</b></td><td><b>'+fmtNum(ia.kTotal*100,1)+'%</b></td><td><b>'+fmtSigned(ia.eTotal,1)+'</b></td><td>相对数=拉氏产量×帕氏价格</td></tr></table></div>'+
+        (ia.relConsistent&&ia.absConsistent?
+          '<div class="finding f-fact"><span class="f-badge">自洽验证</span><div class="f-body"><span class="f-title">指数体系成立</span>　K总('+fmtNum(ia.kTotal*100,1)+'%) = Kq拉('+fmtNum(ia.kqL*100,1)+'%) × Kp帕('+fmtNum(ia.kpP*100,1)+'%)；'+fmtSigned(ia.eQ,1)+' + '+fmtSigned(ia.eP,1)+' = '+fmtSigned(ia.eTotal,1)+'（相对数与绝对额双重自洽）。</div></div>'
+          : '<div class="warn-box">指数体系不自洽，请检查 q/p 列选择是否正确。</div>'));
+      h+=resBlock('④ 分层解读',
+        finding("fact","总量变化", "总成本指数 "+fmtNum(ia.kTotal*100,1)+"%，即总成本"+(ia.kTotal>=1?"增长":"下降")+" "+fmtPct(Math.abs(ia.kTotal-1),1)+"，绝对额"+fmtSigned(ia.eTotal,1)+"。")+
+        finding("anl","驱动拆解", "产量（拉氏）变化带来 "+fmtSigned(ia.eQ,1)+"（"+fmtPct(ia.kqL-1,1)+"），价格（帕氏）变化带来 "+fmtSigned(ia.eP,1)+"（"+fmtPct(ia.kpP-1,1)+"）。"+(Math.abs(ia.eQ)>Math.abs(ia.eP)?"产量的影响更大，是总变动的主因。":"价格的影响更大，是总变动的主因。"))+
+        finding("anl","方法要点", "拉氏指数把同度量因素固定在基期（考察「纯数量」变化），帕氏指数固定在报告期（考察「纯价格」变化）；教材以拉氏产量 × 帕氏价格构成指数体系。")+
+        finding("sug","决策建议", (ia.kpP>1?"成本上涨主要来自价格因素，可关注采购议价与供应链替代方案。":"成本下降主要来自价格因素，可评估是否可持续。")+(ia.kqL>1?"产量扩张带动总量上升，注意产能与库存的匹配。":"产量收缩，需关注市场份额变化。")));
+      h+=resBlock('⑤ 推荐 Prompt（课后用 AI 复现）', promptBlock(
+        "我有多产品的产量与成本数据：q0（基期产量）、q1（报告期产量）、p0（基期单位成本）、p1（报告期单位成本）。\n请计算：① 各产品产量、成本的个体指数；② 拉氏产量指数、帕氏价格指数、总成本指数；③ 因素分析：产量变动与价格变动分别对总成本的影响额；④ 验证指数体系 K总 = Kq×Kp。\n给出公式、代入过程与结论。",
+        "这是教材第 6 章核心——指数体系自洽（拉氏×帕氏=总指数）是 QA 必查项，工作台已保证。"));
+      return h;
+    }
+  },
+
+  regress: {
+    name:"相关与回归", short:"x/y 两列 · 相关系数 + 回归方程 + 预测",
+    desc:"计算皮尔逊相关系数与强度分级，拟合一元线性回归方程（最小二乘），给出 R² 与预测值，并附「相关≠因果」警示。",
+    fit:"适合两列数值：x（自变量）与 y（因变量）",
+    icon:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/><line x1="2" y1="20" x2="22" y2="20"/></svg>',
+    detect:function(ds){
+      var nums=colOptions(ds).filter(function(o){return o.num;});
+      return nums.length>=2;
+    },
+    config:function(ds){
+      var nums=colOptions(ds).filter(function(o){return o.num;});
+      return '<div class="cfg-row"><label>自变量 x</label>'+selHtml(nums, nums[0].idx, "cfg_x")+'</div>'
+        +'<div class="cfg-row"><label>因变量 y</label>'+selHtml(nums, nums.length>1?nums[1].idx:nums[0].idx, "cfg_y")+'</div>'
+        +'<div class="cfg-row"><label>预测点 x₀（可空）</label><input type="number" id="cfg_x0" placeholder="如 15（内插）" style="min-height:40px"></div>'
+        +'<div class="hint">不填预测点时，默认用 x 的中位数做内插演示。注意：外推（x₀ 超出样本范围）可靠性下降。</div>';
+    },
+    run:function(ds, cfg){
+      var xIdx=parseInt(cfg.x||0,10), yIdx=parseInt(cfg.y||0,10);
+      var xs=colValues(ds.rows, xIdx), ys=colValues(ds.rows, yIdx);
+      var lg=linreg(xs, ys);
+      var x0 = cfg.x0!==undefined&&String(cfg.x0).trim()!==""? parseFloat(cfg.x0) : null;
+      if(x0===null||isNaN(x0)) x0=lg.meanX;
+      var xMin=Math.min.apply(null,xs), xMax=Math.max.apply(null,xs);
+      return {xCol:ds.headers[xIdx], yCol:ds.headers[yIdx], xs:xs, ys:ys, lg:lg, x0:x0, inside:x0>=xMin&&x0<=xMax};
+    },
+    render:function(ds, cfg, res){
+      var lg=res.lg, h="";
+      h+=resBlock('① 相关系数',
+        metricCard("r", fmtNum(lg.r,4), "", "hl") +
+        metricCard("方向", lg.r>=0?"正相关":"负相关") +
+        metricCard("强度", corrStrength(lg.r)) +
+        metricCard("样本 n", fmtNum(lg.n,0)) +
+        formulaCard("皮尔逊相关系数", "r = Σ(x−x̄)(y−ȳ) / √(Σ(x−x̄)²·Σ(y−ȳ)²)", "", fmtNum(lg.r,4)));
+      h+=resBlock('② 回归方程（最小二乘）',
+        '<div class="metric-grid">'+
+        metricCard("截距 a", fmtNum(lg.a,3)) + metricCard("斜率 b", fmtNum(lg.b,3)) +
+        metricCard("决定系数 R²", fmtNum(lg.r2,4), "", "hl") +
+        metricCard("解释力度", fmtPct(lg.r2,1), "%") + '</div>'+
+        formulaCard("回归方程", "ŷ = a + b·x", "a="+fmtNum(lg.a,3)+"，b="+fmtNum(lg.b,3), "ŷ = "+fmtNum(lg.a,3)+" + "+fmtNum(lg.b,3)+"x") +
+        formulaCard("R² 含义", "R² = 回归平方和/总平方和", "表示 y 的变异中有 "+fmtPct(lg.r2,1)+" 可由 x 解释", ""));
+      h+=resBlock('③ 预测（x₀='+fmtNum(res.x0,2)+'）',
+        metricCard("预测值 ŷ", fmtNum(lg.predict(res.x0),2), "", "hl") +
+        (res.inside? '<div class="finding f-fact"><span class="f-badge">内插</span><div class="f-body"><span class="f-title">x₀ 在样本范围内</span>　预测属于内插，可靠性较高。</div></div>'
+          : '<div class="warn-box">x₀ 超出样本范围 ['+fmtNum(Math.min.apply(null,res.xs),1)+', '+fmtNum(Math.max.apply(null,res.xs),1)+']，属于外推，预测可靠性下降，请谨慎使用。</div>') +
+        formulaCard("预测公式", "ŷ = a + b·x₀", "x₀="+fmtNum(res.x0,2), fmtNum(lg.predict(res.x0),2)) +
+        '<div class="chart-box">'+svgScatter(res.xs, res.ys, {title:res.xCol+" × "+res.yCol+" 散点与回归线", subtitle:"橙色虚线 = 最小二乘回归线", a:lg.a, b:lg.b, r2:lg.r2, predictX:res.x0})+'</div>');
+      h+=resBlock('④ 分层解读',
+        finding("fact","相关结论", "r="+fmtNum(lg.r,4)+"，"+res.xCol+" 与 "+res.yCol+" 呈"+(lg.r>=0?"正":"负")+corrStrength(lg.r)+"（|r|="+fmtNum(Math.abs(lg.r),4)+"）。")+
+        finding("anl","回归解释", "x 每增加 1 单位，y 平均"+(lg.b>=0?"增加":"减少")+" "+fmtNum(Math.abs(lg.b),3)+" 单位；R²="+fmtNum(lg.r2,4)+"，模型解释了 y 变异的 "+fmtPct(lg.r2,1)+"。")+
+        finding("warn","相关 ≠ 因果", "即使相关性很强，也不能证明 x 导致 y——可能存在第三个变量（混杂因素）或反向因果。本工作台只报告相关与预测，不宣示因果。")+
+        finding("sug","使用边界", "预测值只适合在样本范围内做内插使用；用于决策时请结合业务知识，并注意外推风险。"));
+      h+=resBlock('⑤ 推荐 Prompt（课后用 AI 复现）', promptBlock(
+        "我有两列数据：x（"+res.xCol+"）、y（"+res.yCol+"），共 "+lg.n+" 个样本。\n请用 Python（numpy/scipy 或 statsmodels）计算：① 皮尔逊相关系数并分级；② 一元线性回归的 a、b、R²；③ 预测 x₀="+fmtNum(res.x0,2)+" 时的 ŷ；④ 绘制散点图+回归线+预测点。\n最后用 100 字解释结果，并说明为什么「相关不等于因果」。\n数据示例："+res.xs.slice(0,5).map(function(v,i){return "("+v+","+res.ys[i]+")";}).join(" ")+" …",
+        "工作台的 r/R²/预测即为标准答案；「相关≠因果」警示块是教材强调的要点，务必让学生记住。"));
+      return h;
+    }
+  },
+
+  ts: {
+    name:"时间序列分析", short:"时间 + 数值 · 发展速度/趋势/预测",
+    desc:"计算平均发展水平、平均增长量、环比/定基发展速度、几何平均发展速度，拟合线性趋势方程并外推预测下一期。",
+    fit:"适合「时间（年/月）+ 数值」两列（如历年总产值）",
+    icon:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>',
+    detect:function(ds){
+      var c=colOptions(ds), nums=c.filter(function(o){return o.num;});
+      return nums.length>=1 && c.length>=2;
+    },
+    config:function(ds){
+      var c=colOptions(ds), nums=c.filter(function(o){return o.num;});
+      var tIdx=-1, i;
+      for(i=0;i<c.length;i++) if(!c[i].num){ tIdx=c[i].idx; break; }
+      if(tIdx<0) tIdx=c[0].idx;
+      return '<div class="cfg-row"><label>时间列</label>'+selHtml(c, tIdx, "cfg_t")+'</div>'
+        +'<div class="cfg-row"><label>数值列</label>'+selHtml(c, nums.length?nums[0].idx:c[0].idx, "cfg_y")+'</div>'
+        +'<div class="cfg-row"><label>预测期数</label><input type="number" id="cfg_fc" value="1" min="1" max="3" style="min-height:40px"></div>'
+        +'<div class="hint">趋势方程以 t=0,1,2… 拟合 ŷ=a+bt；预测 = 外推 t 至最后一期之后。</div>';
+    },
+    run:function(ds, cfg){
+      var tIdx=parseInt(cfg.t||0,10), yIdx=parseInt(cfg.y||0,10);
+      var labels=ds.rows.map(function(r){return r[tIdx];});
+      var ys=colValues(ds.rows, yIdx);
+      var ta=tsAnalysis(ys);
+      var fcN=Math.max(1, Math.min(3, parseInt(cfg.fc||1,10)));
+      var fcs=[], i;
+      for(i=0;i<fcN;i++) fcs.push(ta.trend.predict(ys.length-1+i+1));
+      return {tCol:ds.headers[tIdx], yCol:ds.headers[yIdx], labels:labels, ys:ys, ta:ta, fcs:fcs};
+    },
+    render:function(ds, cfg, res){
+      var ta=res.ta, h="", i;
+      var n=res.ys.length;
+      h+=resBlock('① 发展水平与增长量',
+        metricCard("期数 n", fmtNum(n,0), "", "hl") +
+        metricCard("初期水平", fmtNum(ta.first,2)) +
+        metricCard("末期水平", fmtNum(ta.last,2)) +
+        metricCard("平均发展水平", fmtNum(ta.avgLevel,2)) +
+        metricCard("平均增长量", fmtSigned(ta.avgGrowth,2)) +
+        formulaCard("平均发展水平（时期序列）", "ȳ = Σy / n", "Σy="+fmtNum(ta.avgLevel*n,2)+"，n="+n, fmtNum(ta.avgLevel,2)) +
+        formulaCard("平均增长量", "Δ = (yₙ − y₁)/(n−1)", "("+fmtNum(ta.last,2)+" − "+fmtNum(ta.first,2)+")/"+(n-1), fmtSigned(ta.avgGrowth,2)));
+      // 速度表
+      var tr='<tr><th>期</th><th>水平</th><th>增长量</th><th>环比发展速度</th><th>环比增长速度</th><th>定基发展速度</th><th>定基增长速度</th></tr>';
+      tr+='<tr><td>'+escXML(res.labels[0])+'</td><td>'+fmtNum(res.ys[0],2)+'</td><td>—</td><td>—</td><td>—</td><td>100.0%</td><td>—</td></tr>';
+      for(i=1;i<n;i++){
+        var chain=res.ys[i]/res.ys[i-1];
+        tr+='<tr><td>'+escXML(res.labels[i])+'</td><td>'+fmtNum(res.ys[i],2)+'</td>'
+          +'<td>'+fmtSigned(res.ys[i]-res.ys[i-1],2)+'</td>'
+          +'<td>'+fmtNum(chain*100,1)+'%</td>'
+          +'<td>'+fmtSigned((chain-1)*100,1)+'%</td>'
+          +'<td>'+fmtNum(ta.fixed[i]*100,1)+'%</td>'
+          +'<td>'+fmtSigned((ta.fixed[i]-1)*100,1)+'%</td></tr>';
+      }
+      h+=resBlock('② 发展速度表（环比 / 定基）', '<div class="table-wrap" style="overflow-x:auto"><table class="tbl" style="min-width:640px">'+tr+'</table></div>');
+      h+=resBlock('③ 平均发展速度与趋势方程',
+        metricCard("几何平均发展速度", fmtNum(ta.geoMean*100,1), "%", "hl") +
+        metricCard("年均增长速度", fmtSigned((ta.geoMean-1)*100,1), "%") +
+        metricCard("趋势方程斜率 b", fmtNum(ta.trend.b,3)) +
+        formulaCard("几何平均发展速度", "x̄ = ⁿ⁻¹√(yₙ/y₁)", "ⁿ⁻¹√("+fmtNum(ta.last,2)+"/"+fmtNum(ta.first,2)+")", fmtNum(ta.geoMean*100,1)+"%") +
+        formulaCard("趋势方程", "ŷ = a + b·t （t=0,1,2,…）", "a="+fmtNum(ta.trend.a,3)+"，b="+fmtNum(ta.trend.b,3), "ŷ = "+fmtNum(ta.trend.a,3)+" + "+fmtNum(ta.trend.b,3)+"t"));
+      var fcN=res.fcs.length;
+      h+=resBlock('④ 外推预测（未来 '+fcN+' 期）',
+        res.fcs.map(function(f, k){
+          return metricCard((k===0?"预测（下期）":"第 "+(k+1)+" 期"), fmtNum(f,2), "", "hl");
+        }).join("") +
+        '<div class="chart-box">'+svgLineForecast(res.labels, res.ys, {title:res.yCol+" 时序与趋势外推", subtitle:"蓝线=实际，橙虚线=趋势，红点=预测", trend:ta.trend, forecastVals:res.fcs, forecastN:fcN, forecastLabel:"预测下期"})+'</div>'
+      );
+      var fcFirst=res.fcs[0];
+      h+=resBlock('⑤ 分层解读',
+        finding("fact","总体走势", res.yCol+" 从 "+fmtNum(ta.first,2)+"（"+escXML(res.labels[0])+"）升至 "+fmtNum(ta.last,2)+"（"+escXML(res.labels[n-1])+"），"+n+" 期内累计"+(ta.last>=ta.first?"增长":"下降")+" "+fmtSigned(ta.last-ta.first,2)+"。")+
+        finding("anl","平均速度", "几何平均发展速度 "+fmtNum(ta.geoMean*100,1)+"%，即年均"+(ta.geoMean>=1?"增长":"下降")+" "+fmtPct(Math.abs(ta.geoMean-1),1)+"。")+
+        finding("anl","趋势强度", "趋势方程斜率 b="+fmtNum(ta.trend.b,3)+"，每期平均增加 "+fmtNum(ta.trend.b,2)+"；R²="+fmtNum(ta.trend.r2,3)+"，线性趋势"+(ta.trend.r2>=0.85?"拟合良好，适合短期外推预测。":"拟合一般，外推需谨慎。"))+
+        finding("warn","外推预警", "预测基于线性趋势外推：未来 "+fcN+" 期预测值 "+fmtNum(fcFirst,2)+" 只是趋势延续的假设值，不反映周期/政策/突发事件影响，仅适合短期参考。")+
+        finding("sug","使用建议", "把预测值与下期实际值对比，持续更新趋势方程；若出现拐点，应重新拟合或改用曲线模型。"));
+      h+=resBlock('⑥ 推荐 Prompt（课后用 AI 复现）', promptBlock(
+        "我有时间序列数据（"+res.yCol+"，"+n+" 期）："+res.labels.slice(0,6).map(function(l,i){return l+"="+fmtNum(res.ys[i],1);}).join("，")+" …\n请用 Python 计算：① 平均发展水平与平均增长量；② 环比/定基发展速度与增长速度表；③ 几何平均发展速度；④ 用最小二乘法拟合线性趋势方程并预测下一期。\n给出公式、代入过程与结论，并提示外推风险。",
+        "工作台的速度表/趋势方程/预测即标准答案；外推预警是教材强调的方法边界。"));
+      return h;
+    }
+  },
+
+  group: {
+    name:"分类汇总与透视", short:"类别 + 数值 +（分组）· 汇总/柱饼/透视",
+    desc:"按类别列分类汇总（合计/均值/最值并排序），可选第二个分组列生成数据透视表（行×列交叉汇总），配合柱状图与占比饼图。",
+    fit:"适合「类别+数值」或「类别A+类别B+数值」结构（如办事处×年份×销售额）",
+    icon:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="2"/><line x1="3" y1="9" x2="21" y2="9"/><line x1="9" y1="3" x2="9" y2="21"/></svg>',
+    detect:function(ds){ var c=colOptions(ds), nums=c.filter(function(o){return o.num;}); return nums.length>=1 && c.length>=2; },
+    config:function(ds){
+      var c=colOptions(ds), cats=c.filter(function(o){return !o.num;}), nums=c.filter(function(o){return o.num;});
+      var catIdx=cats.length? cats[0].idx : c[0].idx;
+      var grpIdx=cats.length>1? cats[1].idx : c[0].idx;
+      return '<div class="cfg-row"><label>类别列</label>'+selHtml(c, catIdx, "cfg_cat")+'</div>'
+        +'<div class="cfg-row"><label>数值列</label>'+selHtml(c, nums.length?nums[0].idx:c[0].idx, "cfg_val")+'</div>'
+        +'<div class="cfg-row"><label>分组列（透视用，可空）</label>'+selHtml(c, grpIdx, "cfg_grp")+'</div>'
+        +'<div class="hint">类别列做汇总排序；选「分组列」则额外生成行×列数据透视表（交叉求和）。</div>';
+    },
+    run:function(ds, cfg){
+      var catIdx=parseInt(cfg.cat||0,10), valIdx=parseInt(cfg.val||1,10);
+      var grpTxt=cfg.grp;
+      var grpIdx = (grpTxt!==undefined&&grpTxt!==null&&String(grpTxt).trim()!=="")? parseInt(grpTxt,10) : -1;
+      var gs=groupSummary(ds.rows, catIdx, valIdx);
+      var pv = grpIdx>=0 ? pivotTable(ds.rows, catIdx, grpIdx, valIdx) : null;
+      return {catCol:ds.headers[catIdx], valCol:ds.headers[valIdx],
+        grpCol: grpIdx>=0? ds.headers[grpIdx] : null, gs:gs, pv:pv};
+    },
+    render:function(ds, cfg, res){
+      var h="";
+      var totalSum=sum(res.gs.map(function(g){return g.sum;}));
+      var tr='<tr><th>'+escXML(res.catCol)+'</th><th>合计</th><th>均值</th><th>最小</th><th>最大</th><th>笔数</th><th>占比</th></tr>';
+      res.gs.forEach(function(g){
+        tr+='<tr><td><b>'+escXML(g.key)+'</b></td><td>'+fmtNum(g.sum,1)+'</td><td>'+fmtNum(g.mean,1)+'</td><td>'+fmtNum(g.min,1)+'</td><td>'+fmtNum(g.max,1)+'</td><td>'+g.count+'</td><td>'+fmtPct(totalSum?g.sum/totalSum:0,1)+'</td></tr>';
+      });
+      h+=resBlock('① 分类汇总表（按合计降序）', '<div class="table-wrap"><table class="tbl">'+tr+'</table></div>');
+      h+=resBlock('② 汇总可视化',
+        '<div class="chart-box">'+svgBar(res.gs.map(function(g){return g.key;}), res.gs.map(function(g){return g.sum;}), {title:res.catCol+" 合计对比柱状图", subtitle:"按 "+res.valCol+" 汇总"})+'</div>'+
+        '<div class="chart-box">'+svgPie(res.gs.map(function(g){return g.key;}), res.gs.map(function(g){return g.sum;}), {title:res.catCol+" 占比饼图"})+'</div>');
+      if(res.pv){
+        var pt='<tr><th>'+escXML(res.catCol)+' \ '+escXML(res.grpCol)+'</th>';
+        res.pv.colKeys.forEach(function(ck){ pt+='<th>'+escXML(ck)+'</th>'; });
+        pt+='<th>合计</th></tr>';
+        res.pv.rowKeys.forEach(function(rk){
+          pt+='<tr><td><b>'+escXML(rk)+'</b></td>';
+          var rowSum=0;
+          res.pv.colKeys.forEach(function(ck){ var v=(res.pv.map[rk]||{})[ck]||0; rowSum+=v; pt+='<td>'+fmtNum(v,1)+'</td>'; });
+          pt+='<td><b>'+fmtNum(rowSum,1)+'</b></td></tr>';
+        });
+        pt+='<tr><td><b>合计</b></td>';
+        res.pv.colKeys.forEach(function(ck){ var s=0; res.pv.rowKeys.forEach(function(rk){ s+=(res.pv.map[rk]||{})[ck]||0; }); pt+='<td><b>'+fmtNum(s,1)+'</b></td>'; });
+        pt+='<td><b>'+fmtNum(totalSum,1)+'</b></td></tr>';
+        h+=resBlock('③ 数据透视表（'+escXML(res.catCol)+' × '+escXML(res.grpCol)+'，值='+escXML(res.valCol)+' 求和）',
+          '<div class="table-wrap" style="overflow-x:auto"><table class="tbl" style="min-width:480px">'+pt+'</table></div>'+
+          '<div class="finding f-fact"><span class="f-badge">透视</span><div class="f-body"><span class="f-title">交叉汇总</span>　行='+escXML(res.catCol)+'，列='+escXML(res.grpCol)+'，单元格=该组合的 '+escXML(res.valCol)+' 合计。透视表是 Excel 数据透视表的等价实现。</div></div>');
+      }
+      var top=res.gs[0];
+      var top3=(function(){ var s=0; res.gs.slice(0,3).forEach(function(g){ s+=g.sum; }); return fmtPct(totalSum?s/totalSum:0,1); })();
+      h+=resBlock('④ 分层解读',
+        finding("fact","头部集中", top.key+" 合计 "+fmtNum(top.sum,1)+"，占总量的 "+fmtPct(totalSum?top.sum/totalSum:0,1)+"，是最大贡献类别。")+
+        finding("anl","结构分布", "前 3 大类别合计占比 "+top3+"，"+(res.gs.length>3?"集中度较高，资源应聚焦头部。":"分布较均匀，风险分散但缺乏规模效应。"))+
+        (res.pv? finding("anl","交叉发现", "透视表观察 "+res.catCol+" 与 "+res.grpCol+" 的联合结构：若某格显著偏高，说明该组合存在协同或季节因素；若各列比例稳定，则两维度近似独立。") : "")+
+        finding("sug","使用建议", "汇总排序回答「谁大谁小」，占比饼图回答「结构如何」，透视表回答「两个维度如何交叉」——三层递进是描述性分析的完整路径。"));
+      h+=resBlock('⑤ 推荐 Prompt（课后用 AI 复现）', promptBlock(
+        "我有一份数据表（"+res.catCol+"、"+res.valCol+(res.pv?("、"+res.grpCol):"")+"），共 "+ds.rows.length+" 行。\n请用 pandas：① 按 "+res.catCol+" 分组对 "+res.valCol+" 做分类汇总（合计/均值/最值/笔数）并按合计降序；② 绘制柱状图与占比饼图；③ "+(res.pv?("生成数据透视表（行="+res.catCol+"，列="+res.grpCol+"，值="+res.valCol+" 求和）"):"若还有一列类别则生成数据透视表")+"；④ 用 100 字总结结构特征。",
+        "工作台的汇总表/柱饼图/透视表即标准答案；透视表对应教材第 9 章可视化的数据组织。"));
+      return h;
+    }
+  }
+};
+
+/* =====================================================================
+ * 12. 示例库（十个课堂实训，CSV 原文内嵌；task02 为外部采集工具占位）
+ * ===================================================================== */
+var SAMPLES = {
+  task01: { no:"01", name:"店铺访客流量分析", desc:"12 个月 × 5 渠道访客", type:"多列对比", analysis:"multi",
+    csv:`月份,直接访问,搜索引擎,社交媒体,外部链接,广告投放,总访客数
+1月,1443,2186,1202,798,973,6602
+2月,1713,2580,1661,1152,1145,8251
+3月,1913,2598,1714,1296,1263,8784
+4月,2009,2950,2006,1509,1483,9957
+5月,2261,3154,2308,1830,2049,11602
+6月,3020,3554,2978,2358,2296,14206
+7月,2911,3403,2689,2494,2596,14093
+8月,2919,3759,3205,2853,2623,15359
+9月,3031,3866,3355,2979,2887,16118
+10月,3290,4256,3650,3382,3143,17721
+11月,3801,4630,4227,3752,3438,19848
+12月,4000,4638,4343,4049,3743,20773` },
+  task02: { no:"02", name:"八爪鱼数据采集", desc:"需外部采集工具，暂不可用", type:"占位", analysis:"", placeholder:true },
+  task03: { no:"03", name:"销售数据清洗", desc:"60 行 4 列 · 含 6 类脏数据", type:"清洗诊断", analysis:"clean",
+    csv:`行业,月份,日期,销售额
+制造业,1,2024-01-15,2967.9
+制造业,2,2024-02-15,3079.6
+制造业,3,2024-03-15,3403.9
+制造业,4,2024-04-15,"1,250.5"
+制造业,5,2024-05-15,3190.8
+制造业,6,2024-06-15,2753.9
+ 制造业,7,2024-07-15,3365.1
+制造业,8,2024-08-15,3496.5
+制造业,9,2024-09-15,¥3200
+制造业,10,2024-10-15,3864.4
+制造业,11,2024-11-15,3749.4
+制造业,12,2024-12-15,3451.1
+零售业,1,2024-01-15,3001.2
+零售业,2,2024-02-15,3081.3
+零售业,3,2024-03-15,3036.8
+零售业,4,2024-04-15,
+零售业,5,2024-05-15,2756.2
+零售业,6,2024-06-15,3148.6
+零售业,7,2024-07-15,3081.0
+零售业 ,8,2024-08-15,3038.2
+零售业,9,2024-09-15,3129.0
+零售业,10,2024-10-15,3092.3
+零售业,11,2024-11-15,
+零售业,12,2024-12-15,2652.9
+批发业,1,2024-01-15,2299.1
+批发业,2,2024-02-15,2477.8
+批发业,3,2024-03-15,2612.4
+批发业,4,2024-04-15,99999
+批发业,5,2024-05-15,1736.5
+批发 业,6,2024-06-15,2271.9
+批发业,7,2024-07-15,2480.0
+批发业,8,2024-08-15,-800
+批发业,9,2024-09-15,2846.7
+批发业,10,2024-10-15,2478.5
+批发业,11,2024-11-15,2468.3
+餐饮业,12,2024-12-15,2764.2
+餐饮业,12,2024-12-15,2764.2
+餐饮业,2,2024-02-15,1524.6
+餐饮业,3,2024-03-15,2003.3
+餐饮业,4,2024-04-15,1827.6
+餐饮业,5,2024-2-30,1703.1
+餐饮业,6,2024-06-15,2037.3
+餐饮业,7,2024-07-15,1290.5
+餐饮业,8,2024-08-15,1952.1
+餐饮业,9,2024/13/01,1712.2
+餐饮业,10,2024-10-15,1320.6
+餐饮业,11,2024-11-15,1871.3
+餐饮业,12,2024-12-15,1584.7
+建筑业,1,2024-01-15,4385.4
+建筑业,2,2024-02-15,4320.9
+建筑业,3,2024-03-15,4279.1
+建筑业,4,2024-04-15,4310.7
+建筑业,5,2024-05-15,4239.7
+建筑业,6,2024-06-15,4519.0
+建筑业,7,2024-07-15,4144.4
+建筑业,8,2024-08-15,4432.3
+建筑业,9,2024-09-15,4444.6
+建筑业,10,2024-10-15,4511.7
+建筑业,11,2024-11-15,4653.6
+建筑业,12,2024-12-15,4568.8` },
+  task04: { no:"04", name:"生产资料价格描述统计", desc:"1–5 月 × 4 品种价格", type:"描述统计", analysis:"desc",
+    csv:`月份,螺纹钢,线材,中厚板,热轧卷板
+1月,4080,4210,4511,4280
+2月,4080,4197,4514,4315
+3月,4279,4419,4682,4452
+4月,4277,4394,4691,4390
+5月,4499,4620,4828,4574` },
+  task05: { no:"05", name:"小区用电抽样估计", desc:"100 户月电费样本", type:"抽样估计", analysis:"sampling",
+    csv:`户号,月电费(元)
+户001,200.6
+户002,40.2
+户003,50.7
+户004,52.9
+户005,31.7
+户006,62.3
+户007,90.0
+户008,71.3
+户009,98.9
+户010,45.8
+户011,90.9
+户012,64.1
+户013,143.8
+户014,51.4
+户015,220.4
+户016,72.7
+户017,100.1
+户018,33.6
+户019,49.8
+户020,102.9
+户021,31.3
+户022,203.9
+户023,51.2
+户024,110.7
+户025,164.1
+户026,53.7
+户027,102.1
+户028,52.4
+户029,72.0
+户030,55.2
+户031,69.4
+户032,72.1
+户033,84.4
+户034,159.2
+户035,55.4
+户036,71.0
+户037,61.5
+户038,196.9
+户039,29.6
+户040,38.1
+户041,36.1
+户042,57.1
+户043,43.4
+户044,29.6
+户045,71.6
+户046,211.3
+户047,65.8
+户048,48.7
+户049,40.1
+户050,55.0
+户051,120.1
+户052,59.6
+户053,62.4
+户054,97.9
+户055,37.9
+户056,50.1
+户057,93.0
+户058,81.9
+户059,22.4
+户060,169.4
+户061,112.8
+户062,50.8
+户063,64.8
+户064,91.6
+户065,30.0
+户066,57.9
+户067,70.4
+户068,51.8
+户069,37.1
+户070,228.3
+户071,22.9
+户072,155.9
+户073,75.6
+户074,115.7
+户075,212.1
+户076,203.3
+户077,51.7
+户078,115.7
+户079,25.6
+户080,47.7
+户081,207.3
+户082,68.3
+户083,29.0
+户084,48.6
+户085,60.9
+户086,172.4
+户087,49.8
+户088,85.0
+户089,24.0
+户090,54.1
+户091,33.4
+户092,32.4
+户093,78.2
+户094,153.1
+户095,42.8
+户096,137.8
+户097,81.7
+户098,58.7
+户099,110.3
+户100,192.9` },
+  task06: { no:"06", name:"产品总成本指数分析", desc:"3 产品 q0/q1/p0/p1", type:"统计指数", analysis:"index",
+    csv:`产品,产量q0(件),产量q1(件),单位成本p0(元),单位成本p1(元)
+产品A,2000,2400,12.0,10.0
+产品B,1500,1600,8.0,9.0
+产品C,1800,2000,15.0,14.0` },
+  task07: { no:"07", name:"研发投入与销售额回归", desc:"20 家企业样本", type:"相关回归", analysis:"regress",
+    csv:`样本编号,研发投入x(万元),销售额y(万元)
+样本01,19.4,377.6
+样本02,10.2,229.5
+样本03,12.2,260.3
+样本04,14.6,286.6
+样本05,7.5,147.7
+样本06,15.6,319.0
+样本07,6.9,167.2
+样本08,17.1,325.5
+样本09,8.6,220.8
+样本10,3.1,106.4
+样本11,9.9,179.5
+样本12,18.6,385.1
+样本13,13.0,259.0
+样本14,6.0,166.6
+样本15,4.7,142.5
+样本16,6.2,157.7
+样本17,19.6,389.4
+样本18,13.6,267.7
+样本19,3.2,92.1
+样本20,11.8,229.5` },
+  task08: { no:"08", name:"企业总产值时间序列", desc:"2010–2024 年 15 期", type:"时间序列", analysis:"ts",
+    csv:`年份,总产值(亿元)
+2010,3.2
+2011,3.45
+2012,4.0
+2013,4.1
+2014,4.95
+2015,5.5
+2016,5.9
+2017,6.9
+2018,7.35
+2019,8.45
+2020,8.9
+2021,10.15
+2022,11.0
+2023,11.55
+2024,13.0` },
+  task09: { no:"09", name:"网店访客数据可视化", desc:"7 天 × 6 类目长表", type:"分类汇总", analysis:"group",
+    csv:`日期,商品类目,访客数
+2024-01-01,服装,2577
+2024-01-01,数码,2175
+2024-01-01,家居,1500
+2024-01-01,食品,1283
+2024-01-01,美妆,933
+2024-01-01,图书,563
+2024-01-02,服装,2516
+2024-01-02,数码,2110
+2024-01-02,家居,1602
+2024-01-02,食品,1297
+2024-01-02,美妆,750
+2024-01-02,图书,696
+2024-01-03,服装,2680
+2024-01-03,数码,1993
+2024-01-03,家居,1636
+2024-01-03,食品,1313
+2024-01-03,美妆,969
+2024-01-03,图书,516
+2024-01-04,服装,2679
+2024-01-04,数码,2074
+2024-01-04,家居,1785
+2024-01-04,食品,1306
+2024-01-04,美妆,767
+2024-01-04,图书,623
+2024-01-05,服装,2512
+2024-01-05,数码,2200
+2024-01-05,家居,1448
+2024-01-05,食品,1183
+2024-01-05,美妆,814
+2024-01-05,图书,559
+2024-01-06,服装,3724
+2024-01-06,数码,2646
+2024-01-06,家居,2292
+2024-01-06,食品,1758
+2024-01-06,美妆,1202
+2024-01-06,图书,781
+2024-01-07,服装,3535
+2024-01-07,数码,2812
+2024-01-07,家居,2197
+2024-01-07,食品,1782
+2024-01-07,美妆,1191
+2024-01-07,图书,807` },
+  task10: { no:"10", name:"三年销售数据分析报告", desc:"3 年 × 12 月 × 3 办事处", type:"分类汇总", analysis:"group",
+    csv:`年份,月份,办事处,销售额(万元)
+2022,1,华东办事处,540.2
+2022,1,华南办事处,393.4
+2022,1,华北办事处,337.2
+2022,2,华东办事处,591.4
+2022,2,华南办事处,398.5
+2022,2,华北办事处,277.5
+2022,3,华东办事处,665.6
+2022,3,华南办事处,490.7
+2022,3,华北办事处,347.9
+2022,4,华东办事处,640.1
+2022,4,华南办事处,472.6
+2022,4,华北办事处,349.9
+2022,5,华东办事处,727.7
+2022,5,华南办事处,562.3
+2022,5,华北办事处,373.8
+2022,6,华东办事处,703.4
+2022,6,华南办事处,457.4
+2022,6,华北办事处,449.4
+2022,7,华东办事处,696.9
+2022,7,华南办事处,502.7
+2022,7,华北办事处,402.5
+2022,8,华东办事处,757.2
+2022,8,华南办事处,538.9
+2022,8,华北办事处,388.6
+2022,9,华东办事处,707.5
+2022,9,华南办事处,561.6
+2022,9,华北办事处,389.9
+2022,10,华东办事处,743.6
+2022,10,华南办事处,611.0
+2022,10,华北办事处,411.3
+2022,11,华东办事处,871.1
+2022,11,华南办事处,690.3
+2022,11,华北办事处,469.0
+2022,12,华东办事处,958.9
+2022,12,华南办事处,802.8
+2022,12,华北办事处,614.1
+2023,1,华东办事处,621.2
+2023,1,华南办事处,459.9
+2023,1,华北办事处,292.6
+2023,2,华东办事处,703.8
+2023,2,华南办事处,505.2
+2023,2,华北办事处,383.6
+2023,3,华东办事处,716.1
+2023,3,华南办事处,530.9
+2023,3,华北办事处,378.9
+2023,4,华东办事处,785.4
+2023,4,华南办事处,575.1
+2023,4,华北办事处,481.1
+2023,5,华东办事处,809.5
+2023,5,华南办事处,592.6
+2023,5,华北办事处,493.5
+2023,6,华东办事处,874.5
+2023,6,华南办事处,570.9
+2023,6,华北办事处,459.8
+2023,7,华东办事处,749.2
+2023,7,华南办事处,630.6
+2023,7,华北办事处,486.6
+2023,8,华东办事处,813.6
+2023,8,华南办事处,653.5
+2023,8,华北办事处,436.2
+2023,9,华东办事处,917.6
+2023,9,华南办事处,715.9
+2023,9,华北办事处,485.2
+2023,10,华东办事处,996.8
+2023,10,华南办事处,688.2
+2023,10,华北办事处,598.4
+2023,11,华东办事处,1101.8
+2023,11,华南办事处,833.2
+2023,11,华北办事处,579.6
+2023,12,华东办事处,1091.2
+2023,12,华南办事处,865.1
+2023,12,华北办事处,641.5
+2024,1,华东办事处,742.6
+2024,1,华南办事处,559.4
+2024,1,华北办事处,391.0
+2024,2,华东办事处,796.3
+2024,2,华南办事处,574.5
+2024,2,华北办事处,433.1
+2024,3,华东办事处,828.2
+2024,3,华南办事处,683.6
+2024,3,华北办事处,493.4
+2024,4,华东办事处,894.3
+2024,4,华南办事处,702.3
+2024,4,华北办事处,504.1
+2024,5,华东办事处,963.1
+2024,5,华南办事处,749.1
+2024,5,华北办事处,494.3
+2024,6,华东办事处,1004.0
+2024,6,华南办事处,674.1
+2024,6,华北办事处,573.3
+2024,7,华东办事处,936.9
+2024,7,华南办事处,662.5
+2024,7,华北办事处,522.8
+2024,8,华东办事处,984.7
+2024,8,华南办事处,668.6
+2024,8,华北办事处,572.3
+2024,9,华东办事处,1000.8
+2024,9,华南办事处,830.4
+2024,9,华北办事处,591.5
+2024,10,华东办事处,1121.4
+2024,10,华南办事处,811.6
+2024,10,华北办事处,588.0
+2024,11,华东办事处,1240.5
+2024,11,华南办事处,940.5
+2024,11,华北办事处,695.3
+2024,12,华东办事处,1295.3
+2024,12,华南办事处,1007.0
+2024,12,华北办事处,725.1` }
+};
+
+/* =====================================================================
+ * 12. UI 交互逻辑（状态管理 / 渲染 / 事件 / 导出）
+ * ===================================================================== */
+function $(id){ return document.getElementById(id); }
+var state = { ds:null, src:"", srcName:"", reco:null, analysis:null, lastHtml:"" };
+
+/* ---------- 轻提示（不打断流程） ---------- */
+var __toastT=null;
+function toast(msg){
+  var t=$("toast");
+  if(!t){
+    t=document.createElement("div"); t.id="toast";
+    t.style.cssText="position:fixed;left:50%;bottom:40px;transform:translateX(-50%) translateY(16px);background:#1F2937;color:#fff;padding:11px 22px;border-radius:10px;font-size:14px;z-index:999;opacity:0;transition:all .25s;box-shadow:0 8px 24px rgba(0,0,0,.28);pointer-events:none;max-width:86vw;text-align:center;font-weight:600";
+    document.body.appendChild(t);
+  }
+  t.textContent=msg;
+  requestAnimationFrame(function(){ t.style.opacity="1"; t.style.transform="translateX(-50%) translateY(0)"; });
+  if(__toastT) clearTimeout(__toastT);
+  __toastT=setTimeout(function(){ t.style.opacity="0"; t.style.transform="translateX(-50%) translateY(16px)"; }, 2600);
+}
+
+/* ---------- 三步向导切换 ---------- */
+function showStep(n){
+  ["step1","step2","step3"].forEach(function(id,i){ $(id).classList.toggle("hidden", n!==i+1); });
+  ["ws1","ws2","ws3"].forEach(function(id,i){
+    var el=$(id);
+    el.classList.toggle("on", n===i+1);
+    el.classList.toggle("done", n>i+1);
+  });
+  window.scrollTo({top:0, behavior:"smooth"});
+}
+
+/* ---------- 示例库卡片（step1） ---------- */
+function renderSampleGrid(){
+  var h="";
+  Object.keys(SAMPLES).forEach(function(k){
+    var s=SAMPLES[k];
+    if(s.placeholder){
+      h+='<div class="sample-card placeholder" data-k="'+k+'">'
+        +'<div class="sc-no">实训 '+s.no+'</div><div class="sc-name">'+escXML(s.name)+'</div>'
+        +'<div class="sc-desc">'+escXML(s.desc)+'</div></div>';
+    } else {
+      h+='<div class="sample-card" data-k="'+k+'">'
+        +'<div class="sc-no">实训 '+s.no+'</div><span class="sc-type">'+escXML(s.type)+'</span>'
+        +'<div class="sc-name">'+escXML(s.name)+'</div>'
+        +'<div class="sc-desc">'+escXML(s.desc)+' · 点击加载</div></div>';
+    }
+  });
+  $("sampleGrid").innerHTML=h;
+}
+
+/* ---------- 自动推荐：第一个 detect 命中的分析 ---------- */
+function autoDetect(){
+  var keys=Object.keys(ANALYSES), i;
+  for(i=0;i<keys.length;i++){ if(ANALYSES[keys[i]].detect(state.ds)) return keys[i]; }
+  return null;
+}
+
+/* ---------- 数据装载（示例 / 上传 共用） ---------- */
+function applyDS(ds, src, srcName, reco){
+  state.ds=ds; state.src=src; state.srcName=srcName;
+  state.reco=reco||autoDetect(); state.analysis=null;
+}
+function loadSample(k){
+  var s=SAMPLES[k];
+  if(!s) return;
+  if(s.placeholder){ toast("实训 "+s.no+" 需外部采集工具（八爪鱼），暂无内置示例数据"); return; }
+  var ds;
+  try{ ds=parseCSV(s.csv); }catch(e){ toast("示例数据解析失败"); return; }
+  applyDS(ds, "示例库 · 实训"+s.no, s.name, s.analysis||null);
+  renderAnalysisGrid(); showStep(2);
+}
+function loadFile(file){
+  if(!file) return;
+  if(file.size>2*1024*1024){ toast("文件超过 2MB，请拆分后上传（示例：output 目录内 CSV）"); return; }
+  var rd=new FileReader();
+  rd.onload=function(){
+    var text=String(rd.result||"");
+    var ds;
+    try{ ds=parseCSV(text); }catch(e){ toast("CSV 解析失败："+e.message); return; }
+    if(!ds.headers.length || ds.rows.length<1){ toast("未识别到数据：需要第一行表头 + 至少 1 行数据"); return; }
+    applyDS(ds, "本地文件", file.name, null);
+    renderDataCard(); showStep(1);
+  };
+  rd.onerror=function(){ toast("文件读取失败，请重试"); };
+  rd.readAsText(file, "utf-8");
+}
+
+/* ---------- 数据预览（step1 底部） ---------- */
+function renderDataCard(){
+  var ds=state.ds;
+  $("dataMeta").textContent=state.src+" · "+ds.rows.length+" 行 × "+ds.headers.length+" 列";
+  var tags="", c=colOptions(ds);
+  c.forEach(function(o){ tags+='<span class="col-tag '+(o.num?"num":"txt")+'">'+escXML(o.name)+'</span>'; });
+  $("colTags").innerHTML=tags;
+  var head="<tr>"+ds.headers.map(function(h){ return "<th>"+escXML(h)+"</th>"; }).join("")+"</tr>";
+  var body="", max=Math.min(10, ds.rows.length), i, j;
+  for(i=0;i<max;i++){
+    body+="<tr>";
+    for(j=0;j<ds.headers.length;j++) body+="<td>"+escXML(String(ds.rows[i][j]))+"</td>";
+    body+="</tr>";
+  }
+  $("previewTable").innerHTML=head+body;
+  $("dataCard").classList.remove("hidden");
+  $("dataCard").scrollIntoView({behavior:"smooth", block:"nearest"});
+}
+
+/* ---------- 分析类型卡片（step2） ---------- */
+function renderAnalysisGrid(){
+  var ds=state.ds, h="";
+  Object.keys(ANALYSES).forEach(function(k){
+    var a=ANALYSES[k], ok=a.detect(ds), reco=state.reco===k;
+    h+='<div class="an-card'+(reco?" reco":"")+'" data-k="'+k+'" style="'+(ok?"":"opacity:.5;cursor:not-allowed")+'">'
+      +'<div class="an-top">'+a.icon+'<div class="an-name">'+escXML(a.name)+'</div></div>'
+      +'<div class="an-desc">'+escXML(a.desc)+'</div>'
+      +'<div class="an-fit">'+escXML(a.fit)+'</div></div>';
+  });
+  $("anGrid").innerHTML=h;
+  $("anConfig").classList.add("hidden");
+  var sub=document.querySelector("#step2 .sec-sub");
+  sub.textContent="当前数据："+state.srcName+"（"+ds.rows.length+" 行 × "+ds.headers.length+" 列）。系统已按列结构给出推荐（绿色标出），也可手动选择其它分析。";
+}
+
+/* ---------- 选择分析类型 → 渲染参数表单 ---------- */
+function selectAnalysis(k){
+  var a=ANALYSES[k];
+  if(!a || !a.detect(state.ds)){ toast("当前数据不适合「"+a.name+"」，请选绿色推荐项或更换数据"); return; }
+  state.analysis=k;
+  var cards=$("anGrid").querySelectorAll(".an-card");
+  cards.forEach(function(cd){ cd.classList.toggle("sel", cd.dataset.k===k); });
+  $("cfgFields").innerHTML=a.config(state.ds);
+  $("cfgFields").querySelectorAll("select, input").forEach(function(el){ el.style.minHeight="44px"; });
+  $("anConfig").classList.remove("hidden");
+  $("anConfig").scrollIntoView({behavior:"smooth", block:"nearest"});
+}
+
+/* ---------- 读取参数表单（cfg_ 前缀元素 → cfg 对象） ---------- */
+function readCfg(){
+  var cfg={}, els=$("cfgFields").querySelectorAll("[id^='cfg_']");
+  els.forEach(function(el){
+    var name=el.id.slice(4);
+    if(el.tagName==="SELECT" && el.multiple){
+      cfg[name]=[].slice.call(el.selectedOptions).map(function(o){ return o.value; });
+    } else cfg[name]=el.value;
+  });
+  return cfg;
+}
+
+/* ---------- 运行分析 → 渲染结果 ---------- */
+function runAnalysis(){
+  if(!state.ds){ toast("请先选择数据源"); return; }
+  if(!state.analysis){ toast("请先选择分析类型"); return; }
+  var a=ANALYSES[state.analysis], cfg=readCfg(), res;
+  try{ res=a.run(state.ds, cfg); }
+  catch(e){ toast("计算失败："+e.message); return; }
+  var html=a.render(state.ds, cfg, res);
+  state.lastHtml=html;
+  $("resultArea").innerHTML=html;
+  $("rtStatus").innerHTML='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>确定性公式计算 · 口径与 Python 引擎一致';
+  showStep(3);
+}
+
+/* =====================================================================
+ * 13. 导出独立 HTML 报告（Blob 下载，离线可打印）
+ * ===================================================================== */
+var REPORT_CSS =
+"*{box-sizing:border-box}body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,'PingFang SC','Microsoft YaHei',sans-serif;color:#2D3748;margin:0;background:#F5F7FA;line-height:1.75}"+
+".rpt-head{background:linear-gradient(135deg,#005DA2,#00447A);color:#fff;padding:34px 40px 30px}"+
+".rpt-tag{display:inline-block;font-size:12px;font-weight:700;letter-spacing:2.5px;border:1px solid rgba(255,255,255,.4);border-radius:999px;padding:5px 14px;margin-bottom:14px;color:#F2C94C}"+
+".rpt-head h1{font-size:26px;margin:0 0 10px;line-height:1.35}"+
+".rpt-meta{font-size:12.5px;opacity:.85}"+
+".rpt-body{max-width:860px;margin:0 auto;padding:26px 22px 40px}"+
+".rpt-foot{max-width:860px;margin:0 auto;padding:0 22px 34px;font-size:12px;color:#8A94A0;text-align:center}"+
+".res-block{background:#fff;border:1px solid #E2E8F0;border-radius:12px;padding:20px 22px;margin-bottom:16px}"+
+".rb-title{font-size:15.5px;font-weight:800;color:#00447A;margin-bottom:12px}"+
+".metric-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:10px;margin-bottom:6px}"+
+".metric{background:#F8FBFE;border:1px solid #E2E8F0;border-radius:9px;padding:10px 12px}"+
+".m-label{font-size:11.5px;color:#8A94A0;font-weight:600}"+
+".m-value{font-size:18px;font-weight:800;color:#00447A;line-height:1.35}"+
+".m-unit{font-size:11.5px;color:#8A94A0;margin-left:3px;font-weight:400}"+
+".metric.hl{background:#EDF5FC;border-color:#005DA2}.metric.hl .m-value{color:#005DA2}"+
+".metric.warn{background:#FDF6EC;border-color:#F2D8A7}.metric.warn .m-value{color:#B7791F}"+
+".chart-box{margin:10px 0 4px}.chart-box svg{width:100%;height:auto;display:block}"+
+".formula-card{background:#F8FAFC;border-left:4px solid #F2A900;border-radius:8px;padding:12px 16px;margin:10px 0;font-size:13.5px}"+
+".f-label{font-size:11.5px;font-weight:800;color:#B7791F;letter-spacing:1px;margin-bottom:3px}"+
+".f-expr{font-weight:700;font-family:'Cambria Math',Georgia,serif;font-size:14.5px}"+
+".f-sub{color:#4A5568;font-size:13px;margin-top:2px}.f-res{color:#005DA2;font-weight:800;margin-top:2px}"+
+".finding{display:flex;gap:10px;padding:9px 12px;border-radius:9px;margin:7px 0;align-items:flex-start;font-size:13.5px}"+
+".f-badge{flex:0 0 auto;font-size:11.5px;font-weight:800;padding:2px 9px;border-radius:6px;margin-top:2px;color:#fff}"+
+".f-body{flex:1}.f-title{font-weight:700}"+
+".f-fact{background:#F0F6FF}.f-fact .f-badge{background:#005DA2}"+
+".f-anl{background:#FFF7E6}.f-anl .f-badge{background:#DD8B00}"+
+".f-sug{background:#EAF6F0}.f-sug .f-badge{background:#1E8E5A}"+
+".f-warn{background:#FBEEEC}.f-warn .f-badge{background:#C0392B}"+
+".prompt-box{background:#0F2B45;border-radius:11px;padding:16px 18px;margin:10px 0;color:#E8F1F8}"+
+".pb-label{font-size:11.5px;font-weight:800;color:#F2A900;letter-spacing:1.5px;margin-bottom:8px}"+
+".pb-text{font-size:13px;line-height:1.8;white-space:pre-wrap;font-family:'Consolas','Courier New',monospace}"+
+".pb-note{font-size:11.5px;color:#9FB6CC;margin-top:8px}"+
+".qa-note{font-size:12px;color:#8A94A0;margin-top:10px;display:flex;gap:8px;align-items:center}"+
+".warn-box{background:#FBEEEC;border:1px solid #F2C4BD;border-radius:9px;padding:12px 16px;margin:10px 0;font-size:13px;display:flex;gap:10px}"+
+".table-wrap{overflow-x:auto;margin:12px 0 14px;border:1px solid #E2E8F0;border-radius:9px}"+
+"table.tbl{border-collapse:collapse;width:100%;font-size:13px}"+
+".tbl th{background:#F1F5F9;color:#00447A;font-weight:700;text-align:left;padding:8px 12px;border-bottom:2px solid #E2E8F0}"+
+".tbl td{padding:7px 12px;border-bottom:1px solid #EEF2F6;white-space:nowrap}"+
+"@media print{body{background:#fff}.rpt-head{-webkit-print-color-adjust:exact;print-color-adjust:exact}.res-block{break-inside:avoid}}"+
+"@media (max-width:560px){.rpt-head{padding:24px 18px 22px}.rpt-head h1{font-size:21px}.rpt-body{padding:18px 12px 30px}.metric-grid{grid-template-columns:repeat(2,1fr)}}";
+
+function exportReport(){
+  if(!state.lastHtml){ toast("暂无结果可导出，请先运行一次分析"); return; }
+  var a=ANALYSES[state.analysis];
+  var title=(a?a.name:"分析结果")+" · "+state.srcName;
+  var stamp=new Date().toLocaleString("zh-CN", {hour12:false});
+  // 独立报告中移除「复制 Prompt」按钮（无对应函数）
+  var tmp=document.createElement("div"); tmp.innerHTML=state.lastHtml;
+  tmp.querySelectorAll(".pb-copy").forEach(function(b){ b.remove(); });
+  var html="<!DOCTYPE html><html lang=\"zh-CN\"><head><meta charset=\"UTF-8\">"
+    +"<meta name=\"viewport\" content=\"width=device-width, initial-scale=1\">"
+    +"<title>"+escXML(title)+"</title><style>"+REPORT_CSS+"</style></head><body>"
+    +"<div class=\"rpt-head\"><span class=\"rpt-tag\">AI DATA ANALYSIS · 数据分析报告</span>"
+    +"<h1>"+escXML(title)+"</h1>"
+    +"<div class=\"rpt-meta\">数据来源："+escXML(state.src)+" · "+state.ds.rows.length+" 行 × "+state.ds.headers.length+" 列<br>生成时间："+escXML(stamp)+"</div></div>"
+    +"<div class=\"rpt-body\">"+tmp.innerHTML+"</div>"
+    +"<div class=\"rpt-foot\">本报告由 AI 数据分析工作台（确定性引擎）生成 · 数据仅在本机浏览器内处理 · 可与课后 AI 输出对照</div>"
+    +"</body></html>";
+  var blob=new Blob([html], {type:"text/html;charset=utf-8"});
+  var url=URL.createObjectURL(blob);
+  var aEl=document.createElement("a");
+  aEl.href=url;
+  aEl.download=title.replace(/[\\\/:*?"<>|]/g,"_")+".html";
+  document.body.appendChild(aEl); aEl.click(); document.body.removeChild(aEl);
+  setTimeout(function(){ URL.revokeObjectURL(url); }, 3000);
+  toast("报告已导出为独立 HTML（可打印 / 投影）");
+}
+
+/* =====================================================================
+ * 14. 示例报告墙（链接到 Python 预生成报告）
+ * ===================================================================== */
+function renderWall(){
+  var h="";
+  Object.keys(SAMPLES).forEach(function(k){
+    var s=SAMPLES[k];
+    if(s.placeholder) return; // task02 无报告
+    h+='<a class="wall-card" href="output/'+k+'/report.html" target="_blank">'
+      +'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>'
+      +'<div><div class="wc-no">实训 '+s.no+'</div><div class="wc-name">'+escXML(s.name)+'</div></div>'
+      +'</a>';
+  });
+  $("wallGrid").innerHTML=h;
+}
+
+/* ---------- 重置 ---------- */
+function resetAll(){
+  state={ ds:null, src:"", srcName:"", reco:null, analysis:null, lastHtml:"" };
+  $("dataCard").classList.add("hidden");
+  $("anConfig").classList.add("hidden");
+  $("resultArea").innerHTML="";
+  $("rtStatus").innerHTML="";
+  document.querySelector("#step2 .sec-sub").textContent="系统已根据你的数据列结构给出推荐（绿色标出），也可手动选择其它分析。";
+  showStep(1);
+}
+
+/* =====================================================================
+ * 15. 事件绑定与初始化
+ * ===================================================================== */
+$("uploadBox").addEventListener("click", function(){ $("fileInput").click(); });
+$("fileInput").addEventListener("change", function(e){
+  var f=e.target.files&&e.target.files[0];
+  if(f) loadFile(f);
+  e.target.value="";
+});
+$("uploadBox").addEventListener("dragenter", function(e){ e.preventDefault(); $("uploadBox").style.borderColor="#005DA2"; $("uploadBox").style.background="#EDF5FC"; });
+$("uploadBox").addEventListener("dragover", function(e){ e.preventDefault(); });
+$("uploadBox").addEventListener("dragleave", function(e){ e.preventDefault(); $("uploadBox").style.borderColor=""; $("uploadBox").style.background=""; });
+$("uploadBox").addEventListener("drop", function(e){
+  e.preventDefault();
+  $("uploadBox").style.borderColor=""; $("uploadBox").style.background="";
+  var f=e.dataTransfer&&e.dataTransfer.files&&e.dataTransfer.files[0];
+  if(f) loadFile(f);
+});
+$("sampleGrid").addEventListener("click", function(e){
+  var card=e.target.closest(".sample-card");
+  if(card&&card.dataset.k) loadSample(card.dataset.k);
+});
+$("btnStep2").addEventListener("click", function(){ renderAnalysisGrid(); showStep(2); });
+$("btnReset1").addEventListener("click", function(){ $("dataCard").classList.add("hidden"); });
+$("anGrid").addEventListener("click", function(e){
+  var card=e.target.closest(".an-card");
+  if(card&&card.dataset.k) selectAnalysis(card.dataset.k);
+});
+$("btnRun").addEventListener("click", runAnalysis);
+$("btnBack1").addEventListener("click", function(){ showStep(2); });
+$("btnRestart").addEventListener("click", resetAll);
+$("btnExport").addEventListener("click", exportReport);
+
+renderSampleGrid();
+renderWall();
+</script>
+</body>
+</html>

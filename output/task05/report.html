@@ -1,0 +1,554 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>任务05 小区居民用电分析 · AI 数据分析工作台</title>
+<style>
+/* ============================================================
+   AI 数据分析工作台 — 人邮蓝主题样式表
+   对齐参考 PPT：顶部小标签 + 大标题 + 结构化卡片 + 推荐 Prompt 框 + 底部小结条
+   ============================================================ */
+:root {
+  --brand: #005DA2;
+  --brand-dark: #00447A;
+  --brand-light: #E8F1F8;
+  --accent: #F2A900;
+  --ok: #1E8E5A;
+  --bad: #C0392B;
+  --gray: #8A94A0;
+  --text: #2D3748;
+  --line: #E2E8F0;
+  --bg: #F4F7FA;
+}
+
+* { box-sizing: border-box; margin: 0; padding: 0; }
+
+html { scroll-behavior: smooth; }
+
+body {
+  font-family: "Microsoft YaHei", "微软雅黑", "PingFang SC", "Helvetica Neue", Arial, sans-serif;
+  background: var(--bg);
+  color: var(--text);
+  font-size: 15px;
+  line-height: 1.7;
+}
+
+/* ---------- 内联 SVG 通用样式 ---------- */
+.ic { width: 16px; height: 16px; vertical-align: -3px; margin-right: 4px; }
+.ic-ok { color: var(--ok); }
+.ic-bad { color: var(--bad); }
+
+.page {
+  max-width: 1280px;
+  margin: 0 auto;
+  padding: 30px 40px 56px;
+}
+
+/* ---------- 顶部小标签（对齐参考 PPT「AI DATA ANALYSIS」） ---------- */
+.top-tag {
+  font-size: 10px;
+  letter-spacing: 4px;
+  text-transform: uppercase;
+  color: var(--gray);
+  margin-bottom: 8px;
+  font-weight: 600;
+}
+
+/* ---------- 页头 ---------- */
+.page-head {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  border-bottom: 3px solid var(--brand);
+  padding-bottom: 18px;
+  margin-bottom: 18px;
+}
+.task-tag {
+  display: inline-block;
+  background: var(--brand-light);
+  color: var(--brand-dark);
+  font-size: 13px;
+  font-weight: 600;
+  padding: 3px 14px;
+  border-radius: 20px;
+  margin-bottom: 10px;
+}
+.page-head h1 { font-size: 30px; color: var(--brand-dark); font-weight: 700; letter-spacing: 0.5px; }
+.task-sub { font-size: 15px; color: var(--gray); margin-top: 6px; }
+.head-right { text-align: right; flex-shrink: 0; }
+.logo { font-size: 17px; font-weight: 700; color: var(--brand); }
+.head-date { font-size: 12.5px; color: var(--gray); margin-top: 4px; }
+
+/* ---------- 示例数据横幅 ---------- */
+.sample-banner {
+  background: #FFF7E6;
+  border: 1px solid #F5D89A;
+  color: #7A5A00;
+  border-radius: 8px;
+  padding: 10px 18px;
+  font-size: 13.5px;
+  margin-bottom: 24px;
+}
+
+/* ---------- 内容块 ---------- */
+.content { display: flex; flex-direction: column; gap: 28px; }
+.block {
+  background: #fff;
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  padding: 24px 28px 26px;
+  box-shadow: 0 1px 3px rgba(0, 68, 122, 0.04);
+}
+.block-title {
+  font-size: 19px;
+  font-weight: 700;
+  color: var(--brand-dark);
+  margin-bottom: 6px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.block-title .idx {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 26px; height: 26px;
+  border-radius: 6px;
+  background: var(--brand);
+  color: #fff;
+  font-size: 14px;
+  font-weight: 700;
+  flex-shrink: 0;
+}
+.block-title .sub-tag { font-size: 12px; color: var(--gray); font-weight: 400; margin-left: auto; }
+.block-body { margin-top: 12px; }
+
+/* ---------- 讲解要点 callout ---------- */
+.callout {
+  margin-top: 14px;
+  background: #F7FAFC;
+  border-left: 4px solid var(--accent);
+  border-radius: 6px;
+  padding: 10px 16px;
+  font-size: 13.5px;
+  color: #5A6472;
+}
+.callout-label { font-weight: 700; color: #B8860B; margin-bottom: 2px; font-size: 13px; }
+.callout-text { line-height: 1.65; }
+
+/* ---------- 警示框 ---------- */
+.warn {
+  margin-top: 14px;
+  background: #FDF1F0;
+  border: 1px solid #E8B4AD;
+  border-left: 4px solid var(--bad);
+  border-radius: 6px;
+  padding: 10px 16px;
+  font-size: 13.5px;
+  color: #7A2E22;
+}
+.warn-label { font-weight: 700; margin-bottom: 2px; font-size: 13px; }
+
+/* ---------- 表格 ---------- */
+.tbl {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 13.5px;
+  margin: 10px 0;
+}
+.tbl caption {
+  font-size: 13px;
+  color: var(--gray);
+  text-align: left;
+  padding: 4px 0 8px;
+}
+.tbl th {
+  background: var(--brand-light);
+  color: var(--brand-dark);
+  font-weight: 700;
+  text-align: left;
+  padding: 8px 12px;
+  border-bottom: 2px solid var(--brand);
+  white-space: nowrap;
+}
+.tbl td {
+  padding: 7px 12px;
+  border-bottom: 1px solid var(--line);
+}
+.tbl tbody tr:nth-child(even) { background: #F9FBFD; }
+.tbl.small { font-size: 12.5px; }
+.tbl.small th, .tbl.small td { padding: 5px 9px; }
+
+/* ---------- 公式四件套 ---------- */
+.formula-card {
+  border: 1px solid var(--line);
+  border-left: 4px solid var(--brand);
+  border-radius: 8px;
+  margin: 10px 0;
+  background: #FBFDFF;
+  overflow: hidden;
+}
+.f-line {
+  display: flex;
+  padding: 8px 16px;
+  border-bottom: 1px dashed #EAF0F5;
+  font-size: 14px;
+}
+.f-line:last-child { border-bottom: none; }
+.f-label {
+  flex: 0 0 64px;
+  font-weight: 700;
+  color: var(--brand-dark);
+  font-size: 13px;
+  padding-top: 1px;
+}
+.f-formula { font-weight: 600; color: #1A365D; }
+.f-sub { color: #4A5568; }
+.f-result { font-weight: 700; color: var(--brand); font-size: 15px; }
+.f-int { color: #4A5568; }
+
+/* ---------- 指标网格 ---------- */
+.metric-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+  gap: 12px;
+  margin: 12px 0;
+}
+.metric {
+  background: var(--brand-light);
+  border-radius: 10px;
+  padding: 14px 16px;
+  text-align: center;
+  border: 1px solid #D6E4F0;
+}
+.metric-label { font-size: 12.5px; color: var(--brand-dark); }
+.metric-value { font-size: 22px; font-weight: 800; color: var(--brand-dark); margin: 4px 0; }
+.metric-note { font-size: 12px; color: #5A6472; }
+
+/* ---------- 图表 ---------- */
+.fig { margin: 14px 0; }
+.fig img {
+  width: 100%;
+  height: auto;
+  border: 1px solid var(--line);
+  border-radius: 10px;
+  background: #fff;
+}
+.fig figcaption {
+  font-size: 13px;
+  color: var(--gray);
+  margin-top: 8px;
+  text-align: center;
+}
+.fig-purpose {
+  margin-top: 8px;
+  background: var(--brand-light);
+  border-radius: 6px;
+  padding: 8px 14px;
+  font-size: 13.5px;
+  color: var(--brand-dark);
+}
+.fig-note { margin-top: 6px; font-size: 13px; color: #5A6472; }
+
+/* ---------- 分层结论 ---------- */
+.finding {
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  padding: 12px 16px;
+  margin: 10px 0;
+  background: #FBFDFF;
+}
+.f-badge {
+  display: inline-block;
+  font-weight: 700;
+  font-size: 12.5px;
+  margin-right: 10px;
+  padding: 1px 10px;
+  border-radius: 12px;
+  color: #fff;
+}
+.f-title { font-weight: 700; font-size: 14.5px; color: var(--brand-dark); }
+.f-text { margin-top: 6px; font-size: 13.5px; color: #4A5568; line-height: 1.7; }
+.f-事实 .f-badge { background: var(--brand); }
+.f-分析 .f-badge { background: var(--accent); color: #7A5A00; }
+.f-推测 .f-badge { background: #D69E2E; }
+.f-建议 .f-badge { background: var(--ok); }
+.f-警示 .f-badge { background: var(--bad); }
+
+/* ---------- 编号步骤卡（对齐参考 PPT） ---------- */
+.step-card {
+  display: flex;
+  gap: 14px;
+  border: 1px solid var(--line);
+  border-radius: 10px;
+  padding: 14px 18px;
+  margin: 12px 0;
+  background: #FBFDFF;
+}
+.step-num {
+  flex: 0 0 34px;
+  height: 34px;
+  border-radius: 50%;
+  background: var(--brand);
+  color: #fff;
+  font-weight: 800;
+  font-size: 16px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-top: 2px;
+}
+.step-num-q { background: #F2A900; }
+.step-num-d { background: #1E8E5A; }
+.step-num-g { background: #8E5FA2; }
+.step-body { flex: 1; }
+.step-title { font-weight: 700; color: var(--brand-dark); font-size: 14.5px; margin-bottom: 4px; }
+.step-text { font-size: 13.5px; color: #4A5568; }
+
+/* ---------- D/I/G 大字母块（对齐参考 PPT） ---------- */
+.dig-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 14px; margin: 12px 0; }
+.dig-card {
+  border: 1px solid var(--line);
+  border-radius: 10px;
+  padding: 18px;
+  background: #fff;
+  border-top: 4px solid var(--brand);
+}
+.dig-letter {
+  font-size: 30px;
+  font-weight: 900;
+  color: var(--brand);
+  margin-bottom: 6px;
+  letter-spacing: 1px;
+}
+.dig-title { font-weight: 700; color: var(--brand-dark); margin-bottom: 6px; }
+.dig-text { font-size: 13px; color: #4A5568; line-height: 1.65; }
+
+/* ---------- 推荐 Prompt 框（对齐参考 PPT） ---------- */
+.prompt-box {
+  background: #F0F6FB;
+  border: 1px solid #C9DEEE;
+  border-left: 4px solid var(--brand);
+  border-radius: 8px;
+  padding: 14px 18px;
+  margin: 12px 0;
+}
+.prompt-label {
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--brand-dark);
+  margin-bottom: 6px;
+}
+.prompt-text {
+  background: #fff;
+  border: 1px solid #D6E4F0;
+  border-radius: 6px;
+  padding: 12px 16px;
+  font-size: 13.5px;
+  color: #1A365D;
+  line-height: 1.75;
+  white-space: pre-wrap;
+  font-family: inherit;
+}
+.prompt-note { margin-top: 8px; font-size: 12.5px; color: var(--gray); }
+
+/* ---------- QA ---------- */
+.qa-tbl { margin-top: 10px; }
+.qa-ok td { color: var(--ok); }
+.qa-fail td { color: var(--bad); background: #FDF1F0; }
+.qa-icon { text-align: center; }
+.qa-name { font-weight: 600; }
+.qa-total {
+  margin-top: 10px;
+  font-size: 14px;
+  font-weight: 700;
+  color: var(--ok);
+  text-align: right;
+}
+.qa-total-fail { color: var(--bad); }
+
+/* ---------- 底部小结条（对齐参考 PPT 每页底部小结） ---------- */
+.bottom-note {
+  margin-top: 26px;
+  background: var(--brand-dark);
+  color: #fff;
+  border-radius: 10px;
+  padding: 14px 22px;
+  font-size: 14.5px;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+.bottom-note .bn-label {
+  flex-shrink: 0;
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 2px;
+  color: var(--accent);
+  border: 1px solid rgba(242, 169, 0, 0.5);
+  border-radius: 4px;
+  padding: 2px 8px;
+}
+.bottom-note .bn-text { line-height: 1.6; }
+
+/* ---------- 页脚 ---------- */
+.page-foot {
+  margin-top: 34px;
+  border-top: 1px solid var(--line);
+  padding-top: 14px;
+}
+.foot-inner {
+  display: flex;
+  justify-content: space-between;
+  font-size: 12.5px;
+  color: var(--gray);
+}
+.qa-summary { font-weight: 600; }
+
+/* ============================================================
+   首页（index.html）
+   ============================================================ */
+.hero { text-align: center; padding: 36px 0 10px; }
+.hero .top-tag { text-align: center; margin-bottom: 10px; }
+.hero h1 { font-size: 40px; color: var(--brand-dark); font-weight: 800; letter-spacing: 2px; }
+.hero .hero-sub { font-size: 16px; color: var(--gray); margin-top: 10px; }
+.hero .hero-desc { font-size: 13.5px; color: var(--gray); margin-top: 6px; }
+
+.feature-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 16px;
+  margin: 26px 0 34px;
+}
+.feature-card {
+  background: #fff;
+  border: 1px solid var(--line);
+  border-top: 4px solid var(--brand);
+  border-radius: 12px;
+  padding: 18px 20px;
+  text-align: left;
+}
+.feature-card .fc-icon { font-size: 24px; }
+.feature-card .fc-title { font-weight: 700; color: var(--brand-dark); font-size: 15.5px; margin: 6px 0 4px; }
+.feature-card .fc-text { font-size: 13px; color: #5A6472; }
+
+.task-section-title {
+  font-size: 15px;
+  font-weight: 700;
+  color: var(--brand-dark);
+  margin: 8px 0 4px;
+  letter-spacing: 1px;
+}
+.task-section-sub { font-size: 12.5px; color: var(--gray); margin-bottom: 14px; }
+
+.task-grid {
+  display: grid;
+  grid-template-columns: repeat(5, 1fr);
+  gap: 14px;
+}
+.task-card {
+  display: block;
+  background: #fff;
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  padding: 16px 16px 14px;
+  text-decoration: none;
+  color: var(--text);
+  transition: all 0.15s ease;
+  border-top: 4px solid var(--brand);
+}
+.task-card:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 8px 20px rgba(0, 68, 122, 0.12);
+  border-color: var(--brand);
+}
+.task-card .tc-no {
+  font-size: 12px;
+  font-weight: 700;
+  color: var(--brand);
+  letter-spacing: 1px;
+}
+.task-card .tc-title { font-weight: 700; font-size: 14.5px; color: var(--brand-dark); margin: 6px 0 3px; }
+.task-card .tc-sub { font-size: 12px; color: var(--gray); line-height: 1.5; }
+.task-card .tc-status {
+  display: inline-block;
+  margin-top: 10px;
+  font-size: 11.5px;
+  font-weight: 600;
+  color: var(--ok);
+  background: #E8F5EE;
+  border-radius: 10px;
+  padding: 1px 10px;
+}
+.task-card.placeholder {
+  background: #F1F3F5;
+  border-top-color: #B9C2CB;
+  cursor: not-allowed;
+  filter: grayscale(0.6);
+}
+.task-card.placeholder .tc-title { color: #6B7683; }
+.task-card.placeholder .tc-status { color: #8A94A0; background: #E4E8EC; }
+
+.footer-note { text-align: center; font-size: 12.5px; color: var(--gray); margin-top: 34px; line-height: 1.8; }
+
+/* ---------- 响应式（手机） ---------- */
+@media (max-width: 900px) {
+  .task-grid { grid-template-columns: repeat(2, 1fr); }
+  .feature-grid { grid-template-columns: 1fr; }
+  .page { padding: 20px 16px 40px; }
+  .page-head { flex-direction: column; gap: 10px; }
+  .head-right { text-align: left; }
+  .block { padding: 18px 16px; }
+  .f-line { flex-direction: column; gap: 2px; }
+  .f-label { flex: none; }
+  .step-card { flex-direction: column; gap: 8px; }
+}
+
+</style>
+</head>
+<body>
+<div class="page">
+  <div class="top-tag">AI DATA ANALYSIS</div>
+  <header class="page-head">
+    <div class="head-left">
+      <div class="task-tag">任务 05 · 第5章 抽样估计分析</div>
+      <h1>小区居民用电分析</h1>
+      <div class="task-sub">总体均值区间估计 · 总体比例区间估计</div>
+    </div>
+    <div class="head-right">
+      <div class="logo">AI 数据分析工作台</div>
+      <div class="head-date">课堂演示报告 · 2026-08-31</div>
+    </div>
+  </header>
+
+  <div class="sample-banner">{_SVG_WARN} 示例数据，非课程原始数据。本工作台内置的数据按课程文字描述构造，用于演示分析流程；教师可替换为真实数据后重跑同一流程。</div>
+
+  <main class="content">
+<section class="block" id="need"><h2 class="block-title">① 需求 · 先明确问题，再动手分析（DIG 起点）</h2><div class="block-body">
+    <div class="step-card"><div class="step-num step-num-q">Q</div><div class="step-body">
+      <div class="step-title">要回答的业务问题</div><div class="step-text">这 100 户居民的电费数据，能否推断整个小区的月电费水平？电费高于 80 元的居民占多大比例？</div></div></div>
+    <div class="step-card"><div class="step-num step-num-d">D</div><div class="step-body">
+      <div class="step-title">数据来源</div><div class="step-text">随机抽取 100 户居民月电费（元），示例数据按课程描述构造（约 30–40% 户高于 80 元）</div></div></div>
+    <div class="step-card"><div class="step-num step-num-g">G</div><div class="step-body">
+      <div class="step-title">希望的结果</div><div class="step-text">在 95% 置信水平下给出 ①所有居民月电费均值的置信区间 ②电费高于 80 元居民比例的置信区间，并展示完整计算过程</div></div></div>
+    </div></section>
+<section class="block" id="describe"><h2 class="block-title">② D 描述数据 · 先理解数据，再分析</h2><div class="block-body"><div class="metric-grid"><div class="metric"><div class="metric-label">记录数</div><div class="metric-value">100</div><div class="metric-note">行</div></div><div class="metric"><div class="metric-label">字段数</div><div class="metric-value">2</div><div class="metric-note">列</div></div><div class="metric"><div class="metric-label">样本量</div><div class="metric-value">100</div><div class="metric-note">户</div></div><div class="metric"><div class="metric-label">&gt;80 元户数</div><div class="metric-value">37</div><div class="metric-note">占比 37.0%</div></div></div><table class="tbl"><caption>表：数据字段概况（Describe 结果）</caption><thead><tr><th>字段</th><th>类型</th><th>缺失</th><th>缺失率</th><th>唯一值</th><th>样例</th></tr></thead><tbody><tr><td>户号</td><td>文本</td><td>0</td><td>0.0%</td><td>100</td><td>户001、户002 …</td></tr><tr><td>月电费(元)</td><td>数值</td><td>0</td><td>0.0%</td><td>97</td><td>200.6、40.2 …</td></tr></tbody></table><table class="tbl small"><caption>表：数据示例（前 5 行）</caption><thead><tr><th>户号</th><th>月电费(元)</th></tr></thead><tbody><tr><td>户001</td><td>200.6</td></tr><tr><td>户002</td><td>40.2</td></tr><tr><td>户003</td><td>50.7</td></tr><tr><td>户004</td><td>52.9</td></tr><tr><td>户005</td><td>31.7</td></tr></tbody></table></div></section>
+<section class="block" id="dig"><h2 class="block-title">③ I 挖掘数据 · 输入 → 统计量 → 公式 → 过程 → 结果</h2><div class="block-body"><div class="step-card"><div class="step-num">1</div><div class="step-body"><div class="step-title">输入 · 样本数据</div><div class="step-text">随机抽取 100 户居民，月电费样本数据（户号 + 月电费(元)）</div></div></div><div class="step-card"><div class="step-num">2</div><div class="step-body"><div class="step-title">统计量 · 样本特征</div><div class="step-text">&lt;div class="metric-grid"&gt;&lt;div class="metric"&gt;&lt;div class="metric-label"&gt;样本量 n&lt;/div&gt;&lt;div class="metric-value"&gt;100&lt;/div&gt;&lt;div class="metric-note"&gt;大样本判定 n≥30&lt;/div&gt;&lt;/div&gt;&lt;div class="metric"&gt;&lt;div class="metric-label"&gt;样本均值 x̄&lt;/div&gt;&lt;div class="metric-value"&gt;84.04&lt;/div&gt;&lt;div class="metric-note"&gt;元&lt;/div&gt;&lt;/div&gt;&lt;div class="metric"&gt;&lt;div class="metric-label"&gt;样本标准差 s&lt;/div&gt;&lt;div class="metric-value"&gt;54.05&lt;/div&gt;&lt;div class="metric-note"&gt;元&lt;/div&gt;&lt;/div&gt;&lt;div class="metric"&gt;&lt;div class="metric-label"&gt;高于 80 元的户数&lt;/div&gt;&lt;div class="metric-value"&gt;37&lt;/div&gt;&lt;div class="metric-note"&gt;样本比例 p̂ = 37.0%&lt;/div&gt;&lt;/div&gt;&lt;/div&gt;</div></div></div><div class="step-card"><div class="step-num">3</div><div class="step-body"><div class="step-title">公式 · 区间估计口径</div><div class="step-text">总体均值：x̄ ± z·(s/√n)；总体比例：p̂ ± z·√[p̂(1−p̂)/n]；95% 置信水平 z=1.96</div></div></div><div class="formula-card"><div class="f-line"><span class="f-label">总体均值区间估计</span><span class="f-formula">置信区间 = x̄ ± E</span></div><div class="f-line"><span class="f-label">代入</span><span class="f-sub">[84.04 − 10.59, 84.04 + 10.59]</span></div><div class="f-line"><span class="f-label">结果</span><span class="f-result">[73.45 元, 94.63 元]</span></div><div class="f-line"><span class="f-label">解释</span><span class="f-int">在 95% 置信水平下，总体月电费均值的置信区间为 [73.45 元, 94.63 元]。</span></div></div><div class="formula-card"><div class="f-line"><span class="f-label">总体比例区间估计</span><span class="f-formula">置信区间 = p̂ ± E</span></div><div class="f-line"><span class="f-label">代入</span><span class="f-sub">[37.0% − 9.46%, 37.0% + 9.46%]</span></div><div class="f-line"><span class="f-label">结果</span><span class="f-result">[27.5%, 46.5%]</span></div><div class="f-line"><span class="f-label">解释</span><span class="f-int">在 95% 置信水平下，总体中月电费高于 80 元居民比例的置信区间为 [27.5%, 46.5%]。</span></div></div><div class="warn"><div class="warn-label"><svg class="ic" viewBox="0 0 16 16" fill="currentColor" aria-hidden="true"><path d="M8 1.5 15 14H1zM7.2 6v3.6h1.6V6zm0 4.8v1.4h1.6v-1.4z"/></svg> 注意事项</div><div class="warn-text">大样本判定：n = 100 ≥ 30，可用 z 分布近似；比例区间检验：np̂ = 37 且 n(1−p̂) = 63，均 ≥ 5，近似条件满足。</div></div></div></section>
+<section class="block"><h2 class="block-title">④ 图表 · 分布与比例</h2><div class="block-body"><figure class="fig"><img src="charts/05_hist_hist_box.png" alt="图1 月电费分布直方图（含均值线与 95% 置信区间）"><figcaption>图1 月电费分布直方图（含均值线与 95% 置信区间）</figcaption><div class="fig-purpose"><svg class="ic" viewBox="0 0 16 16" fill="currentColor" aria-hidden="true"><rect x="2" y="8" width="2.4" height="6" rx=".4"/><rect x="6" y="5" width="2.4" height="9" rx=".4"/><rect x="10" y="2" width="2.4" height="12" rx=".4"/></svg> 图表目的：展示数据分布 + 直观看到置信区间位置</div><div class="fig-note">核心发现：分布右偏，均值 x̄=84.04 元，95% 置信区间 [73.45, 94.63] 元</div></figure><figure class="fig"><img src="charts/05_prop.png" alt="图2 电费高于 80 元的户数占比"><figcaption>图2 电费高于 80 元的户数占比</figcaption><div class="fig-purpose"><svg class="ic" viewBox="0 0 16 16" fill="currentColor" aria-hidden="true"><rect x="2" y="8" width="2.4" height="6" rx=".4"/><rect x="6" y="5" width="2.4" height="9" rx=".4"/><rect x="10" y="2" width="2.4" height="12" rx=".4"/></svg> 图表目的：展示样本比例 p̂</div><div class="fig-note">核心发现：37 户（37.0%）月电费高于 80 元</div></figure></div></section>
+<section class="block" id="goal"><h2 class="block-title">⑤ G 给出产出 · 分层结论（事实 / 分析 / 推测 / 建议）</h2><div class="block-body"><div class="dig-grid"><div class="dig-card"><div class="dig-letter">WHY</div><div class="dig-title">为什么重要</div><div class="dig-text">95% 置信水平下，小区居民月电费均值区间为 [73.45 元, 94.63 元]；电费高于 80 元的比例区间为 [27.5%, 46.5%]。</div></div><div class="dig-card"><div class="dig-letter">WHAT</div><div class="dig-title">数据告诉我们什么</div><div class="dig-text">若需更精确的估计（更窄的区间），可增加样本量；也可据此制定电费补贴、节能宣传等政策。</div></div><div class="dig-card"><div class="dig-letter">HOW</div><div class="dig-title">怎么用 / 怎么优化</div><div class="dig-text">[('事实', '样本均值 84.04 元，样本标准差 54.05 元；37 户（37.0%）高于 80 元。'), ('分析', '均值区间 [73.45, 94.63] 元表明：若重复抽样，约 95% 的区间会覆盖总体真实均值。'), ('推测', '部分家庭电费明显偏高（右尾），可能与取暖/人口规模有关，需补充家庭特征数据验证。'), ('建议', '对高用电群体（&gt;80 元）重点关注，可结合峰谷电价政策引导错峰用电。')]</div></div></div></div></section>
+<section class="block" id="prompt"><h2 class="block-title">⑥ 推荐 Prompt · 学生可复制后自行用 AI 复现同款分析</h2><div class="block-body"><div class="prompt-box"><div class="prompt-label"><svg class="ic" viewBox="0 0 16 16" fill="currentColor" aria-hidden="true"><path d="M3.5 1.5h7L13 4v10.5H3.5zM4.5 6.5h7M4.5 9h7M4.5 11.5h5"/></svg> 推荐 Prompt（学生可复制此提示词，自行用 AI 复现同款分析）</div><div class="prompt-text">这是 100 户居民月电费的抽样数据（CSV：户号、月电费(元)）。请在 95% 置信水平（z=1.96）下：1) 估计所有居民月电费均值的置信区间；2) 估计电费高于 80 元居民比例的置信区间；3) 展示计算过程：统计量 → 公式 → 代入 → 结果 → 解释；4) 说明大样本判定条件。</div><div class="prompt-note">学生验收要点：均值区间 = x̄ ± 1.96·(s/√100)；比例区间 = p̂ ± 1.96·√[p̂(1−p̂)/100]，与标准答案一致。</div></div></div></section>
+<section class="block" id="qa"><h2 class="block-title">⑦ QA 验证 · 数值复算 / 逻辑检查 / 输出一致性</h2><div class="block-body"><table class="tbl qa-tbl"><thead><tr><th style="width:48px"></th><th style="width:200px">检查项</th><th>说明</th></tr></thead><tbody></tbody></table><div class="qa-total ">QA 验证：0 / 0 项检查通过</div></div></section>
+  </main>
+
+  <div class="bottom-note"><span class="bn-label">小结</span><span class="bn-text">区间估计三要素：点估计（样本统计量）、允许误差（z·SE）、置信水平（95%）——三者构成完整结论。</span></div>
+
+  <footer class="page-foot">
+    <div class="foot-inner">
+      <span>《统计与数据分析基础》 · AI 数据分析工作台</span>
+      <span class="qa-summary">QA 0/0 通过</span>
+    </div>
+  </footer>
+</div>
+</body>
+</html>

@@ -1,0 +1,84 @@
+{
+  "tasks": [
+    {
+      "task": 2,
+      "status": "SKIP",
+      "checks": 0,
+      "passed": 0,
+      "time_s": 0.0,
+      "error": "占位任务：需外部采集工具（八爪鱼），不参与构建"
+    },
+    {
+      "task": 1,
+      "status": "PASS",
+      "checks": 8,
+      "passed": 8,
+      "time_s": 0.65,
+      "error": ""
+    },
+    {
+      "task": 3,
+      "status": "PASS",
+      "checks": 8,
+      "passed": 8,
+      "time_s": 0.21,
+      "error": ""
+    },
+    {
+      "task": 4,
+      "status": "PASS",
+      "checks": 7,
+      "passed": 7,
+      "time_s": 2.14,
+      "error": ""
+    },
+    {
+      "task": 5,
+      "status": "PASS",
+      "checks": 9,
+      "passed": 9,
+      "time_s": 0.41,
+      "error": ""
+    },
+    {
+      "task": 6,
+      "status": "PASS",
+      "checks": 8,
+      "passed": 8,
+      "time_s": 0.61,
+      "error": ""
+    },
+    {
+      "task": 7,
+      "status": "PASS",
+      "checks": 8,
+      "passed": 8,
+      "time_s": 0.34,
+      "error": ""
+    },
+    {
+      "task": 8,
+      "status": "PASS",
+      "checks": 9,
+      "passed": 9,
+      "time_s": 0.24,
+      "error": ""
+    },
+    {
+      "task": 9,
+      "status": "PASS",
+      "checks": 11,
+      "passed": 11,
+      "time_s": 0.89,
+      "error": ""
+    },
+    {
+      "task": 10,
+      "status": "PASS",
+      "checks": 10,
+      "passed": 10,
+      "time_s": 0.52,
+      "error": ""
+    }
+  ]
+}
