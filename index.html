@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>数据分析工作台 · 雏形</title>
 <style>
-:root{--brand:#005DA2;--brand-dark:#00447A;--brand-light:#EDF3F9;--accent:#F2A900;--ok:#1E7A50;--bad:#B4382C;--purple:#5B4AA8;--teal:#2C7A7B;--gray:#6B7480;--text:#262B31;--line:#DAE0E7;--bg:#F6F6F3;--card:#fff;--rule:#DAE0E7;--serif:"Source Han Serif SC","Noto Serif CJK SC","STZhongsong","SimSun",Georgia,"Times New Roman",serif;}
+:root{--brand:#1D6FA3;--brand-dark:#14517A;--brand-light:#E8F1F8;--accent:#D89A1E;--ok:#1E7A50;--bad:#B4382C;--purple:#5B4AA8;--teal:#2C7A7B;--gray:#6B7480;--text:#262B31;--line:#D9E0E8;--bg:#F5F3EE;--card:#fff;--rule:#D9E0E8;--serif:"Source Han Serif SC","Noto Serif CJK SC","STZhongsong","SimSun",Georgia,"Times New Roman",serif;}
 *{box-sizing:border-box;margin:0;padding:0}
 html,body{height:100%}
 body{font-family:"Microsoft YaHei","微软雅黑","PingFang SC","Helvetica Neue",Arial,sans-serif;background:var(--bg);color:var(--text);font-size:14px;line-height:1.7}
@@ -34,6 +34,12 @@ button{font-family:inherit;cursor:pointer}
 .col-h svg{width:16px;height:16px;color:var(--brand);flex:0 0 16px}
 .col-h .l{display:flex;align-items:center;gap:7px}
 .sec-lbl{font-size:11px;color:var(--gray);font-weight:600;letter-spacing:1px;margin:14px 0 6px}
+.sec-lbl.fold-head{display:flex;align-items:center;justify-content:space-between;width:100%;background:none;border:none;cursor:pointer;text-align:left;padding:0;font-size:11px;font-weight:600;color:var(--gray);letter-spacing:1px}
+.sec-lbl.fold-head:hover{color:var(--brand)}
+.sec-lbl.fold-head .fold-arrow{width:14px;height:14px;color:var(--gray);transition:transform .18s;flex:0 0 auto}
+.sec-lbl.fold-head.open .fold-arrow{transform:rotate(90deg)}
+.fold-body .sample-more{display:none}
+.fold-body.open .sample-more{display:block}
 
 /* ---------- 左栏：数据 ---------- */
 .upload-box{border:1.5px dashed #AEBDCC;border-radius:6px;padding:22px 14px;text-align:center;cursor:pointer;background:#FCFDFE;transition:all .15s}
@@ -111,15 +117,15 @@ button{font-family:inherit;cursor:pointer}
 .spec-list,.todo-list{list-style:none;padding:0;margin:0}
 .spec-item{display:flex;gap:12px;padding:9px 0;border-bottom:1px dashed var(--line);font-size:13px;line-height:1.7}
 .spec-item:last-child{border-bottom:none}
-.spec-k{flex:0 0 132px;font-weight:700;color:#00447A;font-size:12px;letter-spacing:.2px}
+.spec-k{flex:0 0 132px;font-weight:700;color:#14517A;font-size:12px;letter-spacing:.2px}
 .spec-v{flex:1;min-width:0;color:var(--text)}
 .spec-v small{display:block;color:var(--gray);font-size:11.5px;margin-top:2px;line-height:1.65}
 .todo-item{display:flex;gap:10px;padding:8px 0;font-size:13px;line-height:1.7;align-items:flex-start}
 .todo-box{flex:0 0 auto;width:13px;height:13px;border:1.5px solid #C5CDD6;border-radius:2px;margin-top:4px}
-.todo-item b{font-family:'Consolas','Courier New',monospace;font-size:12.5px;color:#00447A}
+.todo-item b{font-family:'Consolas','Courier New',monospace;font-size:12.5px;color:#14517A}
 .todo-item small{display:block;color:var(--gray);font-size:11.5px;margin-top:2px}
 .pre-tbl{width:100%;border-collapse:collapse;font-size:12.5px;margin:8px 0 4px}
-.pre-tbl th{background:#F1F5F9;color:#00447A;font-weight:700;text-align:left;padding:7px 10px;border-bottom:2px solid var(--line)}
+.pre-tbl th{background:#F1F5F9;color:#14517A;font-weight:700;text-align:left;padding:7px 10px;border-bottom:2px solid var(--line)}
 .pre-tbl td{padding:6px 10px;border-bottom:1px solid #EEF2F6}
 .pre-tbl td.num{text-align:right;font-family:Georgia,"Times New Roman",serif}
 .pre-ok{color:#1E8E5A;font-weight:700}
@@ -207,10 +213,10 @@ button{font-family:inherit;cursor:pointer}
       <div class="s">第一行表头 · 数据不出浏览器</div>
     </div>
     <input type="file" id="fileInput" accept=".csv,text/csv" class="hidden">
-    <div class="sec-lbl">示例数据</div>
-    <div id="sampleList"></div>
+    <button type="button" class="sec-lbl fold-head" id="sampleFold" aria-expanded="false"><span>示例数据</span><svg class="fold-arrow" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"/></svg></button>
+    <div id="sampleList" class="fold-body"></div>
     <div class="sec-lbl">数据源</div>
-    <button class="src-link" id="btnDB"><span>公开数据库 · 9 库 + 3 法规</span><span class="go">跳转 →</span></button>
+    <button class="src-link" id="btnDB"><span>公开数据库</span><span class="go">跳转 →</span></button>
     <button class="src-link" id="btnOct"><span>八爪鱼采集 · 教程</span><span class="go">查看 →</span></button>
     <div class="sec-lbl" id="varSecLbl" style="display:none">变量列表</div>
     <div class="src-meta hidden" id="srcMeta"></div>
@@ -243,7 +249,7 @@ button{font-family:inherit;cursor:pointer}
 
 <script>
 "use strict";
-var C = {brand:"#005DA2", brandD:"#00447A", accent:"#F2A900", ok:"#1E8E5A", bad:"#C0392B",
+var C = {brand:"#1D6FA3", brandD:"#14517A", accent:"#D89A1E", ok:"#1E8E5A", bad:"#C0392B",
   purple:"#6B46C1", teal:"#2C7A7B", gray:"#8A94A0", text:"#2D3748", line:"#E2E8F0"};
 
 /* ---------- 数字格式化 ---------- */
@@ -984,7 +990,7 @@ function formulaCard(label, expr, sub, res){
     +(res!==undefined?'<div class="f-res">= '+res+'</div>':'')+'</div>';
 }
 function finding(level, title, text){
-  return '<div class="finding f-'+level+'"><span class="f-badge">'+({fact:"事实",anl:"分析",sug:"建议",warn:"警示"}[level]||level)+'</span>'
+  return '<div class="finding f-'+level+'"><span class="f-badge">'+({fact:"描述",anl:"洞察",sug:"结论",warn:"风险"}[level]||level)+'</span>'
     +'<div class="f-body"><span class="f-title">'+escXML(title)+'</span>　'+escXML(text)+'</div></div>';
 }
 function promptBlock(promptText, note){
@@ -2726,7 +2732,7 @@ function renderLeft(){
   sec.style.display="block";
   var h="";
   cos.forEach(function(o){
-    h+='<div class="var-item"><span class="v-dot" style="background:'+(o.num?"#005DA2":"#1E7A50")+'"></span>'
+    h+='<div class="var-item"><span class="v-dot" style="background:'+(o.num?"#1D6FA3":"#1E7A50")+'"></span>'
       +'<span class="v-name">'+escT(o.name)+'</span><span class="v-type">'+(o.num?"数值":"分类")+'</span></div>';
   });
   h+='<div class="var-note">蓝点 = 数值型（可计算）· 绿点 = 分类型（可分组）</div>';
@@ -2882,42 +2888,42 @@ function showOctopus(){
 /* ---------- 导出报告 ---------- */
 var REPORT_CSS =
 "*{box-sizing:border-box}body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,'PingFang SC','Microsoft YaHei',sans-serif;color:#2D3748;margin:0;background:#F5F7FA;line-height:1.75}"+
-".rpt-head{background:linear-gradient(135deg,#005DA2,#00447A);color:#fff;padding:34px 40px 30px}"+
+".rpt-head{background:linear-gradient(135deg,#1D6FA3,#14517A);color:#fff;padding:34px 40px 30px}"+
 ".rpt-tag{display:inline-block;font-size:12px;font-weight:700;letter-spacing:2.5px;border:1px solid rgba(255,255,255,.4);border-radius:999px;padding:5px 14px;margin-bottom:14px;color:#F2C94C}"+
 ".rpt-head h1{font-size:26px;margin:0 0 10px;line-height:1.35}"+
 ".rpt-meta{font-size:12.5px;opacity:.85}"+
 ".rpt-body{max-width:860px;margin:0 auto;padding:26px 22px 40px}"+
 ".rpt-foot{max-width:860px;margin:0 auto;padding:0 22px 34px;font-size:12px;color:#8A94A0;text-align:center}"+
 ".res-block{background:#fff;border:1px solid #E2E8F0;border-radius:12px;padding:20px 22px;margin-bottom:16px}"+
-".rb-title{font-size:15.5px;font-weight:800;color:#00447A;margin-bottom:12px}"+
+".rb-title{font-size:15.5px;font-weight:800;color:#14517A;margin-bottom:12px}"+
 ".metric-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:10px;margin-bottom:6px}"+
 ".metric{background:#F8FBFE;border:1px solid #E2E8F0;border-radius:9px;padding:10px 12px}"+
 ".m-label{font-size:11.5px;color:#8A94A0;font-weight:600}"+
-".m-value{font-size:18px;font-weight:800;color:#00447A;line-height:1.35}"+
+".m-value{font-size:18px;font-weight:800;color:#14517A;line-height:1.35}"+
 ".m-unit{font-size:11.5px;color:#8A94A0;margin-left:3px;font-weight:400}"+
-".metric.hl{background:#EDF5FC;border-color:#005DA2}.metric.hl .m-value{color:#005DA2}"+
+".metric.hl{background:#EDF5FC;border-color:#1D6FA3}.metric.hl .m-value{color:#1D6FA3}"+
 ".metric.warn{background:#FDF6EC;border-color:#F2D8A7}.metric.warn .m-value{color:#B7791F}"+
 ".chart-box{margin:10px 0 4px}.chart-box svg{width:100%;height:auto;display:block}"+
-".formula-card{background:#F8FAFC;border-left:4px solid #F2A900;border-radius:8px;padding:12px 16px;margin:10px 0;font-size:13.5px}"+
+".formula-card{background:#F8FAFC;border-left:4px solid #D89A1E;border-radius:8px;padding:12px 16px;margin:10px 0;font-size:13.5px}"+
 ".f-label{font-size:11.5px;font-weight:800;color:#B7791F;letter-spacing:1px;margin-bottom:3px}"+
 ".f-expr{font-weight:700;font-family:'Cambria Math',Georgia,serif;font-size:14.5px}"+
-".f-sub{color:#4A5568;font-size:13px;margin-top:2px}.f-res{color:#005DA2;font-weight:800;margin-top:2px}"+
+".f-sub{color:#4A5568;font-size:13px;margin-top:2px}.f-res{color:#1D6FA3;font-weight:800;margin-top:2px}"+
 ".finding{display:flex;gap:10px;padding:9px 12px;border-radius:9px;margin:7px 0;align-items:flex-start;font-size:13.5px}"+
 ".f-badge{flex:0 0 auto;font-size:11.5px;font-weight:800;padding:2px 9px;border-radius:6px;margin-top:2px;color:#fff}"+
 ".f-body{flex:1}.f-title{font-weight:700}"+
-".f-fact{background:#F0F6FF}.f-fact .f-badge{background:#005DA2}"+
+".f-fact{background:#F0F6FF}.f-fact .f-badge{background:#1D6FA3}"+
 ".f-anl{background:#FFF7E6}.f-anl .f-badge{background:#DD8B00}"+
 ".f-sug{background:#EAF6F0}.f-sug .f-badge{background:#1E8E5A}"+
 ".f-warn{background:#FBEEEC}.f-warn .f-badge{background:#C0392B}"+
 ".prompt-box{background:#0F2B45;border-radius:11px;padding:16px 18px;margin:10px 0;color:#E8F1F8}"+
-".pb-label{font-size:11.5px;font-weight:800;color:#F2A900;letter-spacing:1.5px;margin-bottom:8px}"+
+".pb-label{font-size:11.5px;font-weight:800;color:#D89A1E;letter-spacing:1.5px;margin-bottom:8px}"+
 ".pb-text{font-size:13px;line-height:1.8;white-space:pre-wrap;font-family:'Consolas','Courier New',monospace}"+
 ".pb-note{font-size:11.5px;color:#9FB6CC;margin-top:8px}"+
 ".qa-note{font-size:12px;color:#8A94A0;margin-top:10px;display:flex;gap:8px;align-items:center}"+
 ".warn-box{background:#FBEEEC;border:1px solid #F2C4BD;border-radius:9px;padding:12px 16px;margin:10px 0;font-size:13px;display:flex;gap:10px}"+
 ".table-wrap{overflow-x:auto;margin:12px 0 14px;border:1px solid #E2E8F0;border-radius:9px}"+
 "table.tbl{border-collapse:collapse;width:100%;font-size:13px}"+
-".tbl th{background:#F1F5F9;color:#00447A;font-weight:700;text-align:left;padding:8px 12px;border-bottom:2px solid #E2E8F0}"+
+".tbl th{background:#F1F5F9;color:#14517A;font-weight:700;text-align:left;padding:8px 12px;border-bottom:2px solid #E2E8F0}"+
 ".tbl td{padding:7px 12px;border-bottom:1px solid #EEF2F6;white-space:nowrap}"+
 "@media print{body{background:#fff}.rpt-head{-webkit-print-color-adjust:exact;print-color-adjust:exact}.res-block{break-inside:avoid}}"+
 "@media (max-width:560px){.rpt-head{padding:24px 18px 22px}.rpt-head h1{font-size:21px}.rpt-body{padding:18px 12px 30px}.metric-grid{grid-template-columns:repeat(2,1fr)}}";
@@ -2962,15 +2968,23 @@ function init(){
   });
   // 示例
   var sh='<div class="sample-item"><div class="no">暂无</div><div class="nm">加载示例数据</div></div>';
-  var sh2="";
+  var sh2="", si=0;
   Object.keys(SAMPLES).forEach(function(k){
     var s=SAMPLES[k];
     if(s.placeholder) return;
-    sh2+='<div class="sample-item" data-sample="'+k+'"><div class="no">实训 '+s.no+'</div><div class="nm">'+escT(s.name)+'</div><span class="tp">'+escT((s.analysis&&ANALYSES[s.analysis]?ANALYSES[s.analysis].name:"数据分析"))+'</span></div>';
+    var more=(si>=3?" sample-more":"");
+    sh2+='<div class="sample-item'+more+'" data-sample="'+k+'"><div class="no">实训 '+s.no+'</div><div class="nm">'+escT(s.name)+'</div><span class="tp">'+escT((s.analysis&&ANALYSES[s.analysis]?ANALYSES[s.analysis].name:"数据分析"))+'</span></div>';
+    si++;
   });
   $("sampleList").innerHTML=sh2||sh;
   $("sampleList").addEventListener("click", function(e){
     var it=e.target.closest(".sample-item"); if(it && it.getAttribute("data-sample")) loadSample(it.getAttribute("data-sample"));
+  });
+  // 示例数据折叠（默认只显前 3，展开显全部）
+  $("sampleFold").addEventListener("click", function(){
+    var open = $("sampleFold").classList.toggle("open");
+    $("sampleList").classList.toggle("open", open);
+    $("sampleFold").setAttribute("aria-expanded", open);
   });
   // 数据源
   $("btnDB").addEventListener("click", showDatabases);
