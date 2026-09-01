@@ -85,12 +85,21 @@ button{font-family:inherit;cursor:pointer}
 .cfg-row select,.cfg-row input[type=number]{font-family:inherit;font-size:14px;padding:8px 10px;border:1.5px solid var(--line);border-radius:3px;background:#fff;min-height:40px;min-width:160px;color:var(--text)}
 .cfg-row select:focus,.cfg-row input:focus{outline:none;border-color:var(--brand)}
 .hint{font-size:12px;color:var(--gray)}
+.out-opts{margin-top:14px;padding-top:12px;border-top:1px dashed var(--line)}
+.out-ttl{font-size:13px;font-weight:700;color:var(--brand-dark);margin-bottom:8px}
+.out-row{display:flex;gap:16px;flex-wrap:wrap}
+.out-item{display:inline-flex;align-items:center;gap:5px;font-size:12.5px;color:var(--text);cursor:pointer;user-select:none}
+.out-item input{width:15px;height:15px;accent-color:var(--brand);cursor:pointer}
 .run-btn{display:inline-flex;align-items:center;gap:7px;background:var(--brand);color:#fff;border:none;border-radius:4px;padding:10px 20px;font-size:14px;font-weight:600;min-height:42px;margin-top:6px}
 .run-btn:hover{background:var(--brand-dark)}
 .run-btn svg{width:16px;height:16px}
 
 /* ---------- 右栏：结果 ---------- */
 .ws-empty{font-size:12.5px;color:var(--gray);background:var(--card);border:1px dashed var(--line);border-radius:6px;padding:26px 18px;text-align:center;line-height:1.8}
+#result.no-metric .metric{display:none}
+#result.no-chart .chart-box{display:none}
+#result.no-formula .formula-card{display:none}
+#result.no-finding .finding{display:none}
 
 /* ---------- 弹窗 ---------- */
 .modal-mask{position:fixed;inset:0;background:rgba(20,26,33,.42);z-index:50;display:flex;align-items:center;justify-content:center;padding:20px}
@@ -231,6 +240,15 @@ button{font-family:inherit;cursor:pointer}
     <div class="cfg-wrap hidden" id="cfgWrap">
       <div class="ttl">参数设置</div>
       <div id="cfgFields"></div>
+      <div class="out-opts">
+        <div class="out-ttl">输出选项</div>
+        <div class="out-row">
+          <label class="out-item"><input type="checkbox" id="optMetric" checked>指标卡</label>
+          <label class="out-item"><input type="checkbox" id="optChart" checked>图表</label>
+          <label class="out-item"><input type="checkbox" id="optFormula">公式</label>
+          <label class="out-item"><input type="checkbox" id="optFinding" checked>解读</label>
+        </div>
+      </div>
       <button class="run-btn" id="btnRun"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><polygon points="6 3 20 12 6 21 6 3"/></svg>开始分析</button>
     </div>
   </section>
@@ -2803,7 +2821,12 @@ function runAnalysis(){
   catch(e){ toast("计算失败："+e.message); return; }
   var html=a.render(state.ds, cfg, res);
   state.lastHtml=html;
+  $("result").classList.remove("ws-empty");
   $("result").innerHTML=html;
+  $("result").classList.toggle("no-metric", !$("optMetric").checked);
+  $("result").classList.toggle("no-chart", !$("optChart").checked);
+  $("result").classList.toggle("no-formula", !$("optFormula").checked);
+  $("result").classList.toggle("no-finding", !$("optFinding").checked);
   $("result").scrollTop=0;
 }
 
