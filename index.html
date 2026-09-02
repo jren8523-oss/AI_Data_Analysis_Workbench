@@ -2414,6 +2414,466 @@ var ANALYSES = {
       }
     },
 
+  mregress: {
+    name:"多元线性回归", short:"1 个 y + 多个 x · OLS 回归",
+    desc:"用多个数值自变量解释一个数值因变量，拟合 ŷ = b₀ + b₁x₁ + … + bₖxₖ，输出系数、标准误、t 检验、R²、调整 R² 与整体 F 检验。",
+    fit:"适合 ≥3 列数值型数据，其中 1 列作为因变量，至少 2 列作为自变量",
+    icon:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 3v18h18"/><path d="M6 16l4-4 3 3 6-8"/><circle cx="7" cy="15" r="1.5"/><circle cx="12" cy="10" r="1.5"/><circle cx="17" cy="7" r="1.5"/></svg>',
+    detect:function(ds){
+      return colOptions(ds).filter(function(o){ return o.num; }).length>=3;
+    },
+    config:function(ds){
+      var c=colOptions(ds), nums=c.filter(function(o){ return o.num; });
+      var y=nums[0].idx;
+      var xs=nums.filter(function(o){ return o.idx!==y; }).slice(0,4).map(function(o){ return o.idx; });
+      if(xs.length>5) xs=xs.slice(0,5);
+      return '<div class="cfg-row"><label>因变量 y</label>'+selHtml(nums, y, "cfg_y")+'</div>'
+        +'<div class="cfg-row"><label>自变量 x（可多选）</label>'+multiSelHtml(nums, xs, "cfg_cols", 5)+'</div>'
+        +'<div class="hint">按住 Ctrl 多选自变量，至少 2 列，最多 5 列。样本按 listwise 删除：任一所选列缺失或非数值时整行剔除。</div>';
+    },
+    run:function(ds, cfg){
+      var yIdx=parseInt(cfg.y||0,10);
+      var idxs=[].concat(cfg.cols||[]).map(function(x){return parseInt(x,10);});
+      var nums=colOptions(ds).filter(function(o){ return o.num; });
+      if(isNaN(yIdx)) yIdx=nums.length?nums[0].idx:0;
+      idxs=idxs.filter(function(x){ return !isNaN(x) && x!==yIdx; });
+      if(idxs.length<2){
+        idxs=nums.filter(function(o){ return o.idx!==yIdx; }).slice(0,2).map(function(o){ return o.idx; });
+      }
+      if(idxs.length>5) idxs=idxs.slice(0,5);
+      if(idxs.length<2) throw new Error("多元线性回归至少需要 2 个自变量");
+      function matInv(A){
+        var n=A.length, M=[], I=[], i, j, k;
+        for(i=0;i<n;i++){
+          M[i]=A[i].slice(); I[i]=[];
+          for(j=0;j<n;j++) I[i][j]=(i===j?1:0);
+        }
+        for(i=0;i<n;i++){
+          var p=i, mx=Math.abs(M[i][i]);
+          for(j=i+1;j<n;j++){ if(Math.abs(M[j][i])>mx){ mx=Math.abs(M[j][i]); p=j; } }
+          if(mx<1e-12) throw new Error("XᵀX 矩阵不可逆，可能存在完全共线性，请减少或更换自变量");
+          if(p!==i){ var tm=M[i]; M[i]=M[p]; M[p]=tm; tm=I[i]; I[i]=I[p]; I[p]=tm; }
+          var div=M[i][i];
+          for(j=0;j<n;j++){ M[i][j]/=div; I[i][j]/=div; }
+          for(k=0;k<n;k++){
+            if(k===i) continue;
+            var f=M[k][i];
+            for(j=0;j<n;j++){ M[k][j]-=f*M[i][j]; I[k][j]-=f*I[i][j]; }
+          }
+        }
+        return I;
+      }
+      var X=[], Y=[], r, j;
+      for(r=0;r<ds.rows.length;r++){
+        var yv=parseNum(ds.rows[r][yIdx]), row=[1], ok=true;
+        if(yv===null||isNaN(yv)) ok=false;
+        for(j=0;j<idxs.length;j++){
+          var xv=parseNum(ds.rows[r][idxs[j]]);
+          if(xv===null||isNaN(xv)){ ok=false; break; }
+          row.push(xv);
+        }
+        if(ok){ X.push(row); Y.push(yv); }
+      }
+      var n=X.length, k=idxs.length, p=k+1;
+      if(n<=p) throw new Error("有效样本数 "+n+" 不足，自由度 n-k-1 必须大于 0");
+      var XtX=[], Xty=[], a, b2;
+      for(a=0;a<p;a++){ XtX[a]=[]; Xty[a]=0; for(b2=0;b2<p;b2++) XtX[a][b2]=0; }
+      for(r=0;r<n;r++){
+        for(a=0;a<p;a++){
+          Xty[a]+=X[r][a]*Y[r];
+          for(b2=0;b2<p;b2++) XtX[a][b2]+=X[r][a]*X[r][b2];
+        }
+      }
+      var XtXInv=matInv(XtX), beta=[];
+      for(a=0;a<p;a++){ beta[a]=0; for(b2=0;b2<p;b2++) beta[a]+=XtXInv[a][b2]*Xty[b2]; }
+      var yMean=mean(Y), SSE=0, SST=0;
+      for(r=0;r<n;r++){
+        var yh=0;
+        for(a=0;a<p;a++) yh+=X[r][a]*beta[a];
+        SSE+=(Y[r]-yh)*(Y[r]-yh);
+        SST+=(Y[r]-yMean)*(Y[r]-yMean);
+      }
+      if(SSE<1e-20) SSE=0;
+      var df=n-k-1, sigma2=SSE/df, se=[], t=[], pv=[];
+      for(a=0;a<p;a++){
+        se[a]=Math.sqrt(Math.max(0, sigma2*XtXInv[a][a]));
+        t[a]=se[a]===0 ? (beta[a]===0?0:(beta[a]>0?Infinity:-Infinity)) : beta[a]/se[a];
+        pv[a]=isFinite(t[a]) ? tDist2tail(Math.abs(t[a]), df) : 0;
+      }
+      var r2=SST>0 ? 1-SSE/SST : NaN;
+      if(r2>1 && r2<1+1e-12) r2=1;
+      var adjR2=1-(1-r2)*(n-1)/df;
+      var F=(1-r2)===0 ? Infinity : (r2/k)/((1-r2)/df);
+      var pF=isFinite(F) ? fDistP(F,k,df) : 0;
+      return {yName:ds.headers[yIdx], xNames:idxs.map(function(i){ return ds.headers[i]; }), b:beta, se:se, t:t, p:pv, r2:r2, adjR2:adjR2, F:F, pF:pF, n:n, df:df};
+    },
+    render:function(ds, cfg, res){
+      var h="", i, eq=escXML(res.yName)+" = "+fmtNum(res.b[0],4);
+      for(i=0;i<res.xNames.length;i++){
+        eq+=" "+(res.b[i+1]>=0?"+ ":"- ")+fmtNum(Math.abs(res.b[i+1]),4)+"×"+escXML(res.xNames[i]);
+      }
+      h+=resBlock("① 回归方程与解释度",
+        formulaCard("多元线性回归方程", "ŷ = b₀ + b₁x₁ + … + bₖxₖ", "OLS：b=(XᵀX)⁻¹Xᵀy", eq)
+        +metricCard("R²", fmtNum(res.r2,4), "", "hl")
+        +metricCard("调整 R²", fmtNum(res.adjR2,4))
+        +metricCard("有效样本 n", fmtNum(res.n,0)));
+      var rows=[["截距 b₀", fmtNum(res.b[0],6), fmtNum(res.se[0],6), fmtNum(res.t[0],3), fmtNum(res.p[0],4)]];
+      for(i=0;i<res.xNames.length;i++){
+        rows.push([escXML(res.xNames[i]), fmtNum(res.b[i+1],6), fmtNum(res.se[i+1],6), fmtNum(res.t[i+1],3), fmtNum(res.p[i+1],4)]);
+      }
+      h+=resBlock("② 系数表", preTable(["变量","系数","标准误","t","p"], rows));
+      h+=resBlock("③ 整体 F 检验",
+        metricCard("F 统计量", fmtNum(res.F,4), "", "hl")
+        +metricCard("df", res.xNames.length+", "+res.df)
+        +metricCard("p 值", fmtNum(res.pF,4), "", res.pF<0.05?"hl":"")
+        +formulaCard("整体显著性", "F = (R²/k) / ((1−R²)/(n−k−1))", "k="+res.xNames.length+"，df="+res.df, fmtNum(res.F,4)));
+      var sig=[];
+      for(i=0;i<res.xNames.length;i++){ if(res.p[i+1]<0.05) sig.push(res.xNames[i]+"（p="+fmtNum(res.p[i+1],4)+"）"); }
+      h+=resBlock("④ 分层解读",
+        finding("fact","整体是否显著", "整体 F 检验 p = "+fmtNum(res.pF,4)+"，模型整体"+(res.pF<0.05?"显著":"不显著")+"。")
+        +finding("anl","显著系数", sig.length ? "在 0.05 水平下显著的自变量有："+sig.join("、")+"。" : "在 0.05 水平下未发现显著自变量。")
+        +finding("anl","解释力度", "R² = "+fmtNum(res.r2,4)+"，表示模型解释了因变量总变异的 "+fmtPct(res.r2,1)+"；调整 R² = "+fmtNum(res.adjR2,4)+"，已考虑自变量数量。")
+        +finding("warn","共线性与外推", "若自变量高度相关，系数可能不稳定；回归方程只适合在样本范围附近解释或预测，外推需谨慎。"));
+      return h;
+    }
+  },
+
+  logit: {
+    name:"逻辑回归（二分类）", short:"二分类 y + 数值 x · 概率模型",
+    desc:"拟合 P(y=1)=1/(1+e^(-(b₀+b₁x₁+…+bₖxₖ)))，输出系数、标准误、z 检验、OR、负对数似然与 0.5 阈值准确率。",
+    fit:"适合 1 列二分类因变量 + ≥1 列数值型自变量",
+    icon:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 20h18"/><path d="M4 18c5 0 4-12 9-12s4 12 7 12"/><circle cx="8" cy="15" r="1.5"/><circle cx="16" cy="9" r="1.5"/></svg>',
+    detect:function(ds){
+      var opts=colOptions(ds), bins=[], nums=[], i, j;
+      for(i=0;i<opts.length;i++){
+        if(levelCount(ds, opts[i].idx)===2) bins.push(opts[i].idx);
+        if(opts[i].num) nums.push(opts[i].idx);
+      }
+      for(i=0;i<bins.length;i++){ for(j=0;j<nums.length;j++){ if(bins[i]!==nums[j]) return true; } }
+      return false;
+    },
+    config:function(ds){
+      var opts=colOptions(ds), bins=[], nums=[], i;
+      for(i=0;i<opts.length;i++){
+        if(levelCount(ds, opts[i].idx)===2) bins.push(opts[i]);
+        if(opts[i].num) nums.push(opts[i]);
+      }
+      var y=bins.length?bins[0].idx:0;
+      var xs=nums.filter(function(o){ return o.idx!==y; }).slice(0,5).map(function(o){ return o.idx; });
+      return '<div class="cfg-row"><label>二分类因变量 y</label>'+selHtml(bins, y, "cfg_y")+'</div>'
+        +'<div class="cfg-row"><label>自变量 x（可多选）</label>'+multiSelHtml(nums, xs, "cfg_cols", 5)+'</div>'
+        +'<div class="hint">因变量只有两个取值；排序较小的一类编码为 0，另一类编码为 1。预测概率 ≥0.5 判为 1。</div>';
+    },
+    run:function(ds, cfg){
+      var yIdx=parseInt(cfg.y||0,10);
+      var idxs=[].concat(cfg.cols||[]).map(function(x){return parseInt(x,10);});
+      var nums=colOptions(ds).filter(function(o){ return o.num; });
+      idxs=idxs.filter(function(x){ return !isNaN(x) && x!==yIdx; });
+      if(!idxs.length) idxs=nums.filter(function(o){ return o.idx!==yIdx; }).slice(0,1).map(function(o){ return o.idx; });
+      if(idxs.length>5) idxs=idxs.slice(0,5);
+      if(!idxs.length) throw new Error("逻辑回归至少需要 1 个数值自变量");
+      function inv(A){
+        var n=A.length, M=[], I=[], i, j, k;
+        for(i=0;i<n;i++){ M[i]=A[i].slice(); I[i]=[]; for(j=0;j<n;j++) I[i][j]=(i===j?1:0); }
+        for(i=0;i<n;i++){
+          var p=i, mx=Math.abs(M[i][i]);
+          for(j=i+1;j<n;j++){ if(Math.abs(M[j][i])>mx){ mx=Math.abs(M[j][i]); p=j; } }
+          if(mx<1e-12) throw new Error("Hessian 矩阵不可逆，可能存在完全分离或强共线性");
+          if(p!==i){ var tm=M[i]; M[i]=M[p]; M[p]=tm; tm=I[i]; I[i]=I[p]; I[p]=tm; }
+          var div=M[i][i];
+          for(j=0;j<n;j++){ M[i][j]/=div; I[i][j]/=div; }
+          for(k=0;k<n;k++){
+            if(k===i) continue;
+            var f=M[k][i];
+            for(j=0;j<n;j++){ M[k][j]-=f*M[i][j]; I[k][j]-=f*I[i][j]; }
+          }
+        }
+        return I;
+      }
+      function sigmoid(z){ if(z>35) z=35; if(z<-35) z=-35; return 1/(1+Math.exp(-z)); }
+      var levels=[], seen={}, r, j;
+      for(r=0;r<ds.rows.length;r++){
+        var key=String(ds.rows[r][yIdx]).trim();
+        if(key!=="" && !seen[key]){ seen[key]=1; levels.push(key); }
+      }
+      if(levels.length!==2) throw new Error("因变量必须恰好只有 2 个取值");
+      levels.sort(function(a,b){
+        var na=parseNum(a), nb=parseNum(b);
+        if(na!==null && nb!==null && !isNaN(na) && !isNaN(nb)) return na-nb;
+        return String(a).localeCompare(String(b),"zh-CN");
+      });
+      var X=[], Y=[];
+      for(r=0;r<ds.rows.length;r++){
+        var yKey=String(ds.rows[r][yIdx]).trim(), ok=true, row=[1];
+        if(yKey!==levels[0] && yKey!==levels[1]) ok=false;
+        for(j=0;j<idxs.length;j++){
+          var xv=parseNum(ds.rows[r][idxs[j]]);
+          if(xv===null||isNaN(xv)){ ok=false; break; }
+          row.push(xv);
+        }
+        if(ok){ X.push(row); Y.push(yKey===levels[1]?1:0); }
+      }
+      var n=X.length, p=idxs.length+1, b=[], iter, a, c;
+      if(n<=p) throw new Error("有效样本数 "+n+" 不足，无法估计逻辑回归");
+      for(a=0;a<p;a++) b[a]=0;
+      for(iter=0;iter<100;iter++){
+        var H=[], g=[], maxStep=0;
+        for(a=0;a<p;a++){ H[a]=[]; g[a]=0; for(c=0;c<p;c++) H[a][c]=(a===c?1e-8:0); }
+        for(r=0;r<n;r++){
+          var eta=0;
+          for(a=0;a<p;a++) eta+=X[r][a]*b[a];
+          var pr=sigmoid(eta), w=Math.max(pr*(1-pr),1e-8), err=Y[r]-pr;
+          for(a=0;a<p;a++){
+            g[a]+=X[r][a]*err;
+            for(c=0;c<p;c++) H[a][c]+=w*X[r][a]*X[r][c];
+          }
+        }
+        var Hi=inv(H), step=[];
+        for(a=0;a<p;a++){ step[a]=0; for(c=0;c<p;c++) step[a]+=Hi[a][c]*g[c]; }
+        for(a=0;a<p;a++){ b[a]+=step[a]; if(Math.abs(step[a])>maxStep) maxStep=Math.abs(step[a]); }
+        if(maxStep<1e-6) break;
+      }
+      var H2=[], nll=0, correct=0, minPr=1, maxPr=0;
+      for(a=0;a<p;a++){ H2[a]=[]; for(c=0;c<p;c++) H2[a][c]=(a===c?1e-8:0); }
+      for(r=0;r<n;r++){
+        var eta2=0;
+        for(a=0;a<p;a++) eta2+=X[r][a]*b[a];
+        var pr2=sigmoid(eta2), pp=Math.min(1-1e-12, Math.max(1e-12, pr2)), ww=Math.max(pr2*(1-pr2),1e-8);
+        if(pr2<minPr) minPr=pr2; if(pr2>maxPr) maxPr=pr2;
+        nll+=-(Y[r]*Math.log(pp)+(1-Y[r])*Math.log(1-pp));
+        if((pr2>=0.5?1:0)===Y[r]) correct++;
+        for(a=0;a<p;a++){ for(c=0;c<p;c++) H2[a][c]+=ww*X[r][a]*X[r][c]; }
+      }
+      var Hinv=inv(H2), se=[], z=[], pv=[], orv=[];
+      for(a=0;a<p;a++){
+        se[a]=Math.sqrt(Math.abs(Hinv[a][a]));
+        z[a]=se[a]===0 ? (b[a]===0?0:(b[a]>0?Infinity:-Infinity)) : b[a]/se[a];
+        pv[a]=isFinite(z[a]) ? 2*(1-normCdf(Math.abs(z[a]))) : 0;
+        orv[a]=Math.exp(b[a]);
+      }
+      return {yName:ds.headers[yIdx], xNames:idxs.map(function(i){ return ds.headers[i]; }), b:b, se:se, z:z, p:pv, oddsRatio:orv, nll:nll, accuracy:correct/n, n:n, levels:levels, separated:(correct===n && (minPr<1e-6 || maxPr>1-1e-6))};
+    },
+    render:function(ds, cfg, res){
+      var h="", i, logitEq="logit(p) = "+fmtNum(res.b[0],4);
+      for(i=0;i<res.xNames.length;i++) logitEq+=" "+(res.b[i+1]>=0?"+ ":"- ")+fmtNum(Math.abs(res.b[i+1]),4)+"×"+escXML(res.xNames[i]);
+      h+=resBlock("① 回归方程",
+        formulaCard("logit 形式", "logit(p)=ln(p/(1−p))", "y=0："+escXML(res.levels[0])+"；y=1："+escXML(res.levels[1]), logitEq)
+        +formulaCard("概率形式", "P(y=1)=1/(1+e^(−η))", "η = b₀ + b₁x₁ + … + bₖxₖ", "p = 1/(1+e^(−η))"));
+      var rows=[["截距 b₀", fmtNum(res.b[0],6), fmtNum(res.se[0],6), fmtNum(res.z[0],3), fmtNum(res.p[0],4), fmtNum(res.oddsRatio[0],4)]];
+      for(i=0;i<res.xNames.length;i++){
+        rows.push([escXML(res.xNames[i]), fmtNum(res.b[i+1],6), fmtNum(res.se[i+1],6), fmtNum(res.z[i+1],3), fmtNum(res.p[i+1],4), fmtNum(res.oddsRatio[i+1],4)]);
+      }
+      h+=resBlock("② 系数表", preTable(["变量","系数","标准误","z","p","OR=e^b"], rows));
+      h+=resBlock("③ 模型拟合",
+        metricCard("负对数似然", fmtNum(res.nll,4), "", "hl")
+        +metricCard("准确率", fmtPct(res.accuracy,1))
+        +metricCard("有效样本 n", fmtNum(res.n,0)));
+      var sig=[];
+      for(i=0;i<res.xNames.length;i++){ if(res.p[i+1]<0.05) sig.push(res.xNames[i]+"（OR="+fmtNum(res.oddsRatio[i+1],3)+"）"); }
+      h+=resBlock("④ 分层解读",
+        finding("fact","分类效果", "以 0.5 为阈值，样本内准确率为 "+fmtPct(res.accuracy,1)+"。")
+        +finding("anl","显著变量", sig.length ? "在 0.05 水平下显著的自变量有："+sig.join("、")+"。" : "在 0.05 水平下未发现显著自变量。")
+        +finding("anl","OR 含义", "OR>1 表示该变量增加时 y=1 的优势比上升；OR<1 表示优势比下降。连续变量的 OR 是自变量增加 1 个单位时的倍数变化。")
+        +finding("warn","分离与样本量", (res.separated?"当前数据可能存在完全分离，系数会很大，p 值和标准误需谨慎解释。":"逻辑回归对小样本、稀有类别和强共线性敏感；样本量不足时应谨慎解释。")));
+      return h;
+    }
+  },
+
+  factor: {
+    name:"探索性因子分析", short:"多题项 · 主成分载荷 + 方差解释",
+    desc:"用相关矩阵做主成分法因子分析，输出特征值、方差贡献率、累计解释率、因子载荷矩阵与共同度。",
+    fit:"适合 ≥3 列数值型题项，通常用于问卷量表或多指标降维",
+    icon:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="6" cy="6" r="2"/><circle cx="18" cy="6" r="2"/><circle cx="6" cy="18" r="2"/><circle cx="18" cy="18" r="2"/><path d="M8 6h8M6 8v8M18 8v8M8 18h8M8 8l8 8M16 8l-8 8"/></svg>',
+    detect:function(ds){
+      return colOptions(ds).filter(function(o){ return o.num; }).length>=3;
+    },
+    config:function(ds){
+      var c=colOptions(ds), nums=c.filter(function(o){ return o.num; });
+      var cols=nums.slice(0,6).map(function(o){ return o.idx; });
+      return '<div class="cfg-row"><label>题项列（可多选）</label>'+multiSelHtml(nums, cols, "cfg_cols", 8)+'</div>'
+        +'<div class="cfg-row"><label>因子数</label>'+customSel([{v:"1",l:"1 个因子"},{v:"2",l:"2 个因子"},{v:"3",l:"3 个因子"},{v:"4",l:"4 个因子"},{v:"5",l:"5 个因子"}], "2", "cfg_k")+'</div>'
+        +'<div class="hint">最多选择 8 个题项。载荷绝对值 ≥0.4 通常可视为有解释意义；因子正负号可整体翻转，不影响解释。</div>';
+    },
+    run:function(ds, cfg){
+      var idxs=[].concat(cfg.cols||[]).map(function(x){return parseInt(x,10);});
+      var nums=colOptions(ds).filter(function(o){ return o.num; });
+      idxs=idxs.filter(function(x){ return !isNaN(x); });
+      if(idxs.length<3) idxs=nums.slice(0,3).map(function(o){ return o.idx; });
+      if(idxs.length>8) idxs=idxs.slice(0,8);
+      if(idxs.length<3) throw new Error("因子分析至少需要 3 个数值题项");
+      function jacobi(A){
+        var n=A.length, B=[], V=[], i, j, it;
+        for(i=0;i<n;i++){ B[i]=A[i].slice(); V[i]=[]; for(j=0;j<n;j++) V[i][j]=(i===j?1:0); }
+        for(it=0;it<100*n*n;it++){
+          var p=0, q=1, mx=0;
+          for(i=0;i<n;i++){ for(j=i+1;j<n;j++){ if(Math.abs(B[i][j])>mx){ mx=Math.abs(B[i][j]); p=i; q=j; } } }
+          if(mx<1e-10) break;
+          var app=B[p][p], aqq=B[q][q], apq=B[p][q];
+          var phi=0.5*Math.atan2(2*apq, aqq-app), c=Math.cos(phi), s=Math.sin(phi);
+          for(i=0;i<n;i++){
+            if(i!==p && i!==q){
+              var bip=B[i][p], biq=B[i][q];
+              B[i][p]=c*bip-s*biq; B[p][i]=B[i][p];
+              B[i][q]=s*bip+c*biq; B[q][i]=B[i][q];
+            }
+          }
+          B[p][p]=c*c*app-2*s*c*apq+s*s*aqq;
+          B[q][q]=s*s*app+2*s*c*apq+c*c*aqq;
+          B[p][q]=0; B[q][p]=0;
+          for(i=0;i<n;i++){
+            var vip=V[i][p], viq=V[i][q];
+            V[i][p]=c*vip-s*viq;
+            V[i][q]=s*vip+c*viq;
+          }
+        }
+        var pairs=[];
+        for(i=0;i<n;i++) pairs.push({v:B[i][i], idx:i});
+        pairs.sort(function(a,b){ return b.v-a.v; });
+        return {values:pairs.map(function(o){ return o.v; }), order:pairs.map(function(o){ return o.idx; }), vectors:V};
+      }
+      var data=[], r, j;
+      for(r=0;r<ds.rows.length;r++){
+        var row=[], ok=true;
+        for(j=0;j<idxs.length;j++){
+          var v=parseNum(ds.rows[r][idxs[j]]);
+          if(v===null||isNaN(v)){ ok=false; break; }
+          row.push(v);
+        }
+        if(ok) data.push(row);
+      }
+      if(data.length<3) throw new Error("有效样本数不足，因子分析至少需要 3 行完整题项数据");
+      var d=idxs.length, cols=[], vars=[];
+      for(j=0;j<d;j++){ cols[j]=[]; for(r=0;r<data.length;r++) cols[j].push(data[r][j]); vars[j]=variance(cols[j]); if(vars[j]<=0) throw new Error("题项「"+ds.headers[idxs[j]]+"」没有变异，无法计算相关矩阵"); }
+      var corrMat=[];
+      for(j=0;j<d;j++){
+        corrMat[j]=[];
+        for(var c2=0;c2<d;c2++){
+          corrMat[j][c2]=(j===c2)?1:pearson(cols[j], cols[c2]);
+          if(corrMat[j][c2]==null || isNaN(corrMat[j][c2])) throw new Error("相关矩阵计算失败，请检查题项是否为常数列");
+        }
+      }
+      var eig=jacobi(corrMat), m=parseInt(cfg.k||"2",10);
+      if(isNaN(m)||m<1) m=2; if(m>d) m=d; if(m>5) m=5;
+      var loadings=[], communalities=[], varExplained=[], total=0;
+      for(j=0;j<eig.values.length;j++) total+=eig.values[j];
+      for(j=0;j<eig.values.length;j++) varExplained[j]=eig.values[j]/total;
+      for(r=0;r<d;r++){
+        loadings[r]=[]; communalities[r]=0;
+        for(j=0;j<m;j++){
+          var val=Math.max(0, eig.values[j]);
+          loadings[r][j]=eig.vectors[r][eig.order[j]]*Math.sqrt(val);
+          communalities[r]+=loadings[r][j]*loadings[r][j];
+        }
+      }
+      return {names:idxs.map(function(i){ return ds.headers[i]; }), corrMat:corrMat, eigenvalues:eig.values, loadings:loadings, communalities:communalities, varExplained:varExplained, n:data.length, factors:m};
+    },
+    render:function(ds, cfg, res){
+      var h="", i, j, cum=0;
+      h+=resBlock("① 相关矩阵", corrTableHtml(res.names, res.corrMat));
+      var erows=[];
+      for(i=0;i<res.eigenvalues.length;i++){
+        cum+=res.varExplained[i];
+        erows.push(["因子"+(i+1), fmtNum(res.eigenvalues[i],4), fmtPct(res.varExplained[i],1), fmtPct(cum,1)]);
+      }
+      h+=resBlock("② 特征值与方差解释率", preTable(["成分","特征值","方差贡献","累计贡献"], erows));
+      var heads=["题项"], lrows=[], weak=[];
+      for(j=0;j<res.factors;j++) heads.push("因子"+(j+1));
+      heads.push("共同度");
+      for(i=0;i<res.names.length;i++){
+        var row=[escXML(res.names[i])], mx=0;
+        for(j=0;j<res.factors;j++){ row.push(fmtNum(res.loadings[i][j],3)); if(Math.abs(res.loadings[i][j])>mx) mx=Math.abs(res.loadings[i][j]); }
+        row.push(fmtNum(res.communalities[i],3));
+        if(mx<0.4) weak.push(res.names[i]);
+        lrows.push(row);
+      }
+      h+=resBlock("③ 因子载荷矩阵", preTable(heads, lrows));
+      var topTexts=[];
+      for(j=0;j<res.factors;j++){
+        var arr=[];
+        for(i=0;i<res.names.length;i++){ if(Math.abs(res.loadings[i][j])>=0.4) arr.push(res.names[i]+"("+fmtNum(res.loadings[i][j],2)+")"); }
+        topTexts.push("因子"+(j+1)+"："+(arr.length?arr.join("、"):"暂无强载荷题项"));
+      }
+      var keep=0;
+      for(j=0;j<res.factors;j++) keep+=res.varExplained[j];
+      h+=resBlock("④ 分层解读",
+        finding("fact","因子结构", topTexts.join("；")+"。")
+        +finding("anl","累计解释率", "前 "+res.factors+" 个因子的累计解释率为 "+fmtPct(keep,1)+"，"+(keep>=0.6?"通常已达到可接受水平。":"解释率偏低，可能需要增加因子数或检查题项质量。"))
+        +finding("anl","弱载荷题项", weak.length ? "最大载荷低于 0.4 的题项有："+weak.join("、")+"，这些题项与当前因子结构关系较弱。" : "未发现最大载荷低于 0.4 的题项。")
+        +finding("warn","解释边界", "本方法为主成分法载荷，未做旋转；因子命名需要结合题项内容，载荷正负号可整体翻转。"));
+      return h;
+    }
+  },
+
+  swilk: {
+    name:"Shapiro-Wilk 正态性检验", short:"单列数值 · W + p",
+    desc:"检验单列数值是否可视为来自正态分布，输出 W、p、偏度、峰度与直方图，并给出是否拒绝正态性的解释。",
+    fit:"适合 ≥1 列数值型数据，常用于 t 检验、ANOVA、回归残差等前提检查",
+    icon:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 20h18"/><path d="M4 18c3-12 13-12 16 0"/><path d="M8 18c1-5 7-5 8 0"/></svg>',
+    detect:function(ds){
+      return colOptions(ds).filter(function(o){ return o.num; }).length>=1;
+    },
+    config:function(ds){
+      var nums=colOptions(ds).filter(function(o){ return o.num; });
+      return '<div class="cfg-row"><label>数值列</label>'+selHtml(nums, nums.length?nums[0].idx:0, "cfg_col")+'</div>'
+        +'<div class="hint">p < 0.05 时拒绝正态性；样本量很小时检验功效不足，样本量很大时轻微偏离也可能显著。</div>';
+    },
+    run:function(ds, cfg){
+      var idx=parseInt(cfg.col||0,10), vals=colValues(ds.rows, idx);
+      if(vals.length<5) throw new Error("Shapiro-Wilk / Shapiro-Francia 近似至少需要 5 个有效数值");
+      function sfNormInv(p){
+        if(p<=0) p=1e-12; if(p>=1) p=1-1e-12;
+        var a=[-39.69683028665376,220.9460984245205,-275.9285104469687,138.357751867269,-30.66479806614716,2.506628277459239];
+        var b=[-54.47609879822406,161.5858368580409,-155.6989798598866,66.80131188771972,-13.28068155288572];
+        var c=[-0.007784894002430293,-0.3223964580411365,-2.400758277161838,-2.549732539343734,4.374664141464968,2.938163982698783];
+        var d=[0.007784695709041462,0.3224671290700398,2.445134137142996,3.754408661907416];
+        var pl=0.02425, ph=1-pl, q, r;
+        if(p<pl){ q=Math.sqrt(-2*Math.log(p)); return (((((c[0]*q+c[1])*q+c[2])*q+c[3])*q+c[4])*q+c[5])/((((d[0]*q+d[1])*q+d[2])*q+d[3])*q+1); }
+        if(p<=ph){ q=p-0.5; r=q*q; return (((((a[0]*r+a[1])*r+a[2])*r+a[3])*r+a[4])*r+a[5])*q/(((((b[0]*r+b[1])*r+b[2])*r+b[3])*r+b[4])*r+1); }
+        q=Math.sqrt(-2*Math.log(1-p));
+        return -(((((c[0]*q+c[1])*q+c[2])*q+c[3])*q+c[4])*q+c[5])/((((d[0]*q+d[1])*q+d[2])*q+d[3])*q+1);
+      }
+      var x=vals.slice().sort(function(a,b){ return a-b; });
+      var n=x.length, m=[], sm=0, i;
+      for(i=0;i<n;i++){ m[i]=sfNormInv((i+1-0.375)/(n+0.25)); sm+=m[i]*m[i]; }
+      sm=Math.sqrt(sm);
+      var mx=mean(x), num=0, den=0;
+      for(i=0;i<n;i++){
+        num+=(m[i]/sm)*x[i];
+        var dx=x[i]-mx; den+=dx*dx;
+      }
+      if(den<=0) throw new Error("该列没有变异，无法检验正态性");
+      var W=(num*num)/den;
+      if(W>1 && W<1+1e-12) W=1;
+      if(W<=0) W=1e-16;
+      if(W>=1) W=1-1e-16;
+      var u=Math.log(n), v=Math.log(u);
+      var mu=-1.2725+1.0521*(v-u);
+      var sig=1.0308-0.26758*(v+2/u);
+      var z=(Math.log(1-W)-mu)/sig;
+      var p=1-normCdf(z);
+      if(p<0) p=0; if(p>1) p=1;
+      var st=describe(vals);
+      return {col:ds.headers[idx], n:n, W:W, p:p, skew:st.skew, kurt:st.kurt, values:vals};
+    },
+    render:function(ds, cfg, res){
+      var h="";
+      h+=resBlock("① W 与 p",
+        metricCard("W 统计量", fmtNum(res.W,4), "", "hl")
+        +metricCard("p 值", fmtNum(res.p,4), "", res.p<0.05?"warn":"hl")
+        +metricCard("有效样本 n", fmtNum(res.n,0)));
+      h+=resBlock("② 偏度与峰度",
+        metricCard("偏度", fmtNum(res.skew,3))
+        +metricCard("峰度", fmtNum(res.kurt,3)));
+      h+=resBlock("③ 直方图", '<div class="chart-box">'+svgHist(res.values, {title:res.col+" 分布直方图", subtitle:"用于辅助判断偏态、厚尾或多峰"})+'</div>');
+      h+=resBlock("④ 分层解读",
+        finding("fact","正态性结论", "W = "+fmtNum(res.W,4)+"，p = "+fmtNum(res.p,4)+"；"+(res.p<0.05?"在 0.05 水平下拒绝正态性。":"在 0.05 水平下不能拒绝正态性。"))
+        +finding("anl","形态辅助", "偏度 = "+fmtNum(res.skew,3)+"，峰度 = "+fmtNum(res.kurt,3)+"；偏度远离 0 表示不对称，峰度远离 0 表示尾部厚度偏离正态。")
+        +finding("sug","方法建议", res.p<0.05 ? "若后续要比较均值或做相关，可优先考虑非参数方法，或对数据做合理变换后再检验。" : "当前未发现显著非正态，可继续结合样本量、箱线图和研究目的判断是否使用参数方法。")
+        +finding("warn","功效警示", "小样本下检验功效不足，可能检不出非正态；大样本下轻微偏离也可能显著。本实现采用 Shapiro-Francia 近似，结论按拒绝/不拒绝使用。"));
+      return h;
+    }
+  },
+
     anova: {
       name:"单因素方差分析（ANOVA）", short:"多组均值比较 · F 检验 + 多重比较",
       desc:"比较三个及以上独立组的均值是否全相等：先做整体 F 检验（方差分析表），显著后再做多重比较（事后检验）定位究竟哪两组不同。配套方差齐性检验（Levene）与效应量（η² / ω²）。",

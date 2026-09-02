@@ -41,7 +41,7 @@ let fail = 0;
 const ok = (cond, msg) => { if (cond) console.log('  PASS', msg); else { console.error('  FAIL', msg); fail++; } };
 
 console.log('== 1. 分析类型完整性 ==');
-ok(Object.keys(AN).length === 16, 'ANALYSES 16 项均已接入计算');
+ok(Object.keys(AN).length === 20, 'ANALYSES 20 项均已接入计算');
 Object.keys(AN).forEach(k => {
   const a = AN[k];
   ok(typeof a.detect === 'function' && typeof a.config === 'function' &&
@@ -92,6 +92,38 @@ for (let i = 0; i < 50; i++) if (clRes.labels[i] === l0) same0++;
 ok(same0 >= 45, 'cluster setosa 前 50 样本大多同簇：' + same0 + '/50');
 const clOut = clA.render(irisDs, { cols: ['0', '1', '2', '3'], k: '3' }, clRes);
 ok(clOut.includes('簇中心') && clOut.includes('肘部'), 'cluster render 含簇中心与肘部');
+
+console.log('== 1e. 多元回归 / 逻辑回归 / 因子分析 / 正态性（GPT 生成，验口径）==');
+const mrA = AN.mregress;
+const mrDs = ctx.parseCSV('x1,x2,y\n1,1,4\n2,1,6\n3,1,8\n4,1,10\n1,2,1\n2,2,3\n3,2,5\n1,3,-2\n2,3,0\n3,3,2');
+const mrRes = mrA.run(mrDs, { y: '2', cols: ['0', '1'] });
+ok(Math.abs(mrRes.b[0] - 5) < 1e-6 && Math.abs(mrRes.b[1] - 2) < 1e-6 && Math.abs(mrRes.b[2] + 3) < 1e-6, 'mregress 精确还原 b0=5,b1=2,b2=-3');
+ok(Math.abs(mrRes.r2 - 1) < 1e-9, 'mregress R²=1，实际=' + mrRes.r2);
+
+const lgA = AN.logit;
+const lgDs = ctx.parseCSV('x,y\n1,0\n2,0\n3,0\n4,0\n5,0\n6,1\n7,1\n8,1\n9,1\n10,1');
+const lgRes = lgA.run(lgDs, { y: '1', cols: ['0'] });
+ok(lgRes.b[1] > 0, 'logit 系数方向为正 b=' + lgRes.b[1].toFixed(3));
+ok(lgRes.accuracy === 1, 'logit 可分离数据准确率 100%，实际=' + lgRes.accuracy);
+
+const faA = AN.factor;
+const faRes = faA.run(irisDs, { cols: ['0', '1', '2', '3'], k: '2' });
+ok(faRes.loadings.length === 4 && faRes.loadings[0].length === 2, 'factor 载荷 4×2');
+ok(faRes.eigenvalues[0] >= faRes.eigenvalues[1] && faRes.eigenvalues[1] >= faRes.eigenvalues[2], 'factor 特征值降序');
+ok(faRes.varExplained[0] + faRes.varExplained[1] > 0.9, 'factor iris 前 2 因子解释率=' + ((faRes.varExplained[0] + faRes.varExplained[1]) * 100).toFixed(1) + '%');
+
+const swA = AN.swilk;
+const skewDs = ctx.parseCSV('x\n1\n1\n1\n1\n1\n1\n1\n2\n2\n2\n3\n3\n4\n5\n6\n8\n10\n15\n25\n50');
+const swSkew = swA.run(skewDs, { col: '0' });
+ok(swSkew.p < 0.05, 'swilk 右偏数据拒绝正态 p=' + swSkew.p.toFixed(4));
+const rngN = ctx.mulberry32(12345);
+const normVals = [];
+for (let i = 0; i < 30; i++) { const u1 = rngN(), u2 = rngN(); normVals.push(Math.sqrt(-2 * Math.log(u1)) * Math.cos(2 * Math.PI * u2)); }
+const normDs = ctx.parseCSV('x\n' + normVals.join('\n'));
+const swNorm = swA.run(normDs, { col: '0' });
+ok(swNorm.p > 0.05, 'swilk 正态样本不拒绝 p=' + swNorm.p.toFixed(4));
+
+
 
 
 
