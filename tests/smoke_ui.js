@@ -41,7 +41,7 @@ let fail = 0;
 const ok = (cond, msg) => { if (cond) console.log('  PASS', msg); else { console.error('  FAIL', msg); fail++; } };
 
 console.log('== 1. 分析类型完整性 ==');
-ok(Object.keys(AN).length === 15, 'ANALYSES 15 项均已接入计算');
+ok(Object.keys(AN).length === 16, 'ANALYSES 16 项均已接入计算');
 Object.keys(AN).forEach(k => {
   const a = AN[k];
   ok(typeof a.detect === 'function' && typeof a.config === 'function' &&
@@ -79,6 +79,20 @@ ok(Math.abs(relRes.ca.alpha - 1) < 1e-9, 'reliability 完全一致题项 α=1，
 ok(relRes.ca.itemStats.length === 5, 'reliability 分项统计 5 项');
 const relOut = relA.render(relDs, { cols: ['0', '1', '2', '3', '4'] }, relRes);
 ok(relOut.includes('α') && relOut.includes('删除后 α'), 'reliability render 含 α 与删除后 α');
+
+console.log('== 1d. 聚类分析（cluster，iris 三物种还原）==');
+const clA = AN.cluster;
+ok(clA.detect(irisDs), 'cluster detect 命中 iris');
+const clRes = clA.run(irisDs, { cols: ['0', '1', '2', '3'], k: '3' });
+ok(clRes.sizes.length === 3 && clRes.sizes.reduce((a, b) => a + b, 0) === 150, 'cluster 3 簇共 150 样本');
+ok(isFinite(clRes.sse) && clRes.sse > 0, 'cluster SSE=' + clRes.sse.toFixed(1));
+const l0 = clRes.labels[0];
+let same0 = 0;
+for (let i = 0; i < 50; i++) if (clRes.labels[i] === l0) same0++;
+ok(same0 >= 45, 'cluster setosa 前 50 样本大多同簇：' + same0 + '/50');
+const clOut = clA.render(irisDs, { cols: ['0', '1', '2', '3'], k: '3' }, clRes);
+ok(clOut.includes('簇中心') && clOut.includes('肘部'), 'cluster render 含簇中心与肘部');
+
 
 
 console.log('== 1.5 推断统计真实计算（ANOVA / 卡方 / 非参数）==');
