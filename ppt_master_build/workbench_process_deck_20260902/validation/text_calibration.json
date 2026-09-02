@@ -1,0 +1,47 @@
+{
+  "roles": {
+    "body": {
+      "family": "Microsoft YaHei, Arial, sans-serif",
+      "size": 24.0,
+      "cjk_chars_per_100px": 3.9,
+      "latin_chars_per_100px": 8.1,
+      "longest_planned_line": {
+        "px": 671.6,
+        "slide": "P06",
+        "text": "“质量检查：用 karpathy 与 superpower 检查工程质量”。"
+      }
+    },
+    "title": {
+      "family": "Microsoft YaHei, Arial, sans-serif",
+      "size": 54.0,
+      "cjk_chars_per_100px": 1.7,
+      "latin_chars_per_100px": 3.6,
+      "longest_planned_line": {
+        "px": 994.9,
+        "slide": "P03",
+        "text": "第二步：给 AI 配上合适的角色和能力"
+      }
+    },
+    "subtitle": {
+      "family": "Microsoft YaHei, Arial, sans-serif",
+      "size": 30.0,
+      "cjk_chars_per_100px": 3.1,
+      "latin_chars_per_100px": 6.5,
+      "longest_planned_line": {
+        "px": 1081.2,
+        "slide": "P10",
+        "text": "先理解问题，再选择能力；先设计结构，再实现功能；最后用结果验证工具。"
+      }
+    },
+    "annotation": {
+      "family": "Microsoft YaHei, Arial, sans-serif",
+      "size": 18.0,
+      "cjk_chars_per_100px": 5.2,
+      "latin_chars_per_100px": 10.8,
+      "longest_planned_line": null
+    }
+  },
+  "source": "spec_lock.md",
+  "generated_at": "2026-09-02T14:10:53Z",
+  "notes": []
+}

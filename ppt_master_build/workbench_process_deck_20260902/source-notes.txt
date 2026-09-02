@@ -1,0 +1,16 @@
+Source notes
+
+User-provided source decks:
+- C:\Users\lenovo\Desktop\工作台制作复盘.pptx
+- C:\Users\lenovo\Desktop\魏老师-文件\ppt\10分钟AI高质量数据分析_可编辑版.pptx
+
+User-provided screenshots copied into images/:
+- workbuddy-experts-skills.png: WorkBuddy expert and skill selection
+- upload-data.png: upload CSV entry
+- public-datasets.png: public data source dialog
+- bazhuayu-guide.png: 八爪鱼采集说明
+- grill-me-guide.png: grill-me explanation
+- workbench-full.png: complete workbench screenshot
+- taste-skill-example.png, ui-ux-pro-max-example.png, frontend-design-example.png, skill-comparison.png: design skill comparison examples
+
+No external web assets or researched claims used.

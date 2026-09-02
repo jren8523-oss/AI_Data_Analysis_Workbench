@@ -1,0 +1,941 @@
+{
+  "schema": "ppt-master.svg-quality-report.v1",
+  "stage": "final",
+  "target": "C:\\Users\\lenovo\\Desktop\\AI_Data_Analysis_Workbench\\ppt_master_build\\workbench_process_deck_20260902",
+  "source_fingerprint": {
+    "algorithm": "sha256",
+    "digest": "3661200d7d3eba8e6030b50c8c02ed9368753cb0a75590c9862342f73218dc17",
+    "file_count": 10,
+    "files": [
+      {
+        "file": "slide-01.svg",
+        "sha256": "7990a433efc3e28f32cac7e1b89bda722f51b824a7a256437774d17d3c3a5a27"
+      },
+      {
+        "file": "slide-02.svg",
+        "sha256": "f7bd228c773f0d868ff11c40120731249f3a870e25f7383485e6da832a0917ec"
+      },
+      {
+        "file": "slide-03.svg",
+        "sha256": "e1a7ae5ded11de9a88542af622604896b4680da82a978d0506cf0a6ade476729"
+      },
+      {
+        "file": "slide-04.svg",
+        "sha256": "c150ff9cce9ba86ad4ffd11ce2442370c64b669330abd644eae952f69329b47e"
+      },
+      {
+        "file": "slide-05.svg",
+        "sha256": "b4c181336bb5562cfb9e34939043ab66e579b82de1fe7b8989355c075f0a8540"
+      },
+      {
+        "file": "slide-06.svg",
+        "sha256": "989cd5e30be6e96f41b4091eacb0a34f43c9e593bc45d5d24a6081fcc4444742"
+      },
+      {
+        "file": "slide-07.svg",
+        "sha256": "36010e90369f7106228dd97842f056c3b2e8f7e3a5b48a7e13b4170073044500"
+      },
+      {
+        "file": "slide-08.svg",
+        "sha256": "aba38014e9908efe32560e4eb13908d2c051370188831b6a8f6a3f0183bed046"
+      },
+      {
+        "file": "slide-09.svg",
+        "sha256": "e271fb7dfc5f4b9f7a01ac6cb0e22239d43d41ed65e83a5e625a9cd35feac674"
+      },
+      {
+        "file": "slide-10.svg",
+        "sha256": "420d0a093a1f6a0b1c7560c542159d2aaf1fa724ccd2831fd3411d0ce1cb352c"
+      }
+    ]
+  },
+  "summary": {
+    "total": 10,
+    "passed": 0,
+    "warnings": 10,
+    "errors": 0
+  },
+  "issue_types": {},
+  "categories": {
+    "blocking": {
+      "count": 0,
+      "issues": []
+    },
+    "introduced": {
+      "count": 21,
+      "issues": [
+        {
+          "file": "slide-01.svg",
+          "message": "Recommendation: font-size value(s) 14px, 15px, 16px, 18px, 20px (+3 more) are converter-compatible; generated SVG should prefer unitless px values such as font-size=\"28\". No change is required for export."
+        },
+        {
+          "file": "slide-01.svg",
+          "message": "24 ungrouped top-level Slide-local element(s) in svg_output (<rect> #2, <text> #3, <text> #4, ...); group only logical content units in a top-level <g id=\"...\">. Keep genuine static page framing as a root primitive and declare a supported data-pptx-role such as \"background\" or \"decoration\""
+        },
+        {
+          "file": "slide-02.svg",
+          "message": "Recommendation: font-size value(s) 14px, 16px, 18px, 20px, 24px (+3 more) are converter-compatible; generated SVG should prefer unitless px values such as font-size=\"28\". No change is required for export."
+        },
+        {
+          "file": "slide-02.svg",
+          "message": "24 ungrouped top-level Slide-local element(s) in svg_output (<text> #2, <text> #3, <line> #4, ...); group only logical content units in a top-level <g id=\"...\">. Keep genuine static page framing as a root primitive and declare a supported data-pptx-role such as \"background\" or \"decoration\""
+        },
+        {
+          "file": "slide-03.svg",
+          "message": "Recommendation: font-size value(s) 14px, 16px, 18px, 20px, 22px (+3 more) are converter-compatible; generated SVG should prefer unitless px values such as font-size=\"28\". No change is required for export."
+        },
+        {
+          "file": "slide-03.svg",
+          "message": "Image ../images/workbuddy-experts-skills.png is 2356x1644 and renders at 0.16x scale in a 568x260 meet frame; the source is 1.1 MiB — file-size advisory only, not an aspect-ratio warning; consider a smaller source asset"
+        },
+        {
+          "file": "slide-03.svg",
+          "message": "14 ungrouped top-level Slide-local element(s) in svg_output (<text> #2, <text> #3, <line> #4, ...); group only logical content units in a top-level <g id=\"...\">. Keep genuine static page framing as a root primitive and declare a supported data-pptx-role such as \"background\" or \"decoration\""
+        },
+        {
+          "file": "slide-04.svg",
+          "message": "Recommendation: font-size value(s) 14px, 16px, 20px, 24px, 34px (+1 more) are converter-compatible; generated SVG should prefer unitless px values such as font-size=\"28\". No change is required for export."
+        },
+        {
+          "file": "slide-04.svg",
+          "message": "19 ungrouped top-level Slide-local element(s) in svg_output (<text> #2, <text> #3, <line> #4, ...); group only logical content units in a top-level <g id=\"...\">. Keep genuine static page framing as a root primitive and declare a supported data-pptx-role such as \"background\" or \"decoration\""
+        },
+        {
+          "file": "slide-05.svg",
+          "message": "Recommendation: font-size value(s) 14px, 18px, 22px, 28px, 54px are converter-compatible; generated SVG should prefer unitless px values such as font-size=\"28\". No change is required for export."
+        },
+        {
+          "file": "slide-05.svg",
+          "message": "19 ungrouped top-level Slide-local element(s) in svg_output (<text> #2, <text> #3, <line> #4, ...); group only logical content units in a top-level <g id=\"...\">. Keep genuine static page framing as a root primitive and declare a supported data-pptx-role such as \"background\" or \"decoration\""
+        },
+        {
+          "file": "slide-06.svg",
+          "message": "Recommendation: font-size value(s) 14px, 22px, 24px, 26px, 28px (+2 more) are converter-compatible; generated SVG should prefer unitless px values such as font-size=\"28\". No change is required for export."
+        },
+        {
+          "file": "slide-06.svg",
+          "message": "20 ungrouped top-level Slide-local element(s) in svg_output (<text> #2, <text> #3, <line> #4, ...); group only logical content units in a top-level <g id=\"...\">. Keep genuine static page framing as a root primitive and declare a supported data-pptx-role such as \"background\" or \"decoration\""
+        },
+        {
+          "file": "slide-07.svg",
+          "message": "Recommendation: font-size value(s) 14px, 18px, 21px, 22px, 26px (+2 more) are converter-compatible; generated SVG should prefer unitless px values such as font-size=\"28\". No change is required for export."
+        },
+        {
+          "file": "slide-07.svg",
+          "message": "26 ungrouped top-level Slide-local element(s) in svg_output (<text> #2, <text> #3, <line> #4, ...); group only logical content units in a top-level <g id=\"...\">. Keep genuine static page framing as a root primitive and declare a supported data-pptx-role such as \"background\" or \"decoration\""
+        },
+        {
+          "file": "slide-08.svg",
+          "message": "Recommendation: font-size value(s) 14px, 18px, 20px, 32px, 54px are converter-compatible; generated SVG should prefer unitless px values such as font-size=\"28\". No change is required for export."
+        },
+        {
+          "file": "slide-08.svg",
+          "message": "17 ungrouped top-level Slide-local element(s) in svg_output (<text> #2, <text> #3, <line> #4, ...); group only logical content units in a top-level <g id=\"...\">. Keep genuine static page framing as a root primitive and declare a supported data-pptx-role such as \"background\" or \"decoration\""
+        },
+        {
+          "file": "slide-09.svg",
+          "message": "Recommendation: font-size value(s) 14px, 18px, 22px, 24px, 48px (+1 more) are converter-compatible; generated SVG should prefer unitless px values such as font-size=\"28\". No change is required for export."
+        },
+        {
+          "file": "slide-09.svg",
+          "message": "23 ungrouped top-level Slide-local element(s) in svg_output (<text> #2, <text> #3, <line> #4, ...); group only logical content units in a top-level <g id=\"...\">. Keep genuine static page framing as a root primitive and declare a supported data-pptx-role such as \"background\" or \"decoration\""
+        },
+        {
+          "file": "slide-10.svg",
+          "message": "Recommendation: font-size value(s) 14px, 18px, 22px, 25px, 32px (+1 more) are converter-compatible; generated SVG should prefer unitless px values such as font-size=\"28\". No change is required for export."
+        },
+        {
+          "file": "slide-10.svg",
+          "message": "14 ungrouped top-level Slide-local element(s) in svg_output (<text> #2, <text> #3, <line> #4, ...); group only logical content units in a top-level <g id=\"...\">. Keep genuine static page framing as a root primitive and declare a supported data-pptx-role such as \"background\" or \"decoration\""
+        }
+      ]
+    },
+    "inherited": {
+      "count": 0,
+      "issues": []
+    },
+    "source-import": {
+      "count": 0,
+      "summary": {
+        "warning_count": 0,
+        "by_code": {}
+      }
+    }
+  },
+  "drift": {
+    "colors": {
+      "#FFFFFF": [
+        "slide-01.svg",
+        "slide-02.svg",
+        "slide-03.svg",
+        "slide-04.svg",
+        "slide-05.svg",
+        "slide-07.svg",
+        "slide-08.svg",
+        "slide-09.svg",
+        "slide-10.svg"
+      ]
+    },
+    "fonts": {},
+    "sizes": {
+      "34": [
+        "slide-04.svg"
+      ],
+      "36": [
+        "slide-03.svg"
+      ],
+      "48": [
+        "slide-09.svg"
+      ],
+      "58": [
+        "slide-01.svg"
+      ],
+      "76": [
+        "slide-01.svg"
+      ]
+    }
+  },
+  "carrier_receipt": {
+    "scope": "informational-not-a-quota",
+    "pages": 10,
+    "totals": {
+      "text_elements": 131,
+      "image_placements": 10,
+      "icons": 0,
+      "svg_geometry_elements": 69,
+      "preset_shapes": 0,
+      "page_frame_elements": 0,
+      "marker_uses": 0,
+      "inline_emphasis_runs": 0,
+      "gradient_uses": 0,
+      "filter_uses": 0,
+      "text_effects": 0
+    },
+    "pages_with": {
+      "images": 5,
+      "icons": 0,
+      "presets": 0,
+      "charts": 0,
+      "tables": 0,
+      "formulas": 0,
+      "inline_emphasis_runs": 0,
+      "gradient_uses": 0,
+      "filter_uses": 0,
+      "text_effects": 0
+    },
+    "geometry_elements": {
+      "circle": 12,
+      "ellipse": 0,
+      "line": 25,
+      "path": 0,
+      "polygon": 0,
+      "polyline": 0,
+      "rect": 32
+    },
+    "preset_names": {},
+    "native_objects": {
+      "chart": 0,
+      "formula_block": 0,
+      "formula_inline": 0,
+      "other": 0,
+      "table": 0
+    },
+    "image_page_max_frame_share_range": [
+      0.0405,
+      0.3657
+    ]
+  },
+  "project_issues": {
+    "template": [],
+    "animation": [],
+    "illustration": [],
+    "communication_trace": [],
+    "pptx_structure": []
+  },
+  "files": [
+    {
+      "file": "slide-01.svg",
+      "path": "C:\\Users\\lenovo\\Desktop\\AI_Data_Analysis_Workbench\\ppt_master_build\\workbench_process_deck_20260902\\svg_output\\slide-01.svg",
+      "exists": true,
+      "errors": [],
+      "warnings": [
+        "Recommendation: font-size value(s) 14px, 15px, 16px, 18px, 20px (+3 more) are converter-compatible; generated SVG should prefer unitless px values such as font-size=\"28\". No change is required for export.",
+        "24 ungrouped top-level Slide-local element(s) in svg_output (<rect> #2, <text> #3, <text> #4, ...); group only logical content units in a top-level <g id=\"...\">. Keep genuine static page framing as a root primitive and declare a supported data-pptx-role such as \"background\" or \"decoration\""
+      ],
+      "info": {
+        "viewbox": "0 0 1280 720",
+        "carrier_receipt": {
+          "text_elements": 12,
+          "images": {
+            "placements": 0,
+            "files": [],
+            "max_frame_share": 0.0
+          },
+          "icons": 0,
+          "effects": {
+            "inline_emphasis_runs": 0,
+            "gradient_uses": 0,
+            "filter_uses": 0,
+            "text_effects": 0
+          },
+          "geometry": {
+            "svg_elements": {
+              "rect": 6,
+              "circle": 3,
+              "ellipse": 0,
+              "line": 4,
+              "polyline": 0,
+              "polygon": 0,
+              "path": 0
+            },
+            "preset_shapes": 0,
+            "preset_names": {},
+            "page_frame_elements": 0,
+            "marker_uses": {
+              "start": 0,
+              "mid": 0,
+              "end": 0
+            }
+          },
+          "native_objects": {
+            "chart": 0,
+            "table": 0,
+            "formula_block": 0,
+            "formula_inline": 0,
+            "other": 0
+          }
+        },
+        "fonts": [
+          "Microsoft YaHei, Arial, sans-serif"
+        ],
+        "text_elements": 12,
+        "tspan_elements": 1,
+        "contextual_values": {
+          "colors": [
+            "#FFFFFF"
+          ]
+        },
+        "sparse_typography_sizes": {
+          "58": 1,
+          "76": 1
+        }
+      },
+      "passed": true,
+      "source_sha256": "7990a433efc3e28f32cac7e1b89bda722f51b824a7a256437774d17d3c3a5a27"
+    },
+    {
+      "file": "slide-02.svg",
+      "path": "C:\\Users\\lenovo\\Desktop\\AI_Data_Analysis_Workbench\\ppt_master_build\\workbench_process_deck_20260902\\svg_output\\slide-02.svg",
+      "exists": true,
+      "errors": [],
+      "warnings": [
+        "Recommendation: font-size value(s) 14px, 16px, 18px, 20px, 24px (+3 more) are converter-compatible; generated SVG should prefer unitless px values such as font-size=\"28\". No change is required for export.",
+        "24 ungrouped top-level Slide-local element(s) in svg_output (<text> #2, <text> #3, <line> #4, ...); group only logical content units in a top-level <g id=\"...\">. Keep genuine static page framing as a root primitive and declare a supported data-pptx-role such as \"background\" or \"decoration\""
+      ],
+      "info": {
+        "viewbox": "0 0 1280 720",
+        "carrier_receipt": {
+          "text_elements": 16,
+          "images": {
+            "placements": 0,
+            "files": [],
+            "max_frame_share": 0.0
+          },
+          "icons": 0,
+          "effects": {
+            "inline_emphasis_runs": 0,
+            "gradient_uses": 0,
+            "filter_uses": 0,
+            "text_effects": 0
+          },
+          "geometry": {
+            "svg_elements": {
+              "rect": 2,
+              "circle": 3,
+              "ellipse": 0,
+              "line": 4,
+              "polyline": 0,
+              "polygon": 0,
+              "path": 0
+            },
+            "preset_shapes": 0,
+            "preset_names": {},
+            "page_frame_elements": 0,
+            "marker_uses": {
+              "start": 0,
+              "mid": 0,
+              "end": 0
+            }
+          },
+          "native_objects": {
+            "chart": 0,
+            "table": 0,
+            "formula_block": 0,
+            "formula_inline": 0,
+            "other": 0
+          }
+        },
+        "fonts": [
+          "Microsoft YaHei, Arial, sans-serif"
+        ],
+        "text_elements": 16,
+        "tspan_elements": 0,
+        "contextual_values": {
+          "colors": [
+            "#FFFFFF"
+          ]
+        }
+      },
+      "passed": true,
+      "source_sha256": "f7bd228c773f0d868ff11c40120731249f3a870e25f7383485e6da832a0917ec"
+    },
+    {
+      "file": "slide-03.svg",
+      "path": "C:\\Users\\lenovo\\Desktop\\AI_Data_Analysis_Workbench\\ppt_master_build\\workbench_process_deck_20260902\\svg_output\\slide-03.svg",
+      "exists": true,
+      "errors": [],
+      "warnings": [
+        "Recommendation: font-size value(s) 14px, 16px, 18px, 20px, 22px (+3 more) are converter-compatible; generated SVG should prefer unitless px values such as font-size=\"28\". No change is required for export.",
+        "Image ../images/workbuddy-experts-skills.png is 2356x1644 and renders at 0.16x scale in a 568x260 meet frame; the source is 1.1 MiB — file-size advisory only, not an aspect-ratio warning; consider a smaller source asset",
+        "14 ungrouped top-level Slide-local element(s) in svg_output (<text> #2, <text> #3, <line> #4, ...); group only logical content units in a top-level <g id=\"...\">. Keep genuine static page framing as a root primitive and declare a supported data-pptx-role such as \"background\" or \"decoration\""
+      ],
+      "info": {
+        "viewbox": "0 0 1280 720",
+        "carrier_receipt": {
+          "text_elements": 9,
+          "images": {
+            "placements": 1,
+            "files": [
+              "workbuddy-experts-skills.png"
+            ],
+            "max_frame_share": 0.1602
+          },
+          "icons": 0,
+          "effects": {
+            "inline_emphasis_runs": 0,
+            "gradient_uses": 0,
+            "filter_uses": 0,
+            "text_effects": 0
+          },
+          "geometry": {
+            "svg_elements": {
+              "rect": 4,
+              "circle": 0,
+              "ellipse": 0,
+              "line": 1,
+              "polyline": 0,
+              "polygon": 0,
+              "path": 0
+            },
+            "preset_shapes": 0,
+            "preset_names": {},
+            "page_frame_elements": 0,
+            "marker_uses": {
+              "start": 0,
+              "mid": 0,
+              "end": 0
+            }
+          },
+          "native_objects": {
+            "chart": 0,
+            "table": 0,
+            "formula_block": 0,
+            "formula_inline": 0,
+            "other": 0
+          }
+        },
+        "fonts": [
+          "Microsoft YaHei, Arial, sans-serif"
+        ],
+        "text_elements": 9,
+        "tspan_elements": 4,
+        "contextual_values": {
+          "colors": [
+            "#FFFFFF"
+          ]
+        },
+        "sparse_typography_sizes": {
+          "36": 1
+        }
+      },
+      "passed": true,
+      "source_sha256": "e1a7ae5ded11de9a88542af622604896b4680da82a978d0506cf0a6ade476729"
+    },
+    {
+      "file": "slide-04.svg",
+      "path": "C:\\Users\\lenovo\\Desktop\\AI_Data_Analysis_Workbench\\ppt_master_build\\workbench_process_deck_20260902\\svg_output\\slide-04.svg",
+      "exists": true,
+      "errors": [],
+      "warnings": [
+        "Recommendation: font-size value(s) 14px, 16px, 20px, 24px, 34px (+1 more) are converter-compatible; generated SVG should prefer unitless px values such as font-size=\"28\". No change is required for export.",
+        "19 ungrouped top-level Slide-local element(s) in svg_output (<text> #2, <text> #3, <line> #4, ...); group only logical content units in a top-level <g id=\"...\">. Keep genuine static page framing as a root primitive and declare a supported data-pptx-role such as \"background\" or \"decoration\""
+      ],
+      "info": {
+        "viewbox": "0 0 1280 720",
+        "carrier_receipt": {
+          "text_elements": 12,
+          "images": {
+            "placements": 1,
+            "files": [
+              "grill-me-guide.png"
+            ],
+            "max_frame_share": 0.1213
+          },
+          "icons": 0,
+          "effects": {
+            "inline_emphasis_runs": 0,
+            "gradient_uses": 0,
+            "filter_uses": 0,
+            "text_effects": 0
+          },
+          "geometry": {
+            "svg_elements": {
+              "rect": 2,
+              "circle": 3,
+              "ellipse": 0,
+              "line": 2,
+              "polyline": 0,
+              "polygon": 0,
+              "path": 0
+            },
+            "preset_shapes": 0,
+            "preset_names": {},
+            "page_frame_elements": 0,
+            "marker_uses": {
+              "start": 0,
+              "mid": 0,
+              "end": 0
+            }
+          },
+          "native_objects": {
+            "chart": 0,
+            "table": 0,
+            "formula_block": 0,
+            "formula_inline": 0,
+            "other": 0
+          }
+        },
+        "fonts": [
+          "Microsoft YaHei, Arial, sans-serif"
+        ],
+        "text_elements": 12,
+        "tspan_elements": 0,
+        "contextual_values": {
+          "colors": [
+            "#FFFFFF"
+          ]
+        },
+        "sparse_typography_sizes": {
+          "34": 1
+        }
+      },
+      "passed": true,
+      "source_sha256": "c150ff9cce9ba86ad4ffd11ce2442370c64b669330abd644eae952f69329b47e"
+    },
+    {
+      "file": "slide-05.svg",
+      "path": "C:\\Users\\lenovo\\Desktop\\AI_Data_Analysis_Workbench\\ppt_master_build\\workbench_process_deck_20260902\\svg_output\\slide-05.svg",
+      "exists": true,
+      "errors": [],
+      "warnings": [
+        "Recommendation: font-size value(s) 14px, 18px, 22px, 28px, 54px are converter-compatible; generated SVG should prefer unitless px values such as font-size=\"28\". No change is required for export.",
+        "19 ungrouped top-level Slide-local element(s) in svg_output (<text> #2, <text> #3, <line> #4, ...); group only logical content units in a top-level <g id=\"...\">. Keep genuine static page framing as a root primitive and declare a supported data-pptx-role such as \"background\" or \"decoration\""
+      ],
+      "info": {
+        "viewbox": "0 0 1280 720",
+        "carrier_receipt": {
+          "text_elements": 9,
+          "images": {
+            "placements": 4,
+            "files": [
+              "frontend-design-example.png",
+              "skill-comparison.png",
+              "taste-skill-example.png",
+              "ui-ux-pro-max-example.png"
+            ],
+            "max_frame_share": 0.0673
+          },
+          "icons": 0,
+          "effects": {
+            "inline_emphasis_runs": 0,
+            "gradient_uses": 0,
+            "filter_uses": 0,
+            "text_effects": 0
+          },
+          "geometry": {
+            "svg_elements": {
+              "rect": 5,
+              "circle": 0,
+              "ellipse": 0,
+              "line": 2,
+              "polyline": 0,
+              "polygon": 0,
+              "path": 0
+            },
+            "preset_shapes": 0,
+            "preset_names": {},
+            "page_frame_elements": 0,
+            "marker_uses": {
+              "start": 0,
+              "mid": 0,
+              "end": 0
+            }
+          },
+          "native_objects": {
+            "chart": 0,
+            "table": 0,
+            "formula_block": 0,
+            "formula_inline": 0,
+            "other": 0
+          }
+        },
+        "fonts": [
+          "Microsoft YaHei, Arial, sans-serif"
+        ],
+        "text_elements": 9,
+        "tspan_elements": 0,
+        "contextual_values": {
+          "colors": [
+            "#FFFFFF"
+          ]
+        }
+      },
+      "passed": true,
+      "source_sha256": "b4c181336bb5562cfb9e34939043ab66e579b82de1fe7b8989355c075f0a8540"
+    },
+    {
+      "file": "slide-06.svg",
+      "path": "C:\\Users\\lenovo\\Desktop\\AI_Data_Analysis_Workbench\\ppt_master_build\\workbench_process_deck_20260902\\svg_output\\slide-06.svg",
+      "exists": true,
+      "errors": [],
+      "warnings": [
+        "Recommendation: font-size value(s) 14px, 22px, 24px, 26px, 28px (+2 more) are converter-compatible; generated SVG should prefer unitless px values such as font-size=\"28\". No change is required for export.",
+        "20 ungrouped top-level Slide-local element(s) in svg_output (<text> #2, <text> #3, <line> #4, ...); group only logical content units in a top-level <g id=\"...\">. Keep genuine static page framing as a root primitive and declare a supported data-pptx-role such as \"background\" or \"decoration\""
+      ],
+      "info": {
+        "viewbox": "0 0 1280 720",
+        "carrier_receipt": {
+          "text_elements": 13,
+          "images": {
+            "placements": 0,
+            "files": [],
+            "max_frame_share": 0.0
+          },
+          "icons": 0,
+          "effects": {
+            "inline_emphasis_runs": 0,
+            "gradient_uses": 0,
+            "filter_uses": 0,
+            "text_effects": 0
+          },
+          "geometry": {
+            "svg_elements": {
+              "rect": 2,
+              "circle": 3,
+              "ellipse": 0,
+              "line": 3,
+              "polyline": 0,
+              "polygon": 0,
+              "path": 0
+            },
+            "preset_shapes": 0,
+            "preset_names": {},
+            "page_frame_elements": 0,
+            "marker_uses": {
+              "start": 0,
+              "mid": 0,
+              "end": 0
+            }
+          },
+          "native_objects": {
+            "chart": 0,
+            "table": 0,
+            "formula_block": 0,
+            "formula_inline": 0,
+            "other": 0
+          }
+        },
+        "fonts": [
+          "Microsoft YaHei, Arial, sans-serif"
+        ],
+        "text_elements": 13,
+        "tspan_elements": 4
+      },
+      "passed": true,
+      "source_sha256": "989cd5e30be6e96f41b4091eacb0a34f43c9e593bc45d5d24a6081fcc4444742"
+    },
+    {
+      "file": "slide-07.svg",
+      "path": "C:\\Users\\lenovo\\Desktop\\AI_Data_Analysis_Workbench\\ppt_master_build\\workbench_process_deck_20260902\\svg_output\\slide-07.svg",
+      "exists": true,
+      "errors": [],
+      "warnings": [
+        "Recommendation: font-size value(s) 14px, 18px, 21px, 22px, 26px (+2 more) are converter-compatible; generated SVG should prefer unitless px values such as font-size=\"28\". No change is required for export.",
+        "26 ungrouped top-level Slide-local element(s) in svg_output (<text> #2, <text> #3, <line> #4, ...); group only logical content units in a top-level <g id=\"...\">. Keep genuine static page framing as a root primitive and declare a supported data-pptx-role such as \"background\" or \"decoration\""
+      ],
+      "info": {
+        "viewbox": "0 0 1280 720",
+        "carrier_receipt": {
+          "text_elements": 23,
+          "images": {
+            "placements": 0,
+            "files": [],
+            "max_frame_share": 0.0
+          },
+          "icons": 0,
+          "effects": {
+            "inline_emphasis_runs": 0,
+            "gradient_uses": 0,
+            "filter_uses": 0,
+            "text_effects": 0
+          },
+          "geometry": {
+            "svg_elements": {
+              "rect": 2,
+              "circle": 0,
+              "ellipse": 0,
+              "line": 2,
+              "polyline": 0,
+              "polygon": 0,
+              "path": 0
+            },
+            "preset_shapes": 0,
+            "preset_names": {},
+            "page_frame_elements": 0,
+            "marker_uses": {
+              "start": 0,
+              "mid": 0,
+              "end": 0
+            }
+          },
+          "native_objects": {
+            "chart": 0,
+            "table": 0,
+            "formula_block": 0,
+            "formula_inline": 0,
+            "other": 0
+          }
+        },
+        "fonts": [
+          "Microsoft YaHei, Arial, sans-serif"
+        ],
+        "text_elements": 23,
+        "tspan_elements": 0,
+        "contextual_values": {
+          "colors": [
+            "#FFFFFF"
+          ]
+        }
+      },
+      "passed": true,
+      "source_sha256": "36010e90369f7106228dd97842f056c3b2e8f7e3a5b48a7e13b4170073044500"
+    },
+    {
+      "file": "slide-08.svg",
+      "path": "C:\\Users\\lenovo\\Desktop\\AI_Data_Analysis_Workbench\\ppt_master_build\\workbench_process_deck_20260902\\svg_output\\slide-08.svg",
+      "exists": true,
+      "errors": [],
+      "warnings": [
+        "Recommendation: font-size value(s) 14px, 18px, 20px, 32px, 54px are converter-compatible; generated SVG should prefer unitless px values such as font-size=\"28\". No change is required for export.",
+        "17 ungrouped top-level Slide-local element(s) in svg_output (<text> #2, <text> #3, <line> #4, ...); group only logical content units in a top-level <g id=\"...\">. Keep genuine static page framing as a root primitive and declare a supported data-pptx-role such as \"background\" or \"decoration\""
+      ],
+      "info": {
+        "viewbox": "0 0 1280 720",
+        "carrier_receipt": {
+          "text_elements": 12,
+          "images": {
+            "placements": 1,
+            "files": [
+              "workbench-full.png"
+            ],
+            "max_frame_share": 0.3657
+          },
+          "icons": 0,
+          "effects": {
+            "inline_emphasis_runs": 0,
+            "gradient_uses": 0,
+            "filter_uses": 0,
+            "text_effects": 0
+          },
+          "geometry": {
+            "svg_elements": {
+              "rect": 2,
+              "circle": 0,
+              "ellipse": 0,
+              "line": 3,
+              "polyline": 0,
+              "polygon": 0,
+              "path": 0
+            },
+            "preset_shapes": 0,
+            "preset_names": {},
+            "page_frame_elements": 0,
+            "marker_uses": {
+              "start": 0,
+              "mid": 0,
+              "end": 0
+            }
+          },
+          "native_objects": {
+            "chart": 0,
+            "table": 0,
+            "formula_block": 0,
+            "formula_inline": 0,
+            "other": 0
+          }
+        },
+        "fonts": [
+          "Microsoft YaHei, Arial, sans-serif"
+        ],
+        "text_elements": 12,
+        "tspan_elements": 2,
+        "contextual_values": {
+          "colors": [
+            "#FFFFFF"
+          ]
+        }
+      },
+      "passed": true,
+      "source_sha256": "aba38014e9908efe32560e4eb13908d2c051370188831b6a8f6a3f0183bed046"
+    },
+    {
+      "file": "slide-09.svg",
+      "path": "C:\\Users\\lenovo\\Desktop\\AI_Data_Analysis_Workbench\\ppt_master_build\\workbench_process_deck_20260902\\svg_output\\slide-09.svg",
+      "exists": true,
+      "errors": [],
+      "warnings": [
+        "Recommendation: font-size value(s) 14px, 18px, 22px, 24px, 48px (+1 more) are converter-compatible; generated SVG should prefer unitless px values such as font-size=\"28\". No change is required for export.",
+        "23 ungrouped top-level Slide-local element(s) in svg_output (<text> #2, <text> #3, <line> #4, ...); group only logical content units in a top-level <g id=\"...\">. Keep genuine static page framing as a root primitive and declare a supported data-pptx-role such as \"background\" or \"decoration\""
+      ],
+      "info": {
+        "viewbox": "0 0 1280 720",
+        "carrier_receipt": {
+          "text_elements": 14,
+          "images": {
+            "placements": 3,
+            "files": [
+              "bazhuayu-guide.png",
+              "public-datasets.png",
+              "upload-data.png"
+            ],
+            "max_frame_share": 0.0405
+          },
+          "icons": 0,
+          "effects": {
+            "inline_emphasis_runs": 0,
+            "gradient_uses": 0,
+            "filter_uses": 0,
+            "text_effects": 0
+          },
+          "geometry": {
+            "svg_elements": {
+              "rect": 5,
+              "circle": 0,
+              "ellipse": 0,
+              "line": 2,
+              "polyline": 0,
+              "polygon": 0,
+              "path": 0
+            },
+            "preset_shapes": 0,
+            "preset_names": {},
+            "page_frame_elements": 0,
+            "marker_uses": {
+              "start": 0,
+              "mid": 0,
+              "end": 0
+            }
+          },
+          "native_objects": {
+            "chart": 0,
+            "table": 0,
+            "formula_block": 0,
+            "formula_inline": 0,
+            "other": 0
+          }
+        },
+        "fonts": [
+          "Microsoft YaHei, Arial, sans-serif"
+        ],
+        "text_elements": 14,
+        "tspan_elements": 3,
+        "contextual_values": {
+          "colors": [
+            "#FFFFFF"
+          ]
+        },
+        "sparse_typography_sizes": {
+          "48": 1
+        }
+      },
+      "passed": true,
+      "source_sha256": "e271fb7dfc5f4b9f7a01ac6cb0e22239d43d41ed65e83a5e625a9cd35feac674"
+    },
+    {
+      "file": "slide-10.svg",
+      "path": "C:\\Users\\lenovo\\Desktop\\AI_Data_Analysis_Workbench\\ppt_master_build\\workbench_process_deck_20260902\\svg_output\\slide-10.svg",
+      "exists": true,
+      "errors": [],
+      "warnings": [
+        "Recommendation: font-size value(s) 14px, 18px, 22px, 25px, 32px (+1 more) are converter-compatible; generated SVG should prefer unitless px values such as font-size=\"28\". No change is required for export.",
+        "14 ungrouped top-level Slide-local element(s) in svg_output (<text> #2, <text> #3, <line> #4, ...); group only logical content units in a top-level <g id=\"...\">. Keep genuine static page framing as a root primitive and declare a supported data-pptx-role such as \"background\" or \"decoration\""
+      ],
+      "info": {
+        "viewbox": "0 0 1280 720",
+        "carrier_receipt": {
+          "text_elements": 11,
+          "images": {
+            "placements": 0,
+            "files": [],
+            "max_frame_share": 0.0
+          },
+          "icons": 0,
+          "effects": {
+            "inline_emphasis_runs": 0,
+            "gradient_uses": 0,
+            "filter_uses": 0,
+            "text_effects": 0
+          },
+          "geometry": {
+            "svg_elements": {
+              "rect": 2,
+              "circle": 0,
+              "ellipse": 0,
+              "line": 2,
+              "polyline": 0,
+              "polygon": 0,
+              "path": 0
+            },
+            "preset_shapes": 0,
+            "preset_names": {},
+            "page_frame_elements": 0,
+            "marker_uses": {
+              "start": 0,
+              "mid": 0,
+              "end": 0
+            }
+          },
+          "native_objects": {
+            "chart": 0,
+            "table": 0,
+            "formula_block": 0,
+            "formula_inline": 0,
+            "other": 0
+          }
+        },
+        "fonts": [
+          "Microsoft YaHei, Arial, sans-serif"
+        ],
+        "text_elements": 11,
+        "tspan_elements": 0,
+        "contextual_values": {
+          "colors": [
+            "#FFFFFF"
+          ]
+        }
+      },
+      "passed": true,
+      "source_sha256": "420d0a093a1f6a0b1c7560c542159d2aaf1fa724ccd2831fd3411d0ce1cb352c"
+    }
+  ]
+}

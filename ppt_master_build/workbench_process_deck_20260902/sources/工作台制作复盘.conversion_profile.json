@@ -1,0 +1,28 @@
+{
+  "schema": "ppt-master.source_to_md.profile.v1",
+  "converter": "ppt_to_md.py",
+  "conversion_type": "pptx",
+  "source": {
+    "path": "C:/Users/lenovo/Desktop/工作台制作复盘.pptx",
+    "name": "工作台制作复盘.pptx",
+    "suffix": ".pptx",
+    "kind": "file",
+    "exists": true,
+    "size_bytes": 2697267
+  },
+  "outputs": {
+    "markdown": "工作台制作复盘.md",
+    "asset_dir": "工作台制作复盘_files",
+    "image_manifest": "工作台制作复盘_files/image_manifest.json",
+    "image_count": 5
+  },
+  "markdown": {
+    "line_count": 311,
+    "char_count": 2789,
+    "heading_count": 14,
+    "table_count": 0,
+    "image_ref_count": 5,
+    "link_count": 0
+  },
+  "warnings": []
+}

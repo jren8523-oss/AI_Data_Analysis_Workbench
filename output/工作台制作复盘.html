@@ -1,0 +1,342 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>从零做一个数据分析工作台 · 制作复盘</title>
+<style>
+  :root {
+    --brand: #005DA2;
+    --brand-dark: #00447A;
+    --brand-light: #E8F1F8;
+    --accent: #F2A900;
+    --accent-bg: #FAEEDA;
+    --accent-txt: #633806;
+    --ok: #1E8E5A;
+    --text: #2D3748;
+    --gray: #8A94A0;
+    --light-gray: #F1EFE8;
+    --white: #fff;
+  }
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body {
+    font-family: "微软雅黑", "Microsoft YaHei", sans-serif;
+    background: #F4F7FA;
+    color: var(--text);
+    overflow: hidden;
+  }
+  #deck { width: 100%; }
+  .slide {
+    display: none;
+    width: 100%;
+    height: calc(100vh - 56px);
+    padding: 3vh 4.5vw;
+    flex-direction: column;
+    background: var(--white);
+  }
+  .slide.active { display: flex; }
+  .bar {
+    background: var(--brand);
+    color: var(--white);
+    padding: 1.6vh 1.2vw;
+    border-radius: 8px;
+    margin-bottom: 2.5vh;
+  }
+  .bar h2 { font-size: 26px; font-weight: 500; }
+  .bar .sub { font-size: 13px; color: #D9E7F4; margin-top: 3px; }
+  .grid2 { display: grid; grid-template-columns: 1fr 1fr; gap: 1.2vw; }
+  .grid3 { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 1.2vw; }
+  .grid4 { display: grid; grid-template-columns: repeat(4, 1fr); gap: 1vw; }
+  .card { border-radius: 10px; padding: 1.6vh 1.1vw; }
+  .card.gray { background: var(--light-gray); }
+  .card.blue { background: var(--brand-light); }
+  .card.gold { background: var(--accent-bg); }
+  .card h3 { font-size: 18px; font-weight: 500; }
+  .card.gray h3 { color: #5F5E5A; }
+  .card.blue h3 { color: var(--brand-dark); }
+  .card p { font-size: 14px; line-height: 1.7; margin-top: 6px; }
+  .card.gray p { color: var(--text); }
+  .card.blue p { color: var(--brand-dark); }
+  .goldbar {
+    background: var(--accent-bg);
+    color: var(--accent-txt);
+    border-radius: 10px;
+    padding: 1.6vh 1.2vw;
+    font-size: 15px;
+    font-weight: 500;
+    margin-top: 2.5vh;
+  }
+  .flow { display: flex; align-items: center; gap: 0.8vw; justify-content: center; }
+  .flow .step { flex: 1; }
+  .flow .arrow { font-size: 28px; color: var(--accent); font-weight: 500; }
+  .tag {
+    display: inline-block;
+    font-size: 12px;
+    border-radius: 6px;
+    padding: 2px 10px;
+    margin-top: 6px;
+  }
+  .tag.blue { background: var(--brand-light); color: var(--brand-dark); }
+  .tag.gold { background: var(--accent-bg); color: var(--accent-txt); }
+  .tag.gray { background: var(--light-gray); color: #444; }
+  .ph {
+    border: 1.5px dashed var(--gray);
+    border-radius: 10px;
+    background: #fafafa;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    color: var(--gray);
+    text-align: center;
+  }
+  .cover-tag { color: var(--brand); font-size: 15px; letter-spacing: 2px; text-align: center; }
+  .cover-title { color: var(--brand-dark); font-size: 44px; font-weight: 500; text-align: center; }
+  .center { text-align: center; }
+  .highlight { border: 2px solid var(--brand); }
+  .conclusion {
+    background: var(--brand);
+    color: var(--white);
+    border-radius: 10px;
+    padding: 1.5vh 1.2vw;
+    font-size: 14px;
+    margin-top: 2.2vh;
+  }
+  nav {
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    height: 56px;
+    background: var(--white);
+    border-top: 1px solid #eee;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 18px;
+    z-index: 10;
+  }
+  nav button {
+    border: 1px solid var(--brand);
+    background: var(--white);
+    color: var(--brand);
+    border-radius: 6px;
+    padding: 7px 18px;
+    font-size: 14px;
+    cursor: pointer;
+    font-family: inherit;
+  }
+  nav button:hover { background: var(--brand); color: var(--white); }
+  nav .page { font-size: 13px; color: var(--gray); min-width: 90px; text-align: center; }
+</style>
+</head>
+<body>
+<div id="deck">
+
+  <!-- P1 封面 -->
+  <section class="slide active">
+    <div style="flex:1;display:flex;flex-direction:column;justify-content:center;">
+      <div class="cover-tag">AI WORKBENCH</div>
+      <div class="cover-title" style="margin-top:1.5vh;">从零做一个数据分析工作台</div>
+      <div class="center" style="font-size:16px;color:var(--gray);margin-top:2.5vh;">一条 AI 协作流水线 · 让学生看懂「怎么用 AI 做工具」</div>
+      <div class="center" style="font-size:12px;color:var(--gray);margin-top:9vh;">单文件 HTML · 双击即开 · 数据不出浏览器</div>
+    </div>
+  </section>
+
+  <!-- P2 为什么是工作台 -->
+  <section class="slide">
+    <div class="bar"><h2>为什么是「工作台」，不是「单次任务」？</h2><div class="sub">可复用，是工具与一次性请求的本质区别</div></div>
+    <div class="grid2" style="flex:1;align-content:center;">
+      <div class="card gray">
+        <h3>单次任务</h3>
+        <p>· 每次把数据 + 需求喂给 AI<br>· 现算现出，结果不沉淀<br>· 下次换数据，重头再来<br>· 口径可能每次不一样</p>
+      </div>
+      <div class="card blue">
+        <h3>工作台</h3>
+        <p>· 需求 / 方法 / 口径一次固化<br>· 上传数据 → 点一下 → 出报告<br>· 随取随用，永久复用<br>· 双引擎 + QA，结果可验证</p>
+      </div>
+    </div>
+    <div class="goldbar">单次是「求 AI 帮一次忙」，工作台是「把 AI 的能力装进一个随取随用的工具」</div>
+  </section>
+
+  <!-- P3 六步流水线 -->
+  <section class="slide">
+    <div class="bar"><h2>全流程总览：六步流水线</h2><div class="sub">「工作台搭建师」专家贯穿全程</div></div>
+    <div class="grid3" style="flex:1;align-content:center;gap:1.4vw 1.2vw;">
+      <div class="card blue"><h3><span style="color:var(--accent);font-size:30px;">1</span> 让 AI 读懂需求</h3><p>喂课程 PPT</p></div>
+      <div class="card gray"><h3><span style="color:var(--accent);font-size:30px;">2</span> 召唤「工作台搭建师」</h3><p>Expert</p></div>
+      <div class="card blue"><h3><span style="color:var(--accent);font-size:30px;">3</span> 设计对齐</h3><p>grill-me</p></div>
+      <div class="card gray"><h3><span style="color:var(--accent);font-size:30px;">4</span> 画界面</h3><p>frontend-design</p></div>
+      <div class="card blue"><h3><span style="color:var(--accent);font-size:30px;">5</span> 搭 UI + 填功能</h3><p>Codex CLI</p></div>
+      <div class="card gray"><h3><span style="color:var(--accent);font-size:30px;">6</span> 质量保障</h3><p>karpathy / superpower</p></div>
+    </div>
+    <div class="center" style="font-size:12px;color:var(--gray);margin-top:2vh;">专家管「怎么想」，技能管「会不会做」——一个专家贯穿，五把技能按环节换</div>
+  </section>
+
+  <!-- P4 第一步 -->
+  <section class="slide">
+    <div class="bar"><h2>第一步 · 让 AI 读懂需求</h2><div class="sub">需求不是凭空提，是从课程材料里「喂」出来的</div></div>
+    <div class="flow" style="flex:1;align-items:center;">
+      <div class="card blue step"><h3>课程 PPT</h3><p>《统计与数据分析基础》</p></div>
+      <div class="arrow">→</div>
+      <div class="card blue step"><h3>AI 总结</h3><p>提炼实训与统计口径</p></div>
+      <div class="arrow">→</div>
+      <div class="card blue step"><h3>表述需求</h3><p>我要做一个数据分析工作台</p></div>
+    </div>
+    <div class="card gray" style="margin-top:2.5vh;"><p>要点：先把课程材料交给 AI 让它「读懂」，再用一句话把需求说清楚。先总结、再定义——避免一上来就让它瞎猜。</p></div>
+  </section>
+
+  <!-- P5 第二步 -->
+  <section class="slide">
+    <div class="bar"><h2>第二步 · 召唤「工作台搭建师」专家</h2><div class="sub">全程以搭建者的身份和视角推进</div></div>
+    <div class="grid2" style="flex:1;align-content:center;">
+      <div class="card blue"><h3>Expert 专家</h3><p>管「怎么想」<br>定义身份、角色和思维方式<br>同一时间只认一个</p></div>
+      <div class="card gray"><h3>Skill 技能</h3><p>管「会不会做」<br>装进新能力，按需开关<br>可以同时挂好几个</p></div>
+    </div>
+    <div class="goldbar">最佳搭配 = 专家 + 技能：开「工作台搭建师」定方向，再按环节挂 grill-me / frontend-design 等技能</div>
+  </section>
+
+  <!-- P6 第三步 grill-me -->
+  <section class="slide">
+    <div class="bar"><h2>第三步 · 设计对齐</h2><div class="sub">用 grill-me 把需求颗粒度问清楚</div></div>
+    <div class="grid2" style="flex:1;align-items:center;">
+      <div>
+        <div class="card blue" style="margin-bottom:1.2vh;"><h3>功能</h3><p>逐层追问，把模糊需求问成清晰计划</p></div>
+        <div class="card gray" style="margin-bottom:1.2vh;"><h3>为什么</h3><p>没有它，AI 只能瞎猜你的真实意图</p></div>
+        <div class="card blue"><h3>不用会怎样</h3><p>口径没人追问 → 双引擎对不上，改两遍</p></div>
+      </div>
+      <div class="ph" style="height:60%;"><span style="font-size:13px;">此处放 grill-me 截图</span><span style="font-size:11px;margin-top:4px;">Clipboard_Screenshot.png</span></div>
+    </div>
+  </section>
+
+  <!-- P7 第四步 为什么设计 skill -->
+  <section class="slide">
+    <div class="bar"><h2>第四步 · 画界面，为什么要用设计 skill？</h2><div class="sub">通用 AI 出「能跑但丑」，设计 skill 出「有审美」</div></div>
+    <div class="grid3" style="flex:1;align-items:center;">
+      <div>
+        <div class="card gray" style="margin-bottom:1.4vh;"><h3>通用 AI 直接写</h3><p>烂大街渐变、AI 味重<br>能跑，但没法直接投影</p></div>
+        <div class="card blue"><h3>设计 skill 来画</h3><p>有自己的审美、极简细节控<br>生成 HTML，对话即可微调</p></div>
+      </div>
+      <div class="ph" style="height:70%;"><span style="font-size:13px;">5 个审美 skill 测评</span><span style="font-size:11px;margin-top:4px;">Clipboard_Screenshot-3</span></div>
+      <div class="card gold"><h3>结论</h3><p style="font-size:15px;">5 个审美 skill 实测，这套工作台选 frontend-design</p></div>
+    </div>
+  </section>
+
+  <!-- P8 第四步 实机对比 -->
+  <section class="slide">
+    <div class="bar"><h2>第四步 · 5 个审美 skill 实机对比</h2><div class="sub">同一套设计 prompt，不同 skill 出的页面</div></div>
+    <div class="grid3" style="flex:1;align-items:center;">
+      <div>
+        <div class="ph" style="height:34vh;"><span style="font-size:12px;">taste-skill 实机</span><span style="font-size:11px;">Screenshot-4</span></div>
+        <h3 style="font-size:15px;margin-top:1vh;">taste-skill</h3>
+        <p style="font-size:12px;color:var(--gray);">英文极简 portfolio，做中文教学工具水土不服</p>
+      </div>
+      <div>
+        <div class="ph" style="height:34vh;"><span style="font-size:12px;">UI-UX-PRO-MAX 实机</span><span style="font-size:11px;">Screenshot-5</span></div>
+        <h3 style="font-size:15px;margin-top:1vh;">UI-UX-PRO-MAX</h3>
+        <p style="font-size:12px;color:var(--gray);">中文能打，但实测略有 AI 味</p>
+      </div>
+      <div>
+        <div class="ph highlight" style="height:34vh;border-color:var(--brand);"><span style="font-size:12px;color:var(--brand-dark);">frontend-design 实机</span><span style="font-size:11px;">Screenshot-6</span></div>
+        <h3 style="font-size:15px;margin-top:1vh;color:var(--brand-dark);">frontend-design</h3>
+        <p style="font-size:12px;color:var(--gray);">中文质感最好，极简细节控，胜出</p>
+      </div>
+    </div>
+    <div class="conclusion">对「中文 + 教学投影」场景，frontend-design 最合——三张实机 + 博主实测得出</div>
+  </section>
+
+  <!-- P9 第五步 -->
+  <section class="slide">
+    <div class="bar"><h2>第五步 · 搭 UI + 填功能</h2><div class="sub">先骨架、再微调、后填血肉</div></div>
+    <div class="flow" style="flex:1;align-items:center;">
+      <div class="card blue step"><h3>搭骨架</h3><p>把三栏界面结构搭出来</p></div>
+      <div class="arrow">→</div>
+      <div class="card blue step"><h3>微调</h3><p>Codex CLI 里顺手调细节</p></div>
+      <div class="arrow">→</div>
+      <div class="card blue step"><h3>填血肉</h3><p>让 AI 填 12 项分析能力</p></div>
+    </div>
+    <div class="card gray" style="margin-top:2.5vh;"><p>要点：界面先有「形」，AI 才知道往哪填功能。Codex CLI 让「边聊边改代码」成为可能，微调不再靠手敲。</p></div>
+  </section>
+
+  <!-- P10 第六步 -->
+  <section class="slide">
+    <div class="bar"><h2>第六步 · 工程质量保障</h2><div class="sub">用技能守住质量，不靠肉眼</div></div>
+    <div class="grid2" style="flex:1;align-items:center;">
+      <div>
+        <div class="card blue" style="margin-bottom:1.2vh;"><h3>功能</h3><p>karpathy / superpower 把工程质量程序化</p></div>
+        <div class="card gray" style="margin-bottom:1.2vh;"><h3>为什么</h3><p>AI 也会犯错，得有「验证」兜底</p></div>
+        <div class="card blue"><h3>不用会怎样</h3><p>众数取最小、指数自洽这种边界 bug 没人抓</p></div>
+      </div>
+      <div class="card gold center" style="align-self:stretch;display:flex;flex-direction:column;justify-content:center;"><h3 style="font-size:20px;">冒烟测试 61 项</h3><p style="font-size:16px;margin-top:1vh;">QA 三层校验<br>78 项全绿</p></div>
+    </div>
+  </section>
+
+  <!-- P11 成果 12 能力 -->
+  <section class="slide">
+    <div class="bar"><h2>成果 · 12 项分析能力</h2><div class="sub">10 个课堂实训全跑通，78 项 QA 全绿</div></div>
+    <div class="grid4" style="flex:1;align-content:center;gap:1.2vh 1vw;">
+      <div class="card blue"><h3 style="font-size:15px;">描述统计</h3></div>
+      <div class="card gray"><h3 style="font-size:15px;">多指标对比</h3></div>
+      <div class="card blue"><h3 style="font-size:15px;">数据清洗</h3></div>
+      <div class="card gray"><h3 style="font-size:15px;">抽样估计</h3></div>
+      <div class="card gray"><h3 style="font-size:15px;">统计指数</h3></div>
+      <div class="card blue"><h3 style="font-size:15px;">相关回归</h3></div>
+      <div class="card gray"><h3 style="font-size:15px;">时间序列</h3></div>
+      <div class="card blue"><h3 style="font-size:15px;">分组汇总</h3></div>
+      <div class="card blue"><h3 style="font-size:15px;">t 检验</h3></div>
+      <div class="card gray"><h3 style="font-size:15px;">方差分析</h3></div>
+      <div class="card blue"><h3 style="font-size:15px;">卡方检验</h3></div>
+      <div class="card gray"><h3 style="font-size:15px;">非参数检验</h3></div>
+    </div>
+    <div class="conclusion" style="background:var(--ok);">描述 + 推断统计全覆盖 · 双引擎口径一致 · 数据不满足条件会明确提示而非伪造</div>
+  </section>
+
+  <!-- P12 给学生一句话 -->
+  <section class="slide">
+    <div style="flex:1;display:flex;flex-direction:column;justify-content:center;">
+      <div class="cover-title" style="font-size:34px;">做工具 = 选对专家 + 挂对技能 + 阶段验收</div>
+      <div class="center" style="font-size:20px;color:var(--gray);margin-top:2vh;">而不是「一键生成」</div>
+      <div class="goldbar" style="width:70%;margin:4vh auto 0;text-align:center;">清晰的需求 + 趁手的技能 + 每一步都验证——这才是用 AI 做出可用工具的正确姿势</div>
+    </div>
+  </section>
+
+  <!-- P13 附录术语表 -->
+  <section class="slide">
+    <div class="bar"><h2>附录 · 术语表</h2><div class="sub">正文用到的词，这里都有解释</div></div>
+    <div style="flex:1;display:flex;flex-direction:column;justify-content:center;gap:1vh;">
+      <div class="card blue" style="display:flex;gap:1vw;align-items:center;"><h3 style="min-width:150px;">Expert 专家</h3><p style="margin:0;">管「怎么想」：定身份、角色和视角，一次只认一个</p></div>
+      <div class="card gray" style="display:flex;gap:1vw;align-items:center;"><h3 style="min-width:150px;">Skill 技能</h3><p style="margin:0;">管「会不会做」：装进新能力，可同时挂多个、按需开关</p></div>
+      <div class="card blue" style="display:flex;gap:1vw;align-items:center;"><h3 style="min-width:150px;">grill-me</h3><p style="margin:0;">访谈式追问，把模糊需求问成清晰可执行的计划</p></div>
+      <div class="card gray" style="display:flex;gap:1vw;align-items:center;"><h3 style="min-width:150px;">frontend-design</h3><p style="margin:0;">有审美的网页生成技能，出 HTML、响应式、可对话微调</p></div>
+      <div class="card blue" style="display:flex;gap:1vw;align-items:center;"><h3 style="min-width:150px;">Codex CLI</h3><p style="margin:0;">命令行 AI 编码工具，边聊边改代码、顺手微调</p></div>
+      <div class="card gray" style="display:flex;gap:1vw;align-items:center;"><h3 style="min-width:150px;">karpathy / superpower</h3><p style="margin:0;">把工程质量（代码质量、测试验收）程序化的技能</p></div>
+      <div class="card blue" style="display:flex;gap:1vw;align-items:center;"><h3 style="min-width:150px;">双引擎</h3><p style="margin:0;">浏览器 JS 现场算 + Python 当基准验算，口径必须一致</p></div>
+    </div>
+  </section>
+
+</div>
+
+<nav>
+  <button id="prev">← 上一页</button>
+  <span class="page" id="pageno">1 / 13</span>
+  <button id="next">下一页 →</button>
+</nav>
+
+<script>
+  var slides = document.querySelectorAll('.slide');
+  var idx = 0;
+  var total = slides.length;
+  function show(i) {
+    idx = (i + total) % total;
+    slides.forEach(function(s, k) { s.classList.toggle('active', k === idx); });
+    document.getElementById('pageno').textContent = (idx + 1) + ' / ' + total;
+  }
+  document.getElementById('prev').onclick = function() { show(idx - 1); };
+  document.getElementById('next').onclick = function() { show(idx + 1); };
+  document.addEventListener('keydown', function(e) {
+    if (e.key === 'ArrowRight') show(idx + 1);
+    if (e.key === 'ArrowLeft') show(idx - 1);
+  });
+</script>
+</body>
+</html>

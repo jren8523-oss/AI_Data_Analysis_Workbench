@@ -1,0 +1,57 @@
+No,Filename,Width,Height,AspectRatio,PixelAspectRatio,SourceDisplayRatio,RatioSource,Format,HasTransparentPixels,UsageCount,DisplayRatioVariants,AssetKind,SvgRenderable,PptxNativeSupported,SizeKB,Category
+1,bazhuayu-guide.png,1116,882,1.27,1.27,,native,PNG,False,1,,bitmap,True,True,153.1,Standard landscape
+2,frontend-design-example.png,1080,1461,0.74,0.74,,native,PNG,False,1,,bitmap,True,True,939.3,Portrait
+3,grill-me-guide.png,1724,406,4.25,4.25,,native,PNG,False,1,,bitmap,True,True,139.4,Ultra-wide
+4,image1.png,1786,386,4.63,4.63,4.63,native,PNG,False,1,4.63,bitmap,True,True,139.5,Ultra-wide
+5,image10.png,1080,1014,1.07,1.07,1.07,native,PNG,False,1,1.07,bitmap,True,True,240.4,Near square
+6,image10_2.png,1080,1014,1.07,1.07,,native,PNG,False,1,,bitmap,True,True,240.4,Near square
+7,image11.png,1080,608,1.78,1.78,1.78,native,PNG,False,1,1.78,bitmap,True,True,72.7,Wide landscape
+8,image11_2.png,1080,608,1.78,1.78,,native,PNG,False,1,,bitmap,True,True,72.7,Wide landscape
+9,image12.png,1080,478,2.26,2.26,2.26,native,PNG,False,1,2.26,bitmap,True,True,183.6,Ultra-wide
+10,image12_2.png,1080,478,2.26,2.26,,native,PNG,False,1,,bitmap,True,True,183.6,Ultra-wide
+11,image13.png,1080,608,1.78,1.78,1.78,native,PNG,False,1,1.78,bitmap,True,True,64.9,Wide landscape
+12,image13_2.png,1080,608,1.78,1.78,,native,PNG,False,1,,bitmap,True,True,64.9,Wide landscape
+13,image14.png,961,731,1.31,1.31,1.31,native,PNG,False,1,1.31,bitmap,True,True,247.2,Standard landscape
+14,image14_2.png,961,731,1.31,1.31,,native,PNG,False,1,,bitmap,True,True,247.2,Standard landscape
+15,image15.png,938,711,1.32,1.32,1.32,native,PNG,False,1,1.32,bitmap,True,True,250.2,Standard landscape
+16,image15_2.png,938,711,1.32,1.32,,native,PNG,False,1,,bitmap,True,True,250.2,Standard landscape
+17,image16.png,861,657,1.31,1.31,1.31,native,PNG,False,1,1.31,bitmap,True,True,137.4,Standard landscape
+18,image16_2.png,861,657,1.31,1.31,,native,PNG,False,1,,bitmap,True,True,137.4,Standard landscape
+19,image17.png,933,705,1.32,1.32,1.32,native,PNG,False,1,1.32,bitmap,True,True,252.8,Standard landscape
+20,image17_2.png,933,705,1.32,1.32,,native,PNG,False,1,,bitmap,True,True,252.8,Standard landscape
+21,image18.png,1032,809,1.28,1.28,1.28,native,PNG,False,1,1.28,bitmap,True,True,341.1,Standard landscape
+22,image18_2.png,1032,809,1.28,1.28,,native,PNG,False,1,,bitmap,True,True,341.1,Standard landscape
+23,image1_2.png,1080,679,1.59,1.59,1.59,native,PNG,False,1,1.59,bitmap,True,True,808.9,Wide landscape
+24,image1_2_2.png,1080,679,1.59,1.59,,native,PNG,False,1,,bitmap,True,True,808.9,Wide landscape
+25,image1_3.png,1786,386,4.63,4.63,,native,PNG,False,1,,bitmap,True,True,139.5,Ultra-wide
+26,image2.jpg,1080,1440,0.75,0.75,0.75,native,JPEG,False,1,0.75,bitmap,True,True,254.2,Portrait
+27,image2.png,1080,575,1.88,1.88,1.93,native,PNG,False,1,1.93,bitmap,True,True,184.7,Wide landscape
+28,image2_2.jpg,1080,1440,0.75,0.75,,native,JPEG,False,1,,bitmap,True,True,254.2,Portrait
+29,image2_2.png,1080,575,1.88,1.88,,native,PNG,False,1,,bitmap,True,True,184.7,Wide landscape
+30,image3.png,1080,1623,0.67,0.67,0.67,native,PNG,False,1,0.67,bitmap,True,True,889.5,Portrait
+31,image3_2.png,987,555,1.78,1.78,1.78,native,PNG,False,1,1.78,bitmap,True,True,296.7,Wide landscape
+32,image3_2_2.png,987,555,1.78,1.78,,native,PNG,False,1,,bitmap,True,True,296.7,Wide landscape
+33,image3_3.png,1080,1623,0.67,0.67,,native,PNG,False,1,,bitmap,True,True,889.5,Portrait
+34,image4.png,1080,1402,0.77,0.77,0.77,native,PNG,False,1,0.77,bitmap,True,True,393.2,Portrait
+35,image4_2.png,1080,525,2.06,2.06,2.06,native,PNG,False,1,2.06,bitmap,True,True,273.1,Ultra-wide
+36,image4_2_2.png,1080,525,2.06,2.06,,native,PNG,False,1,,bitmap,True,True,273.1,Ultra-wide
+37,image4_3.png,1080,1402,0.77,0.77,,native,PNG,False,1,,bitmap,True,True,393.2,Portrait
+38,image5.png,1080,1461,0.74,0.74,0.74,native,PNG,False,1,0.74,bitmap,True,True,939.3,Portrait
+39,image5_2.png,1080,608,1.78,1.78,1.78,native,PNG,False,1,1.78,bitmap,True,True,351.9,Wide landscape
+40,image5_2_2.png,1080,608,1.78,1.78,,native,PNG,False,1,,bitmap,True,True,351.9,Wide landscape
+41,image5_3.png,1080,1461,0.74,0.74,,native,PNG,False,1,,bitmap,True,True,939.3,Portrait
+42,image6.png,1080,608,1.78,1.78,1.78,native,PNG,False,1,1.78,bitmap,True,True,89.3,Wide landscape
+43,image6_2.png,1080,608,1.78,1.78,,native,PNG,False,1,,bitmap,True,True,89.3,Wide landscape
+44,image7.png,1080,608,1.78,1.78,1.78,native,PNG,False,1,1.78,bitmap,True,True,492.2,Wide landscape
+45,image7_2.png,1080,608,1.78,1.78,,native,PNG,False,1,,bitmap,True,True,492.2,Wide landscape
+46,image8.png,1080,608,1.78,1.78,1.78,native,PNG,False,1,1.78,bitmap,True,True,537.6,Wide landscape
+47,image8_2.png,1080,608,1.78,1.78,,native,PNG,False,1,,bitmap,True,True,537.6,Wide landscape
+48,image9.png,1080,652,1.66,1.66,1.66,native,PNG,False,1,1.66,bitmap,True,True,151.4,Wide landscape
+49,image9_2.png,1080,652,1.66,1.66,,native,PNG,False,1,,bitmap,True,True,151.4,Wide landscape
+50,public-datasets.png,1126,1194,0.94,0.94,,native,PNG,False,1,,bitmap,True,True,142.5,Near square
+51,skill-comparison.png,1080,1440,0.75,0.75,,native,PNG,False,1,,bitmap,True,True,471.0,Portrait
+52,taste-skill-example.png,1080,1623,0.67,0.67,,native,PNG,False,1,,bitmap,True,True,889.5,Portrait
+53,ui-ux-pro-max-example.png,1080,1402,0.77,0.77,,native,PNG,False,1,,bitmap,True,True,393.2,Portrait
+54,upload-data.png,452,372,1.22,1.22,,native,PNG,False,1,,bitmap,True,True,23.3,Standard landscape
+55,workbench-full.png,2880,1480,1.95,1.95,,native,PNG,False,1,,bitmap,True,True,427.6,Wide landscape
+56,workbuddy-experts-skills.png,2356,1644,1.43,1.43,,native,PNG,False,1,,bitmap,True,True,1076.5,Standard landscape

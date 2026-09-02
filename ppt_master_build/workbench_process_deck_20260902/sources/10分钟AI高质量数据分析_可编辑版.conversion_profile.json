@@ -1,0 +1,28 @@
+{
+  "schema": "ppt-master.source_to_md.profile.v1",
+  "converter": "ppt_to_md.py",
+  "conversion_type": "pptx",
+  "source": {
+    "path": "C:/Users/lenovo/Desktop/魏老师-文件/ppt/10分钟AI高质量数据分析_可编辑版.pptx",
+    "name": "10分钟AI高质量数据分析_可编辑版.pptx",
+    "suffix": ".pptx",
+    "kind": "file",
+    "exists": true,
+    "size_bytes": 5151440
+  },
+  "outputs": {
+    "markdown": "10分钟AI高质量数据分析_可编辑版.md",
+    "asset_dir": "10分钟AI高质量数据分析_可编辑版_files",
+    "image_manifest": "10分钟AI高质量数据分析_可编辑版_files/image_manifest.json",
+    "image_count": 18
+  },
+  "markdown": {
+    "line_count": 363,
+    "char_count": 4917,
+    "heading_count": 27,
+    "table_count": 0,
+    "image_ref_count": 18,
+    "link_count": 0
+  },
+  "warnings": []
+}
