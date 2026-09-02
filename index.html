@@ -3,13 +3,14 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>数据分析工作台 · 雏形</title>
+<title>数据分析工作台</title>
 <style>
 :root{--brand:#1D6FA3;--brand-dark:#14517A;--brand-light:#E8F1F8;--accent:#D89A1E;--ok:#1E7A50;--bad:#B4382C;--purple:#5B4AA8;--teal:#2C7A7B;--gray:#6B7480;--text:#262B31;--line:#D9E0E8;--bg:#F5F3EE;--card:#fff;--rule:#D9E0E8;--serif:"Source Han Serif SC","Noto Serif CJK SC","STZhongsong","SimSun",Georgia,"Times New Roman",serif;}
 *{box-sizing:border-box;margin:0;padding:0}
 html,body{height:100%}
 body{font-family:"Microsoft YaHei","微软雅黑","PingFang SC","Helvetica Neue",Arial,sans-serif;background:var(--bg);color:var(--text);font-size:14px;line-height:1.7}
 button{font-family:inherit;cursor:pointer}
+:focus-visible{outline:2px solid var(--brand);outline-offset:2px}
 .hidden{display:none!important}
 
 /* ---------- 顶栏 ---------- */
@@ -102,6 +103,7 @@ button{font-family:inherit;cursor:pointer}
 #result.no-finding .finding{display:none}
 .report-head{padding:13px 16px;background:var(--brand-light);border:1px solid var(--brand);border-left:4px solid var(--brand);border-radius:6px;margin-bottom:14px}
 .report-head .rh-method{font-size:15px;font-weight:700;color:var(--brand-dark)}
+.report-head .rh-meta{font-size:12px;color:var(--gray);margin-top:3px}
 .report-head .rh-sum{font-size:13px;color:var(--text);margin-top:7px;line-height:1.7}
 .report-head .rh-tag{font-size:11px;font-weight:700;color:var(--brand);background:#fff;border:1px solid var(--brand);border-radius:3px;padding:1px 7px;margin-right:8px;white-space:nowrap}
 
@@ -123,20 +125,6 @@ button{font-family:inherit;cursor:pointer}
 .oct-step .tx{flex:1;min-width:0}
 
 /* ---------- 结果样式（复用现有引擎输出） ---------- */
-/* ---------- 壳子模式：能力已设计、算法待接入 ---------- */
-.shell-flag{display:flex;gap:10px;align-items:flex-start;background:#FFF7E6;border:1px solid #F2D8A7;border-radius:3px;padding:12px 16px;margin-bottom:14px;font-size:13px;line-height:1.75;color:#7A5A12}
-.shell-flag svg{flex:0 0 auto;width:17px;height:17px;color:#DD8B00;margin-top:3px}
-.shell-flag b{font-weight:800}
-.spec-list,.todo-list{list-style:none;padding:0;margin:0}
-.spec-item{display:flex;gap:12px;padding:9px 0;border-bottom:1px dashed var(--line);font-size:13px;line-height:1.7}
-.spec-item:last-child{border-bottom:none}
-.spec-k{flex:0 0 132px;font-weight:700;color:#14517A;font-size:12px;letter-spacing:.2px}
-.spec-v{flex:1;min-width:0;color:var(--text)}
-.spec-v small{display:block;color:var(--gray);font-size:11.5px;margin-top:2px;line-height:1.65}
-.todo-item{display:flex;gap:10px;padding:8px 0;font-size:13px;line-height:1.7;align-items:flex-start}
-.todo-box{flex:0 0 auto;width:13px;height:13px;border:1.5px solid #C5CDD6;border-radius:2px;margin-top:4px}
-.todo-item b{font-family:'Consolas','Courier New',monospace;font-size:12.5px;color:#14517A}
-.todo-item small{display:block;color:var(--gray);font-size:11.5px;margin-top:2px}
 .pre-tbl{width:100%;border-collapse:collapse;font-size:12.5px;margin:8px 0 4px}
 .pre-tbl th{background:#F1F5F9;color:#14517A;font-weight:700;text-align:left;padding:7px 10px;border-bottom:2px solid var(--line)}
 .pre-tbl td{padding:6px 10px;border-bottom:1px solid #EEF2F6}
@@ -153,8 +141,6 @@ button{font-family:inherit;cursor:pointer}
   .col:last-child{border-bottom:none}
   .cfg-row label{min-width:0;flex-basis:100%}
   .cfg-row select,.cfg-row input[type=number],.cfg-row input[type=text]{width:100%;min-width:0}
-  .spec-item{flex-direction:column;gap:2px}
-  .spec-k{flex:0 0 auto}
 }
 
 /* ---------- Step3 结果 ---------- */
@@ -208,7 +194,7 @@ button{font-family:inherit;cursor:pointer}
   <div class="brand">
     <span class="logo"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><rect x="4" y="11" width="3" height="8" rx=".8" fill="currentColor" stroke="none"/><rect x="10.5" y="6" width="3" height="13" rx=".8" fill="currentColor" stroke="none"/><rect x="17" y="3" width="3" height="16" rx=".8" fill="currentColor" stroke="none"/></svg></span>
     <span class="nm">数据分析工作台</span>
-    <span class="ver">雏形 v0.1</span>
+    <span class="ver">教学版</span>
   </div>
   <div class="top-actions">
     <button class="tb-btn primary" id="btnUploadTop"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>上传数据</button>
@@ -260,8 +246,8 @@ button{font-family:inherit;cursor:pointer}
 
   <!-- 右栏：结果 -->
   <section class="col">
-    <div class="col-h"><span class="l">结果</span><span style="display:flex;gap:6px"><button class="tb-btn" id="btnCSV" style="padding:5px 10px;min-height:30px;font-size:12px">导出 CSV</button><button class="tb-btn" id="btnExport" style="padding:5px 12px;min-height:30px;font-size:12px">导出报告</button></span></div>
-    <div class="ws-empty" id="result">运行分析后，结果（指标 · 公式 · 图表 · 解读）将在此展示。</div>
+    <div class="col-h"><span class="l">结果</span><span style="display:flex;gap:6px;align-items:center"><button class="tb-btn" id="btnCSV">导出 CSV</button><button class="tb-btn primary" id="btnExport">导出报告</button></span></div>
+    <div class="ws-empty" id="result">上传或选择数据 → 中间栏选分析方法 → 点「开始分析」，结论与图表将在此展示。</div>
   </section>
 </main>
 
@@ -1235,17 +1221,18 @@ function svgGroupedBar(labels, series, opts){
 function resBlock(title, innerHtml){
   return '<div class="res-block"><div class="rb-title">'+title+'</div>'+innerHtml+'</div>';
 }
-/* 从渲染结果里抽一句结论做报告头摘要：优先「结论」，退回「洞察」，再退回「描述」 */
+/* 从渲染结果里抽一句做报告头摘要：优先「洞察」，退回「结论」，再退回「描述」 */
 function extractSummary(html){
   var tmp=document.createElement("div");
   tmp.innerHTML=html;
-  var f=tmp.querySelector(".finding.f-sug")||tmp.querySelector(".finding.f-anl")||tmp.querySelector(".finding.f-fact");
+  var f=tmp.querySelector(".finding.f-anl")||tmp.querySelector(".finding.f-sug")||tmp.querySelector(".finding.f-fact");
   if(!f) return "";
   var b=f.querySelector(".f-body");
   return b? b.textContent.replace(/\s+/g," ").trim() : "";
 }
-function reportHead(methodName, summary){
+function reportHead(methodName, summary, meta){
   return '<div class="report-head"><div class="rh-method">'+escXML(methodName)+'</div>'
+    +(meta?'<div class="rh-meta">'+escXML(meta)+'</div>':'')
     +(summary?'<div class="rh-sum"><span class="rh-tag">结论</span>'+escXML(summary)+'</div>':'')
     +'</div>';
 }
@@ -1301,31 +1288,6 @@ function customSel(items, sel, id){
   return html+'</select>';
 }
 
-/* =====================================================================
- * 11.5 壳子渲染器 —— 能力已完成 UI 与逻辑设计、数值算法待接入时，
- *      展示「设计规格 + 当前数据体检」，规格确认后再填算法，避免返工。
- *      spec = { name, metrics[], formulas[], charts[], findings[],
- *               todos[], notes[] }
- * ===================================================================== */
-function specList(items){
-  if(!items || !items.length) return '<div class="ws-empty">（无）</div>';
-  var h='<ul class="spec-list">';
-  items.forEach(function(it){
-    h+='<li class="spec-item"><span class="spec-k">'+escXML(it.k)+'</span>'
-      +'<span class="spec-v">'+escXML(it.v)+(it.note?'<small>'+escXML(it.note)+'</small>':'')+'</span></li>';
-  });
-  return h+'</ul>';
-}
-function todoList(items){
-  if(!items || !items.length) return '<div class="ws-empty">算法已全部接入。</div>';
-  var h='<ul class="todo-list">';
-  items.forEach(function(t){
-    h+='<li class="todo-item"><span class="todo-box"></span><span>'
-      +'<b>'+escXML(t.fn)+'</b>　'+escXML(t.what)
-      +(t.ref?'<small>参考：'+escXML(t.ref)+'</small>':'')+'</span></li>';
-  });
-  return h+'</ul>';
-}
 function preTable(headers, rows){
   var h='<div class="table-wrap"><table class="pre-tbl"><tr>';
   headers.forEach(function(t,i){ h+='<th'+(i?' class="num"':'')+'>'+escXML(t)+'</th>'; });
@@ -1336,25 +1298,6 @@ function preTable(headers, rows){
     h+='</tr>';
   });
   return h+'</table></div>';
-}
-function shellBlock(spec, preHtml){
-  var h="";
-  h+='<div class="shell-flag">'
-    +'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>'
-    +'<div><b>'+escXML(spec.name)+'</b>：UI 与逻辑设计已完成，数值算法正在接入中。'
-    +'下方为设计规格与当前数据的体检结果 —— 规格确认后再填算法，避免返工。</div></div>';
-  h+=resBlock('① 数据体检（当前数据是否适配）', preHtml);
-  h+=resBlock('② 将输出的关键指标', specList(spec.metrics));
-  if(spec.formulas && spec.formulas.length) h+=resBlock('③ 将使用的公式（教材口径）', specList(spec.formulas));
-  if(spec.charts && spec.charts.length) h+=resBlock('④ 将绘制的图表', specList(spec.charts));
-  if(spec.findings && spec.findings.length) h+=resBlock('⑤ 将给出的分层解读', specList(spec.findings));
-  h+=resBlock('⑥ 待接入的算法（'+(spec.todos?spec.todos.length:0)+' 项）', todoList(spec.todos));
-  if(spec.notes && spec.notes.length) h+=resBlock('⑦ 设计约定与前提假设', specList(spec.notes));
-  return h;
-}
-/* 壳子 run 的统一返回：标记 __shell，附带数据体检信息 */
-function shellResult(spec, pre){
-  return { __shell:true, spec:spec, pre:pre };
 }
 /* 通用：按分组列把数值列拆成若干组（成对剔除空值） */
 function groupBy(ds, valIdx, grpIdx){
@@ -1401,24 +1344,25 @@ var ANALYSES = {
       var st=res.st, col=res.col, h="";
       var vals=colValues(ds.rows, parseInt(cfg.col||0,10));
       h+=resBlock('① 数据概况', metricCard("样本量 n", fmtNum(st.n,0)) + metricCard("最小值", fmtNum(st.min,2)) + metricCard("最大值", fmtNum(st.max,2)) + metricCard("极差", fmtNum(st.range,2)) + metricCard("合计", fmtNum(st.sum,1)));
-      h+=resBlock('② 集中趋势',
+      h+=resBlock('② 分布图表',
+        '<div class="chart-box">'+svgHist(vals, {title:col+" 分布直方图", subtitle:"分箱自动计算 · 观察分布形态"})+'</div>' +
+        '<div class="chart-box">'+svgBox(vals, {title:col+" 箱线图", subtitle:"须线 = 最小值/最大值（IQR 界限内）"})+'</div>');
+      h+=resBlock('③ 集中趋势',
         metricCard("均值", fmtNum(st.mean,2), "", "hl") + metricCard("中位数", fmtNum(st.median,2)) + metricCard("众数", fmtNum(st.mode,2)) +
         '<div style="margin-top:8px">'+
         formulaCard("均值", "x̄ = Σxᵢ / n", "Σxᵢ = "+fmtNum(st.sum,2)+"，n = "+st.n, fmtNum(st.mean,2)) +
         formulaCard("中位数", "排序后取中间位置的值", "n="+st.n+"（"+(st.n%2?"奇数→第 "+(st.n+1)/2+" 个":"偶数→第 "+st.n/2+"、"+ (st.n/2+1)+" 个的平均")+"）", fmtNum(st.median,2)) +
         '</div>');
-      h+=resBlock('③ 离散程度',
+      h+=resBlock('④ 离散程度',
         metricCard("方差(无偏)", fmtNum(st.variance,2)) + metricCard("标准差", fmtNum(st.std,2), "", "hl") + metricCard("变异系数", fmtPct(st.cv,2), "%") + metricCard("四分位差 IQR", fmtNum(st.iqr,2)) +
         '<div style="margin-top:8px">'+
         formulaCard("样本方差(教材口径 ddof=1)", "s² = Σ(xᵢ−x̄)² / (n−1)", "n = "+st.n, fmtNum(st.variance,2)) +
         formulaCard("标准差", "s = √s²", "", fmtNum(st.std,2)) +
         formulaCard("变异系数", "CV = s / x̄ × 100%", "s="+fmtNum(st.std,2)+"，x̄="+fmtNum(st.mean,2), fmtPct(st.cv,2)) +
         '</div>');
-      h+=resBlock('④ 分布形态',
-        metricCard("偏度", fmtNum(st.skew,2)) + metricCard("峰度", fmtNum(st.kurt,2)) +
-        '<div class="chart-box">'+svgHist(vals, {title:col+" 分布直方图", subtitle:"分箱自动计算 · 观察分布形态"})+'</div>' +
-        '<div class="chart-box">'+svgBox(vals, {title:col+" 箱线图", subtitle:"须线 = 最小值/最大值（IQR 界限内）"})+'</div>');
-      h+=resBlock('⑤ 分层解读',
+      h+=resBlock('⑤ 分布形态',
+        metricCard("偏度", fmtNum(st.skew,2)) + metricCard("峰度", fmtNum(st.kurt,2)));
+      h+=resBlock('⑥ 分层解读',
         finding("fact","数据规模", "共 "+st.n+" 条记录，"+(st.n<30?"样本较小（n<30），后续推断需谨慎。":"样本量 ≥ 30，符合大样本条件，可作区间估计。"))+
         finding("anl","中心与偏态", "均值 "+fmtNum(st.mean,2)+" 与中位数 "+fmtNum(st.median,2)+" "+(st.mean>st.median? "均值更高，分布呈右偏（长尾在右侧，存在少数较大值拉高均值）。" : st.mean<st.median? "中位数更高，分布呈左偏。" : "基本一致，分布近似对称。")+ " 偏度系数 "+fmtNum(st.skew,2)+" 佐证该判断。")+
         finding("anl","离散程度", "标准差 "+fmtNum(st.std,2)+"，变异系数 "+fmtPct(st.cv,2)+"。CV "+(st.cv<0.15?"< 15%，数据波动小、较稳定。":st.cv<0.35?"介于 15%~35%，波动中等。":"≥ 35%，波动较大，需关注极端值影响。"))+
@@ -2481,152 +2425,6 @@ var ANALYSES = {
 };
 
 /* =====================================================================
- * 11.6 三项待接入能力的设计规格（ANOVA / 卡方 / 非参数）
- *      规格先行：UI 与逻辑定稿后再填算法，避免返工。
- * ===================================================================== */
-var ANOVA_SPEC = {
-  name:"单因素方差分析（ANOVA）",
-  metrics:[
-    {k:"F 统计量", v:"组间方差与组内方差之比", note:"F = MS组间 / MS组内；F 越大越倾向拒绝「各组均值全相等」"},
-    {k:"p 值", v:"F 分布右尾概率", note:"F ~ F(df组间, df组内)；需新增 F 分布尾概率函数"},
-    {k:"自由度 df", v:"df组间 = k − 1，df组内 = N − k", note:"k = 组数，N = 总样本量"},
-    {k:"效应量 η²", v:"SS组间 / SS总", note:"教材口径：0.01 小 / 0.06 中 / 0.14 大"},
-    {k:"效应量 ω²", v:"无偏版效应量", note:"ω² = (SS组间 − (k−1)·MS组内) / (SS总 + MS组内)，比 η² 更保守"},
-    {k:"方差齐性检验", v:"Levene 统计量 W 与 p", note:"p < 0.05 表示方差不齐，需改用 Welch ANOVA 或 Games-Howell 多重比较"},
-    {k:"多重比较矩阵", v:"两两比较的差值、SE、p、显著性标记", note:"C(k,2) 组比较，标注哪些组间差异显著"}
-  ],
-  formulas:[
-    {k:"总平方和", v:"SS总 = ΣΣ(xᵢⱼ − x̄)²", note:"全部观测对总均值的离差平方和"},
-    {k:"组间平方和", v:"SS组间 = Σ nⱼ(x̄ⱼ − x̄)²", note:"各组均值对总均值的离差，按样本量加权"},
-    {k:"组内平方和", v:"SS组内 = ΣΣ(xᵢⱼ − x̄ⱼ)²", note:"等于 SS总 − SS组间，代表随机误差"},
-    {k:"均方与 F", v:"MS = SS / df，F = MS组间 / MS组内", note:"方差分析表三行呈现：组间 / 组内 / 总"},
-    {k:"多重比较 LSD", v:"t = (x̄ᵢ − x̄ⱼ) / √(MS组内(1/nᵢ + 1/nⱼ))", note:"最灵敏，但不校正族系误差率"},
-    {k:"Bonferroni", v:"α′ = α / C(k,2)", note:"把显著性水平按比较次数均分，结论保守"},
-    {k:"Tukey HSD", v:"q = |x̄ᵢ − x̄ⱼ| / √(MS组内 / n)", note:"查学生化极差分布，教材推荐，控制族系误差"}
-  ],
-  charts:[
-    {k:"多组并排箱线图", v:"同一坐标系下展示各组分布（中位数 / 四分位 / 异常值）", note:"复用 svgBox，需统一纵轴刻度"},
-    {k:"组均值对比柱状图", v:"带误差线（±SE 或 ±95% CI）", note:"复用 svgBar，误差线需新增"},
-    {k:"残差诊断图", v:"残差 vs 拟合值，检查方差齐性与正态性", note:"可选，教材进阶内容"}
-  ],
-  findings:[
-    {k:"事实", v:"报告 k、N、各组 n / 均值 / 标准差", note:"纯描述层，不含推断"},
-    {k:"分析", v:"F(df₁, df₂) = ?，p = ?，是否拒绝「各组均值全相等」", note:"p < α 仅说明「不全相等」，不说明哪两组不同"},
-    {k:"分析", v:"效应量 η² / ω² 解读实际意义大小", note:"避免只报显著性、不报效应量"},
-    {k:"警示", v:"前提假设：独立性、正态性、方差齐性", note:"方差不齐时改用 Welch ANOVA"},
-    {k:"建议", v:"整体显著后必须做多重比较定位差异来源", note:"三种方法选一，教材推荐 Tukey HSD"}
-  ],
-  todos:[
-    {fn:"fDistP(f, df1, df2)", what:"F 分布右尾概率，用正则化不完全 Beta：I_{df2/(df2+df1·f)}(df2/2, df1/2)", ref:"可复用已有 betaInc 与 lGamma"},
-    {fn:"anovaOneWay(groups)", what:"计算 SS总 / SS组间 / SS组内、df、MS、F、p、η²、ω²", ref:"教材单因素方差分析表"},
-    {fn:"leveneTest(groups)", what:"方差齐性检验（对 |x − 组中位数| 再做一次 ANOVA）", ref:"SPSS 默认齐性检验"},
-    {fn:"posthocLSD / Bonferroni / TukeyHSD", what:"三种多重比较，输出两两比较矩阵（差值 / SE / p / 显著性标记）", ref:"Tukey 需学生化极差分布 q 的临界值"},
-    {fn:"welchAnova(groups)", what:"方差不齐时的备选整体检验", ref:"可选，教材进阶"},
-    {fn:"svgBoxMulti(groups)", what:"多组并排箱线图", ref:"复用 svgBox，统一纵轴"}
-  ],
-  notes:[
-    {k:"教材口径", v:"方差分析表按「组间 / 组内 / 总」三行呈现；平方和分解需自洽校验（SS总 = SS组间 + SS组内）", note:"与统计指数的体系自洽校验同思路，写入 QA 断言"},
-    {k:"组数要求", v:"k ≥ 2 即可计算，但 k = 2 时 F = t²，教材建议直接用 t 检验", note:"壳子已按组数给出提示"},
-    {k:"缺失处理", v:"成对剔除（某行因变量或分组为空则整行跳过）", note:"与 ttest 现有逻辑一致"},
-    {k:"LLM 不心算", v:"全部统计量由 JS 确定性计算，并与 Python 引擎 engine/ 口径对齐", note:"铁律，与既有 9 项能力一致"}
-  ]
-};
-
-var CHI2_SPEC = {
-  name:"卡方检验（列联表分析）",
-  metrics:[
-    {k:"χ² 统计量", v:"Σ(O − E)² / E", note:"O = 实际频数，E = 期望频数；χ² 越大越倾向拒绝独立性"},
-    {k:"自由度 df", v:"(r − 1)(c − 1)", note:"r = 行数，c = 列数；拟合优度时为 k − 1"},
-    {k:"p 值", v:"卡方分布右尾概率", note:"需新增卡方分布尾概率函数（可用不完全 Gamma）"},
-    {k:"期望频数表", v:"逐格 E = 行合计 × 列合计 / N", note:"与观测频数表并排展示"},
-    {k:"最小期望频数", v:"min(E) 及 E < 5 的格子占比", note:"用于判断卡方近似是否可靠"},
-    {k:"效应量 Cramér's V", v:"√(χ² / (N · min(r−1, c−1)))", note:"2×2 表时退化为 φ 系数"},
-    {k:"标准化残差", v:"(O − E) / √E", note:"定位哪些格子贡献了差异"}
-  ],
-  formulas:[
-    {k:"期望频数", v:"Eᵢⱼ = (第 i 行合计 × 第 j 列合计) / N", note:"独立性假设下的理论频数"},
-    {k:"卡方统计量", v:"χ² = ΣΣ (Oᵢⱼ − Eᵢⱼ)² / Eᵢⱼ", note:"对所有格子求和"},
-    {k:"Yates 连续性校正", v:"χ² = ΣΣ (|O − E| − 0.5)² / E", note:"仅用于 2×2 表，使结论更保守"},
-    {k:"Cramér's V", v:"V = √(χ² / (N · min(r−1, c−1)))", note:"0.1 小 / 0.3 中 / 0.5 大"},
-    {k:"拟合优度", v:"χ² = Σ (Oᵢ − Eᵢ)² / Eᵢ，df = k − 1", note:"Eᵢ 由理论比例折算"}
-  ],
-  charts:[
-    {k:"列联表频数热力图", v:"用色阶表示频数强度，直观看出集中区域", note:"需新增 svgHeatmap"},
-    {k:"实际 vs 期望对比柱状图", v:"分组柱状图，O 与 E 并排", note:"复用 svgGroupedBar"},
-    {k:"标准化残差图", v:"正负残差柱状图，标出 |残差| > 2 的格子", note:"复用 svgBar，需正负色区分"}
-  ],
-  findings:[
-    {k:"事实", v:"报告列联表规模（r × c）、总样本 N、最小期望频数", note:"纯描述层"},
-    {k:"分析", v:"χ²(df) = ?，p = ?，两变量是否独立", note:"p < α 说明相关，但不说明因果方向"},
-    {k:"分析", v:"效应量 Cramér's V 解读关联强度", note:"大样本下显著性易达标，效应量更关键"},
-    {k:"警示", v:"期望频数 < 5 的格子超过 20% 时，卡方近似不可靠", note:"需合并类别或改用 Fisher 精确检验"},
-    {k:"建议", v:"显著时用标准化残差定位具体哪些格子偏离", note:"只报「有关联」不够，要指出关联模式"}
-  ],
-  todos:[
-    {fn:"chi2P(x, df)", what:"卡方分布右尾概率，用不完全 Gamma 函数 P(df/2, x/2)", ref:"需新增 gammainc / lGamma 已具备"},
-    {fn:"contingencyTable(ds, rIdx, cIdx)", what:"生成观测频数表、行/列合计、总样本量", ref:"壳子已实现计数部分，可直接复用"},
-    {fn:"chi2Independence(obs)", what:"计算期望频数、χ²、df、p、Cramér's V、标准化残差", ref:"教材列联表分析"},
-    {fn:"chi2GoodnessOfFit(obs, ratios)", what:"拟合优度检验，支持等比例与自定义比例", ref:"教材拟合优度"},
-    {fn:"fisherExact(a,b,c,d)", what:"2×2 表样本量不足时的精确检验", ref:"可选进阶，用超几何分布"},
-    {fn:"svgHeatmap(matrix)", what:"列联表频数热力图", ref:"需新增"}
-  ],
-  notes:[
-    {k:"教材口径", v:"列联表按「观测频数 O / 期望频数 E」对照呈现；卡方分解需自洽校验（ΣO = ΣE = N）", note:"写入 QA 断言"},
-    {k:"适用条件", v:"期望频数 ≥5 的格子不少于 80%，且没有 E < 1 的格子", note:"不满足时提示合并类别或改用 Fisher"},
-    {k:"Yates 校正", v:"仅 2×2 表启用；是否启用在参数里可选（自动 / 始终 / 从不）", note:"保守做法默认 2×2 自动启用"},
-    {k:"数据类型", v:"要求分类（定性）列；数值列若取值极少（如 1/2/3 编码）需由用户手动指定为分类", note:"detect 目前只认文本列"}
-  ]
-};
-
-var NONPARAM_SPEC = {
-  name:"非参数检验（分布自由）",
-  metrics:[
-    {k:"检验统计量", v:"U（Mann-Whitney）/ H（Kruskal-Wallis）/ W（Wilcoxon）/ χ²_F（Friedman）", note:"按所选检验类型输出对应统计量"},
-    {k:"z 值（正态近似）", v:"标准化后的统计量", note:"大样本时用于近似 p 值"},
-    {k:"p 值", v:"精确法或正态近似，取决于样本量与参数选择", note:"小样本走精确分布，大样本走正态近似"},
-    {k:"秩和", v:"各组秩和 Rⱼ 与平均秩", note:"非参数检验的核心中间量，应展示"},
-    {k:"效应量", v:"秩双列相关 r / ε² / Kendall's W", note:"Mann-Whitney 用 r = z/√N；Kruskal-Wallis 与 Friedman 用 ε²"},
-    {k:"中位数差", v:"各组中位数（非参数报告中位数而非均值）", note:"与均值并列展示，便于对比参数检验结论"}
-  ],
-  formulas:[
-    {k:"秩次转换", v:"混合全部观测升序排序赋秩，并列取平均秩", note:"所有非参数检验的共同第一步"},
-    {k:"Mann-Whitney U", v:"U₁ = n₁n₂ + n₁(n₁+1)/2 − R₁，U = min(U₁, U₂)", note:"检验两独立样本分布位置是否相同"},
-    {k:"Kruskal-Wallis H", v:"H = 12/(N(N+1)) · Σ(Rⱼ²/nⱼ) − 3(N+1)", note:"多独立样本，df = k − 1，H ~ χ²(k−1)"},
-    {k:"Wilcoxon 符号秩", v:"W = min(W⁺, W⁻)，对 |差值| 赋秩后按符号分组求和", note:"零差值剔除，n 相应减少"},
-    {k:"Friedman", v:"χ²_F = 12/(n·k(k+1)) · ΣRⱼ² − 3n(k+1)", note:"按行内排序赋秩，df = k − 1"},
-    {k:"正态近似", v:"z = (U − n₁n₂/2) / √(n₁n₂(n₁+n₂+1)/12)", note:"Mann-Whitney 大样本近似，含并列秩校正"}
-  ],
-  charts:[
-    {k:"多组箱线图", v:"与 ANOVA 共用，展示各组分布与中位数", note:"复用 svgBox / svgBoxMulti"},
-    {k:"秩次分布图", v:"各组秩次的分布对比", note:"体现非参数检验「只看次序不看数值」的特点"},
-    {k:"配对差值图", v:"Wilcoxon / Friedman 用，展示差值方向与幅度", note:"复用 svgScatterPaired 或 svgHist"}
-  ],
-  findings:[
-    {k:"事实", v:"报告各组样本量、中位数、秩和、平均秩", note:"描述层，含秩次中间量"},
-    {k:"分析", v:"统计量 = ?，p = ?，是否拒绝「分布位置相同」", note:"非参数检验比较的是分布位置，非均值"},
-    {k:"分析", v:"效应量解读实际意义", note:"与参数检验一样要报效应量"},
-    {k:"警示", v:"前提：观测独立、变量至少为顺序尺度、分布形状相似", note:"分布形状差异大时结论解读要谨慎"},
-    {k:"建议", v:"与对应的参数检验结论对照；结论不一致时优先报告非参数结果", note:"数据不正态时非参数更可信"}
-  ],
-  todos:[
-    {fn:"rankAll(values)", what:"混合排序赋秩，处理并列（取平均秩）", ref:"所有非参数检验的基础"},
-    {fn:"mannWhitneyU(a, b)", what:"计算 U、z、p（精确或正态近似）、秩双列相关 r", ref:"替代独立样本 t 检验"},
-    {fn:"kruskalWallisH(groups)", what:"计算 H、df、p、ε²", ref:"替代单因素 ANOVA"},
-    {fn:"wilcoxonSignedRank(a, b)", what:"计算 W、z、p，处理零差值与并列秩", ref:"替代配对 t 检验"},
-    {fn:"friedmanTest(matrix)", what:"按行赋秩，计算 χ²_F、df、p、Kendall's W", ref:"替代重复测量 ANOVA"},
-    {fn:"精确分布尾概率", what:"小样本时 U / W 的精确分布（递推或查表）", ref:"可先用正态近似兜底，精确法后续补"}
-  ],
-  notes:[
-    {k:"教材口径", v:"非参数检验报告「中位数 + 秩和 + 统计量 + p + 效应量」，不报告均值差", note:"与 t 检验的报告范式区分开"},
-    {k:"并列秩处理", v:"并列观测取平均秩；并列较多时对统计量做校正", note:"影响方差计算，必须实现"},
-    {k:"精确 vs 近似", v:"n 较小用精确分布，n 较大（各组 ≥10~20）用正态近似", note:"参数里可选自动 / 强制精确 / 强制近似"},
-    {k:"LLM 不心算", v:"秩次与统计量全部由 JS 确定性计算，与 Python 引擎 engine/ 对齐", note:"铁律"}
-  ]
-};
-
-
-
-/* =====================================================================
  * 12. 示例库（十个课堂实训，CSV 原文内嵌；task02 为外部采集工具占位）
  * ===================================================================== */
 
@@ -3179,7 +2977,8 @@ function runAnalysis(){
   var html=a.render(state.ds, cfg, res);
   state.lastHtml=html;
   $("result").classList.remove("ws-empty");
-  $("result").innerHTML=reportHead(a.name, extractSummary(html))+html;
+  var meta=state.srcName+" · "+state.ds.rows.length+" 行 × "+state.ds.headers.length+" 列";
+  $("result").innerHTML=reportHead(a.name, extractSummary(html), meta)+html;
   $("result").classList.toggle("no-metric", !$("optMetric").checked);
   $("result").classList.toggle("no-chart", !$("optChart").checked);
   $("result").classList.toggle("no-formula", !$("optFormula").checked);
@@ -3316,18 +3115,21 @@ function exportReport(){
   var title=(a?a.name:"分析结果")+" · "+state.srcName;
   var stamp=new Date().toLocaleString("zh-CN", {hour12:false});
   var tmp=document.createElement("div"); tmp.innerHTML=state.lastHtml;
+  var summary=extractSummary(state.lastHtml);
   var overview='<div class="rpt-ov"><div class="rb-title">一、概述</div>'
     +'<p class="rpt-ov-line"><b>数据来源：</b>'+escT(state.srcName)+'（'+escT(state.src)+'）</p>'
     +'<p class="rpt-ov-line"><b>数据规模：</b>'+state.ds.rows.length+' 行 × '+state.ds.headers.length+' 列</p>'
     +'<p class="rpt-ov-line"><b>分析方法：</b>'+escT(a?a.name:"分析")+(a&&a.fit?'，'+escT(a.fit):'')+'</p>'
     +'</div>';
+  var analysisTitle='<div style="font-size:15.5px;font-weight:800;color:#14517A;margin:6px 0 14px">二、分析结果</div>';
+  var conclusion=summary? '<div class="rpt-ov" style="margin-top:18px"><div class="rb-title">三、结论</div><p class="rpt-ov-line">'+escT(summary)+'</p></div>' : '';
   var html="<!DOCTYPE html><html lang=\"zh-CN\"><head><meta charset=\"UTF-8\">"
     +"<meta name=\"viewport\" content=\"width=device-width, initial-scale=1\">"
     +"<title>"+escT(title)+"</title><style>"+REPORT_CSS+"</style></head><body>"
     +"<div class=\"rpt-head\"><span class=\"rpt-tag\">AI DATA ANALYSIS · 数据分析报告</span>"
     +"<h1>"+escT(title)+"</h1>"
     +"<div class=\"rpt-meta\">数据来源："+escT(state.src)+" · "+state.ds.rows.length+" 行 × "+state.ds.headers.length+" 列<br>生成时间："+escT(stamp)+"</div></div>"
-    +"<div class=\"rpt-body\">"+overview+tmp.innerHTML+"</div>"
+    +"<div class=\"rpt-body\">"+overview+analysisTitle+tmp.innerHTML+conclusion+"</div>"
     +"<div class=\"rpt-foot\">本报告由数据分析工作台（确定性引擎）生成 · 数据仅在本机浏览器内处理</div>"
     +"</body></html>";
   var blob=new Blob([html], {type:"text/html;charset=utf-8"});
@@ -3423,6 +3225,18 @@ function init(){
   $("btnRun").addEventListener("click", runAnalysis);
   $("btnExport").addEventListener("click", exportReport);
   $("btnCSV").addEventListener("click", exportCSV);
+  // 输出选项持久化：记住勾选，刷新不丢
+  var outIds=["optMetric","optChart","optFormula","optFinding"];
+  function saveOutOpts(){
+    var o={};
+    outIds.forEach(function(id){ o[id]=$(id).checked; });
+    try{ localStorage.setItem("wb_out_opts", JSON.stringify(o)); }catch(e){}
+  }
+  outIds.forEach(function(id){ $(id).addEventListener("change", saveOutOpts); });
+  try{
+    var saved=JSON.parse(localStorage.getItem("wb_out_opts")||"null");
+    if(saved){ outIds.forEach(function(id){ if(typeof saved[id]==="boolean") $(id).checked=saved[id]; }); }
+  }catch(e){}
   // 初始空态
   renderLeft(); renderAnalysis();
 }
