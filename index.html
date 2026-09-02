@@ -140,6 +140,15 @@ button{font-family:inherit;cursor:pointer}
 .pre-ok{color:#1E8E5A;font-weight:700}
 .pre-bad{color:#C0392B;font-weight:700}
 @media (max-width:768px){
+  html,body{height:auto}
+  .topbar{height:auto;min-height:56px;padding:8px 12px;gap:8px;flex-wrap:wrap}
+  .top-actions{margin-left:auto}
+  .tb-btn{padding:7px 9px}
+  .workbench{display:block;height:auto;min-height:calc(100vh - 56px)}
+  .col{overflow:visible;padding:14px 12px;border-right:none;border-bottom:1px solid var(--line)}
+  .col:last-child{border-bottom:none}
+  .cfg-row label{min-width:0;flex-basis:100%}
+  .cfg-row select,.cfg-row input[type=number],.cfg-row input[type=text]{width:100%;min-width:0}
   .spec-item{flex-direction:column;gap:2px}
   .spec-k{flex:0 0 auto}
 }
@@ -255,7 +264,7 @@ button{font-family:inherit;cursor:pointer}
 
   <!-- 右栏：结果 -->
   <section class="col">
-    <div class="col-h"><span class="l">结果</span><button class="tb-btn" id="btnExport" style="padding:5px 12px;min-height:30px;font-size:12px">导出报告</button></div>
+    <div class="col-h"><span class="l">结果</span><span style="display:flex;gap:6px"><button class="tb-btn" id="btnCSV" style="padding:5px 10px;min-height:30px;font-size:12px">导出 CSV</button><button class="tb-btn" id="btnExport" style="padding:5px 12px;min-height:30px;font-size:12px">导出报告</button></span></div>
     <div class="ws-empty" id="result">运行分析后，结果（指标 · 公式 · 图表 · 解读）将在此展示。</div>
   </section>
 </main>
@@ -278,6 +287,7 @@ function fmtSigned(v, d){ var s=fmtNum(v,d); return (v>0?"+":"")+s; }
 function round(v, d){ var p=Math.pow(10,d===undefined?2:d); return Math.round(v*p)/p; }
 function sum(a){ return a.reduce(function(s,v){return s+v;},0); }
 function mean(a){ return a.length? sum(a)/a.length : NaN; }
+function isLikelyTotalColumn(name){ return /^(总|合计|总计)|(?:总数|合计|总计|total|sum)$/i.test(String(name||"").trim()); }
 
 /* =====================================================================
  * 1. CSV 解析（支持引号包裹、逗号、BOM；UTF-8）
@@ -615,6 +625,237 @@ function normInv(p){
 }
 
 /* =====================================================================
+ * 6.5 追加分布函数：F 右尾 / 卡方右尾（不完全 Gamma 正则化）
+ * ===================================================================== */
+function gammaincP(a, x){
+  // 正则化下不完全 gamma P(a,x)=γ(a,x)/Γ(a) —— 级数展开（x ≤ a+1 时用）
+  if(x<=0||a<=0) return 0;
+  var ap=a, sum=1/a, del=sum;
+  for(var i=0;i<300;i++){ ap+=1; del*=x/ap; sum+=del; if(Math.abs(del)<Math.abs(sum)*1e-13) break; }
+  return sum*Math.exp(-x+a*Math.log(x)-lGamma(a));
+}
+function gammaincQ(a, x){
+  // 正则化上不完全 gamma Q(a,x)=Γ(a,x)/Γ(a) —— 连分式（x > a+1 时用）
+  var b=x+1-a, c=1e300, d=1/b, h=d;
+  for(var i=1;i<=300;i++){
+    var an=-i*(i-a); b+=2;
+    d=an*d+b; if(Math.abs(d)<1e-300) d=1e-300;
+    c=b+an/c; if(Math.abs(c)<1e-300) c=1e-300;
+    d=1/d; var del=d*c; h*=del;
+    if(Math.abs(del-1)<1e-13) break;
+  }
+  return Math.exp(-x+a*Math.log(x)-lGamma(a))*h;
+}
+function gammaincReg(a, x){ return (x > a+1) ? 1-gammaincQ(a, x) : gammaincP(a, x); }
+function chi2P(x, df){
+  // 卡方分布右尾概率 = 1 − P(df/2, x/2)
+  if(x<=0) return 1;
+  if(df<=0) return NaN;
+  return 1-gammaincReg(df/2, x/2);
+}
+function fDistP(f, df1, df2){
+  // F 分布右尾概率 = I_{df2/(df2+df1·f)}(df2/2, df1/2)
+  if(f<=0) return 1;
+  if(!isFinite(f)) return 0;
+  var x=df2/(df2+df1*f);
+  return betaInc(df2/2, df1/2, x);
+}
+
+/* =====================================================================
+ * 6.6 非参数检验（秩次方法）：并列取平均秩 + 四个检验
+ * ===================================================================== */
+function rankAll(values){
+  // 升序赋秩，并列取平均秩；返回与 values 等长的秩数组
+  var idx=values.map(function(_,i){return i;});
+  idx.sort(function(a,b){ return values[a]-values[b]; });
+  var ranks=new Array(values.length);
+  for(var i=0;i<values.length;){
+    var j=i;
+    while(j+1<values.length && values[idx[j+1]]===values[idx[i]]) j++;
+    var avg=(i+1+j+1)/2;
+    for(var k=i;k<=j;k++) ranks[idx[k]]=avg;
+    i=j+1;
+  }
+  return ranks;
+}
+function tieCorrection(values){
+  // 并列秩校正项 Σ(t³−t)
+  var cnt={}, tie=0;
+  values.forEach(function(v){ cnt[v]=(cnt[v]||0)+1; });
+  Object.keys(cnt).forEach(function(k){ var t=cnt[k]; if(t>1) tie+=t*t*t-t; });
+  return tie;
+}
+function mannWhitneyU(a, b, opts){
+  // 两独立样本 Mann-Whitney U，正态近似 p（含并列秩与连续性校正）
+  opts=opts||{};
+  var all=a.concat(b), R=rankAll(all);
+  var Ra=0; for(var i=0;i<a.length;i++) Ra+=R[i];
+  var n1=a.length, n2=b.length, N=n1+n2;
+  var U1=n1*n2+n1*(n1+1)/2-Ra, U2=n1*n2-U1, U=Math.min(U1,U2);
+  var tie=tieCorrection(all);
+  var mu=n1*n2/2;
+  var sigma=Math.sqrt(n1*n2*(N+1)/12*(1 - tie/(N*N*N-N)));
+  if(sigma===0) sigma=1e-12;
+  var raw=U1-mu, absRaw=Math.max(0, Math.abs(raw)-(opts.continuity===false?0:0.5));
+  var z=(raw<0?-absRaw:absRaw)/sigma;
+  var alt=opts.alternative||"two";
+  var p=alt==="g1" ? normCdf(z) : (alt==="g2" ? 1-normCdf(z) : 2*(1-normCdf(Math.abs(z))));
+  var r=z/Math.sqrt(N);
+  return {U:U, U1:U1, U2:U2, n1:n1, n2:n2, Ra:Ra, z:z, p:p, r:r, alternative:alt};
+}
+function kruskalWallisH(groups){
+  // groups: [{name, values:[]}]；H ~ χ²(k−1)，含并列秩校正；ε² = H/(N−1)
+  var all=[]; groups.forEach(function(g){ all=all.concat(g.values); });
+  var R=rankAll(all), k=groups.length, N=all.length;
+  var H=0, off=0, rankSums=[];
+  groups.forEach(function(g){
+    var s=0; for(var i=0;i<g.values.length;i++) s+=R[off+i];
+    off+=g.values.length; rankSums.push(s);
+    H+=s*s/g.values.length;
+  });
+  H=12/(N*(N+1))*H - 3*(N+1);
+  var tie=tieCorrection(all);
+  if(tie>0) H=H/(1 - tie/(N*N*N-N));
+  var df=k-1, p=chi2P(H, df), eps2=H/(N-1);
+  return {H:H, df:df, p:p, k:k, N:N, eps2:eps2, rankSums:rankSums};
+}
+function wilcoxonSignedRank(a, b, opts){
+  // 配对样本，零差值剔除，|d| 赋秩，W=min(W⁺,W⁻)，正态近似 p
+  opts=opts||{};
+  var diff=[], signs=[];
+  for(var i=0;i<Math.min(a.length,b.length);i++){
+    var d=a[i]-b[i];
+    if(d!==0){ diff.push(Math.abs(d)); signs.push(d>0?1:-1); }
+  }
+  var n=diff.length;
+  if(n<1) throw new Error("所有有效配对的差值均为 0，Wilcoxon 符号秩检验不适用");
+  var R=rankAll(diff);
+  var Wp=0, Wn=0;
+  for(var j=0;j<n;j++){ if(signs[j]>0) Wp+=R[j]; else Wn+=R[j]; }
+  var W=Math.min(Wp, Wn);
+  var tie=tieCorrection(diff);
+  var mu=n*(n+1)/4;
+  var sigma=Math.sqrt(n*(n+1)*(2*n+1)/24 - tie/48);
+  if(sigma===0) sigma=1e-12;
+  var raw=Wp-mu, absRaw=Math.max(0, Math.abs(raw)-(opts.continuity===false?0:0.5));
+  var z=(raw<0?-absRaw:absRaw)/sigma;
+  var alt=opts.alternative||"two";
+  var p=alt==="g1" ? 1-normCdf(z) : (alt==="g2" ? normCdf(z) : 2*(1-normCdf(Math.abs(z))));
+  return {W:W, Wp:Wp, Wn:Wn, n:n, z:z, p:p, alternative:alt};
+}
+function friedmanTest(matrix){
+  // matrix: n 行 × k 列；行内赋秩，χ²_F ~ χ²(k−1)；Kendall's W
+  var n=matrix.length, k=matrix[0].length;
+  var colRankSum=new Array(k).fill(0);
+  for(var i=0;i<n;i++){
+    var R=rankAll(matrix[i]);
+    for(var j=0;j<k;j++) colRankSum[j]+=R[j];
+  }
+  var chi2=0;
+  for(var j=0;j<k;j++) chi2+=colRankSum[j]*colRankSum[j];
+  chi2=12/(n*k*(k+1))*chi2 - 3*n*(k+1);
+  var df=k-1, p=chi2P(chi2, df), W=chi2/(n*(k-1));
+  return {chi2:chi2, df:df, p:p, k:k, n:n, colRankSum:colRankSum, W:W};
+}
+
+/* =====================================================================
+ * 6.7 方差分析（ANOVA）+ 卡方检验算法
+ * ===================================================================== */
+function anovaOneWay(groups){
+  // groups: [{name, values:[]}]；返回方差分析表 + 效应量
+  var k=groups.length, N=0, all=[];
+  groups.forEach(function(g){ N+=g.values.length; all=all.concat(g.values); });
+  if(k<2) throw new Error("方差分析至少需要 2 个有效组");
+  var dfb=k-1, dfw=N-k;
+  if(dfw<=0) throw new Error("组内自由度不足：每组只有 1 个观测时无法估计组内方差，请补充组内样本");
+  var grand=mean(all), SSb=0, SSw=0;
+  groups.forEach(function(g){
+    var m=mean(g.values);
+    SSb += g.values.length*(m-grand)*(m-grand);
+    g.values.forEach(function(v){ SSw += (v-m)*(v-m); });
+  });
+  var SSt=SSb+SSw;
+  var MSb=SSb/dfb, MSw=SSw/dfw;
+  var F=MSw===0 ? (MSb===0 ? 0 : Infinity) : MSb/MSw;
+  var p=F===Infinity ? 0 : fDistP(F, dfb, dfw);
+  var eta2=SSt===0 ? 0 : SSb/SSt;
+  var omegaDen=SSt+MSw, omega2=omegaDen===0 ? 0 : (SSb-(k-1)*MSw)/omegaDen;
+  return {SSb:SSb,SSw:SSw,SSt:SSt,dfb:dfb,dfw:dfw,MSb:MSb,MSw:MSw,F:F,p:p,eta2:eta2,omega2:omega2,grand:grand,k:k,N:N};
+}
+function leveneTest(groups){
+  var trans=groups.map(function(g){
+    var md=describe(g.values).median;
+    return {name:g.name, values:g.values.map(function(v){ return Math.abs(v-md); })};
+  });
+  var a=anovaOneWay(trans);
+  return {W:a.F, df1:a.dfb, df2:a.dfw, p:a.p};
+}
+function posthocTest(groups, MSw, dfw, method, alpha){
+  var k=groups.length, comps=[], i, j;
+  var ncmp=k*(k-1)/2;
+  for(i=0;i<k;i++){
+    for(j=i+1;j<k;j++){
+      var gi=groups[i], gj=groups[j];
+      var diff=mean(gi.values)-mean(gj.values);
+      var se=Math.sqrt(MSw*(1/gi.values.length + 1/gj.values.length));
+      var t=Math.abs(diff)/se, pRaw=tDist2tail(t, dfw);
+      var p = (method==="lsd") ? pRaw : Math.min(1, pRaw*ncmp);
+      comps.push({g1:gi.name, g2:gj.name, diff:diff, se:se, t:t, p:p, sig:p<alpha});
+    }
+  }
+  return comps;
+}
+function chi2Independence(obs, rKeys, cKeys){
+  var rk, ck, rowSum={}, colSum={}, N=0;
+  rKeys.forEach(function(x){ rowSum[x]=0; cKeys.forEach(function(y){ rowSum[x]+=obs[x][y]||0; }); });
+  cKeys.forEach(function(y){ colSum[y]=0; rKeys.forEach(function(x){ colSum[y]+=obs[x][y]||0; }); });
+  rKeys.forEach(function(x){ N+=rowSum[x]; });
+  var exp={}, chi2=0, minE=Infinity, lowE=0, cells=0;
+  rKeys.forEach(function(x){
+    exp[x]={};
+    cKeys.forEach(function(y){
+      var e=rowSum[x]*colSum[y]/N, o=obs[x][y]||0;
+      exp[x][y]=e; cells++;
+      if(e<minE) minE=e; if(e<5) lowE++;
+      chi2 += (o-e)*(o-e)/e;
+    });
+  });
+  var df=(rKeys.length-1)*(cKeys.length-1);
+  var p=chi2P(chi2, df);
+  var V=Math.sqrt(chi2/(N*Math.min(rKeys.length-1, cKeys.length-1)));
+  var resid={};
+  rKeys.forEach(function(x){
+    resid[x]={};
+    cKeys.forEach(function(y){
+      var e=exp[x][y], o=obs[x][y]||0;
+      resid[x][y]=(o-e)/Math.sqrt(e);
+    });
+  });
+  return {rowSum:rowSum, colSum:colSum, N:N, exp:exp, chi2:chi2, df:df, p:p, V:V, resid:resid, minE:minE, lowE:lowE, cells:cells};
+}
+function chi2GoodnessOfFit(cnt, keys, ratios){
+  var N=0; keys.forEach(function(k){ N+=cnt[k]; });
+  var k=keys.length, ratioArr;
+  if(!ratios || String(ratios)==="等比例"){
+    ratioArr=keys.map(function(){ return 1/k; });
+  } else {
+    var parts=String(ratios).trim().split(/[:：,，\s]+/).map(function(s){ return parseFloat(s); });
+    var s=parts.reduce(function(a,b){return a+b;},0);
+    if(parts.length!==k || parts.some(function(v){ return !isFinite(v)||v<0; }) || s<=0){
+      throw new Error("理论比例需填写 "+k+" 个非负数字（如 1:2:1），或选择「等比例」");
+    }
+    ratioArr=parts.map(function(p){ return p/s; });
+  }
+  var chi2=0, exp={};
+  keys.forEach(function(kk, i){
+    var e=N*ratioArr[i], o=cnt[kk];
+    exp[kk]=e; chi2 += (o-e)*(o-e)/e;
+  });
+  var df=k-1, p=chi2P(chi2, df);
+  return {chi2:chi2, df:df, p:p, exp:exp, ratios:ratioArr};
+}
+
+/* =====================================================================
  * 7. 数据清洗诊断（缺失 / 文本数字 / 异常 IQR / 重复行 / 类型问题）
  * ===================================================================== */
 function cleanDiagnose(ds){
@@ -768,6 +1009,9 @@ function svgPie(labels, values, opts){
   opts=opts||{};
   var w=760, h=420, cx=250, cy=210, r=150, total=sum(values);
   var cols=[C.brand, C.accent, C.teal, C.purple, "#C05621", "#3182CE", "#B7791F", "#38A169"];
+  if(!isFinite(total) || total<=0 || values.some(function(v){ return !isFinite(v)||v<0; })){
+    return svgWrap('<text x="'+(w/2)+'" y="'+(h/2)+'" text-anchor="middle" font-size="15" fill="'+C.gray+'">没有可用于占比的非负数值</text>', w, h, opts);
+  }
   var g="", acc=0, i;
   values.forEach(function(v,i){
     var ang=v/total*360, start=acc, end=acc+ang;
@@ -788,7 +1032,7 @@ function svgPie(labels, values, opts){
   // 图例（右侧）
   var lx=470, ly=70;
   cols.slice(0,labels.length).forEach(function(col,i){
-    var pct=values[i]/total*100;
+    var pct=values[i]/total;
     g+='<rect x="'+lx+'" y="'+(ly+i*26)+'" width="13" height="13" rx="3" fill="'+col+'"/>';
     g+='<text x="'+(lx+20)+'" y="'+(ly+i*26+11)+'" font-size="12.5" fill="'+C.text+'">'+escXML(String(labels[i]))+'</text>';
     g+='<text x="'+(lx+20)+'" y="'+(ly+i*26+24)+'" font-size="10.5" fill="'+C.gray+'">'+fmtNum(values[i],0)+' · '+fmtPct(pct,1)+'</text>';
@@ -1214,21 +1458,26 @@ var ANALYSES = {
       var c=colOptions(ds);
       var catIdx=-1, i;
       for(i=0;i<c.length;i++) if(!c[i].num){ catIdx=c[i].idx; break; }
-      var numIdx=c.filter(function(o){return o.num;}).map(function(o){return o.idx;});
+      var allNumIdx=c.filter(function(o){return o.num;}).map(function(o){return o.idx;});
+      var numIdx=allNumIdx.filter(function(idx){ return !isLikelyTotalColumn(ds.headers[idx]); });
+      if(numIdx.length<2) numIdx=allNumIdx.slice();
       if(numIdx.length>6) numIdx=numIdx.slice(0,6);
       return '<div class="cfg-row"><label>类别/标签列</label>'+selHtml(c, catIdx>=0?catIdx:c[0].idx, "cfg_cat")+'</div>'
         +'<div class="cfg-row"><label>数值列（可多选）</label>'+multiSelHtml(c, numIdx, "cfg_nums", 6)+'</div>'
-        +'<div class="hint">按住 Ctrl 多选数值列；最多 6 列。类别列用于 X 轴标签。</div>';
+        +'<div class="hint">按住 Ctrl 多选数值列；最多 6 列。名称含「总」「合计」的列默认不选，避免与分项重复计算。</div>';
     },
     run:function(ds, cfg){
       var catIdx=parseInt(cfg.cat||0,10);
       var numIdx=[].concat(cfg.nums||[]).map(function(x){return parseInt(x,10);});
-      if(!numIdx.length) numIdx=colOptions(ds).filter(function(o){return o.num;}).slice(0,2).map(function(o){return o.idx;});
+      if(!numIdx.length){
+        numIdx=colOptions(ds).filter(function(o){return o.num&&!isLikelyTotalColumn(ds.headers[o.idx]);}).slice(0,2).map(function(o){return o.idx;});
+        if(!numIdx.length) numIdx=colOptions(ds).filter(function(o){return o.num;}).slice(0,2).map(function(o){return o.idx;});
+      }
       var labels=ds.rows.map(function(r){return r[catIdx];});
       var series=numIdx.map(function(k){ return {name:ds.headers[k], values:ds.rows.map(function(r){ var v=parseNum(r[k]); return v===null||isNaN(v)?0:v; })}; });
       // 环比：第一数值列
       var first=series[0].values, mom=[];
-      for(var i=1;i<first.length;i++) mom.push(first[i]/first[i-1]-1);
+      for(var i=1;i<first.length;i++) mom.push(first[i-1]===0 ? null : first[i]/first[i-1]-1);
       return {catCol:ds.headers[catIdx], labels:labels, series:series, mom:mom};
     },
     render:function(ds, cfg, res){
@@ -1244,17 +1493,18 @@ var ANALYSES = {
         '<div class="chart-box">'+svgPie(res.series.map(function(s){return s.name;}), totalBy, {title:"各序列合计占比"})+'</div>');
       // 环比表
       var rowsHtml='<tr><th>'+escXML(cat)+'</th><th>'+escXML(res.series[0].name)+'</th><th>较上期</th><th>增速</th></tr>';
-      for(var i=1;i<res.mom.length;i++){
-        rowsHtml+='<tr><td>'+escXML(res.labels[i])+'</td><td>'+fmtNum(res.series[0].values[i],1)+'</td><td>'+fmtSigned(res.series[0].values[i]-res.series[0].values[i-1],1)+'</td><td><b style="color:'+(res.mom[i]>=0?C.ok:C.bad)+'">'+fmtSigned(res.mom[i]*100,1)+'%</b></td></tr>';
+      for(var i=1;i<res.series[0].values.length;i++){
+        var mom=res.mom[i-1], momText=mom===null ? '上期为 0，无法计算' : fmtSigned(mom*100,1)+'%';
+        rowsHtml+='<tr><td>'+escXML(res.labels[i])+'</td><td>'+fmtNum(res.series[0].values[i],1)+'</td><td>'+fmtSigned(res.series[0].values[i]-res.series[0].values[i-1],1)+'</td><td><b style="color:'+(mom===null?C.gray:(mom>=0?C.ok:C.bad))+'">'+momText+'</b></td></tr>';
       }
       h+=resBlock('④ 环比增速表（'+escXML(res.series[0].name)+'）',
         '<div class="table-wrap"><table class="tbl">'+rowsHtml+'</table></div>');
       var lastIdx=res.mom.length-1, lastMom=res.mom[lastIdx];
-      var peak=0, pi=0;
+      var peak=-Infinity, pi=0;
       for(var j=1;j<res.series[0].values.length;j++) if(res.series[0].values[j]>peak){peak=res.series[0].values[j];pi=j;}
       h+=resBlock('⑤ 分层解读',
         finding("fact","增长势头", res.series[0].name+" 从 "+fmtNum(res.series[0].values[0],0)+" 增至 "+fmtNum(res.series[0].values[res.series[0].values.length-1],0)+"，累计增长 "+fmtSigned(res.series[0].values[res.series[0].values.length-1]-res.series[0].values[0],0)+"。")+
-        finding("anl","最新一期环比", "最近一期较上期"+(lastMom>=0?"增长":"下降")+" "+Math.abs(lastMom*100).toFixed(1)+"%，"+(Math.abs(lastMom)>=0.1?"属明显波动，需查原因。":"属温和变化，趋势平稳。"))+
+        finding("anl","最新一期环比", lastMom==null?"最近一期的上期值为 0，无法计算环比增速，建议结合绝对增量判断变化。":"最近一期较上期"+(lastMom>=0?"增长":"下降")+" "+Math.abs(lastMom*100).toFixed(1)+"%，"+(Math.abs(lastMom)>=0.1?"属明显波动，需查原因。":"属温和变化，趋势平稳。"))+
         finding("anl","峰值定位", "最高值出现在 "+res.labels[pi]+"（"+fmtNum(peak,0)+"），可结合业务事件解释该高点。")+
         finding("sug","结构建议", "对比饼图看占比结构：占比最大序列是总量的主要贡献者，建议优先保障其投入产出。"),
         '三种分析思维提示：对比（横向比序列）、趋势（纵向看时间）、结构（饼图看占比），一次分析同时用上。');
@@ -1891,7 +2141,7 @@ var ANALYSES = {
         return '<div class="cfg-row"><label>因变量(数值列)</label>'+selHtml(opts, v0, "cfg_y")+'</div>'
           +'<div class="cfg-row"><label>因子(分组列)</label>'+selHtml(opts, c0, "cfg_grp")+'</div>'
           +'<div class="cfg-row"><label>多重比较方法</label>'
-          +customSel([{v:"tukey",l:"Tukey HSD（教材推荐 · 控制族系误差）"},{v:"bonf",l:"Bonferroni（保守 · α 按比较次数均分）"},{v:"lsd",l:"LSD（最灵敏 · 不校正族系误差）"},{v:"none",l:"不做多重比较"}], "tukey", "cfg_posthoc")
+          +customSel([{v:"bonf",l:"Bonferroni（控制族系误差）"},{v:"lsd",l:"LSD（最灵敏 · 不校正族系误差）"},{v:"none",l:"不做多重比较"}], "bonf", "cfg_posthoc")
           +'</div>'
           +'<div class="cfg-row"><label>显著性水平 α</label>'
           +customSel([{v:"0.05",l:"0.05（常用）"},{v:"0.01",l:"0.01（严格）"},{v:"0.10",l:"0.10（宽松）"}], "0.05", "cfg_alpha")
@@ -1902,7 +2152,7 @@ var ANALYSES = {
           +'<div class="cfg-row"><label>效应量</label>'
           +customSel([{v:"both",l:"η² 与 ω² 都给"},{v:"eta",l:"只给 η²"},{v:"none",l:"不给"}], "both", "cfg_effsize")
           +'</div>'
-          +'<div class="hint">使用提示：① 因子列每个水平为一组（如「三个车间」「四种工艺」）；② 整体 F 检验显著只说明「均值不全相等」，必须用多重比较定位具体哪两组不同；③ k = 2 时 F = t²，建议直接用 t 检验。</div>';
+          +'<div class="hint">使用提示：① 因子列每个水平为一组（如「三个车间」「四种工艺」）；② 整体 F 检验显著只说明「均值不全相等」，必须用多重比较定位具体哪两组不同；③ k = 2 时 F = t²，建议直接用 t 检验。当前不把 Bonferroni 近似误称为 Tukey HSD。</div>';
       },
       run:function(ds, cfg){
         var co=colOptions(ds);
@@ -1911,33 +2161,61 @@ var ANALYSES = {
         var yIdx=parseInt(cfg.y,10);   if(isNaN(yIdx)) yIdx=numsIdx[0];
         var gIdx=parseInt(cfg.grp,10); if(isNaN(gIdx)) gIdx=catsIdx.length? catsIdx[0] : 0;
         var g=groupBy(ds, yIdx, gIdx);
-        if(g.order.length<2) throw "因子列只有 "+g.order.length+" 个有效组，方差分析需要至少 2 组（教材典型场景为 ≥3 组）";
-        var rows=[], N=0;
-        g.order.forEach(function(k){
-          var v=g.map[k];
-          rows.push({name:k, n:v.length, mean:mean(v), sd:Math.sqrt(variance(v))});
-          N+=v.length;
-        });
-        var minN=rows[0].n;
-        rows.forEach(function(r){ if(r.n<minN) minN=r.n; });
-        return shellResult(ANOVA_SPEC, {
-          yCol:ds.headers[yIdx], gCol:ds.headers[gIdx],
-          groups:rows, k:g.order.length, N:N, minN:minN
-        });
+        if(g.order.length<2) throw new Error("因子列只有 "+g.order.length+" 个有效组，方差分析需要至少 2 组");
+        var groups=g.order.map(function(k){ var v=g.map[k]; return {name:k, values:v}; });
+        var a=anovaOneWay(groups);
+        var lev = cfg.levene!=="0" ? leveneTest(groups) : null;
+        var alpha=parseFloat(cfg.alpha||"0.05");
+        var method=cfg.posthoc||"bonf";
+        var comps = method!=="none" ? posthocTest(groups, a.MSw, a.dfw, method, alpha) : [];
+        return { yCol:ds.headers[yIdx], gCol:ds.headers[gIdx],
+          groups:groups, anova:a, levene:lev, alpha:alpha, method:method, effsize:cfg.effsize||"both", comps:comps };
       },
       render:function(ds, cfg, res){
-        var pre=res.pre;
-        var rows=pre.groups.map(function(gp){
-          return [escXML(gp.name), fmtNum(gp.n,0), fmtNum(gp.mean,3), fmtNum(gp.sd,3)];
+        var a=res.anova, h="";
+        var rows=res.groups.map(function(g){
+          var st=describe(g.values);
+          return [escXML(g.name), fmtNum(g.values.length,0), fmtNum(st.mean,3), fmtNum(st.std,3)];
         });
-        var preHtml='<div class="ws-src">因子列 <b>'+escXML(pre.gCol)+'</b>（k = '+pre.k+' 组），因变量 <b>'+escXML(pre.yCol)+'</b>，有效样本 N = '+pre.N+'。</div>'
-          +preTable(["分组（因子水平）","n","均值","标准差"], rows)
-          +'<div class="ws-var-note">'
-          + (pre.k>=3? '组数 k = '+pre.k+' ≥ 3，符合单因素方差分析的典型应用条件。'
-                    : '当前只有 '+pre.k+' 组：k = 2 时 F 检验等价于 t 检验（F = t²），教材通常直接用 t 检验。')
-          + (pre.minN<2? ' 注意：有组样本量 < 2，该组无法计算方差，建议合并或补充数据。' : '')
-          +'</div>';
-        return shellBlock(ANOVA_SPEC, preHtml);
+        h+=resBlock('① 各组描述统计', '<div class="hint">因子列 <b>'+escXML(res.gCol)+'</b>（k = '+a.k+' 组），因变量 <b>'+escXML(res.yCol)+'</b>，有效样本 N = '+a.N+'。</div>'
+          +preTable(["分组（因子水平）","n","均值","标准差"], rows));
+        h+=resBlock('② 方差分析表',
+          preTable(["来源","SS","df","MS","F","p"],
+            [["组间", fmtNum(a.SSb,3), fmtNum(a.dfb,0), fmtNum(a.MSb,3), fmtNum(a.F,3), fmtNum(a.p,4)],
+             ["组内", fmtNum(a.SSw,3), fmtNum(a.dfw,0), fmtNum(a.MSw,3), "—", "—"],
+             ["总", fmtNum(a.SSt,3), fmtNum(a.dfb+a.dfw,0), "—", "—", "—"]])
+          +formulaCard("F 统计量", "F = MS组间 / MS组内", "MS组间 = "+fmtNum(a.MSb,3)+"，MS组内 = "+fmtNum(a.MSw,3), fmtNum(a.F,3)));
+        if(res.effsize!=="none"){
+          h+=resBlock('③ 效应量',
+            metricCard("η² (eta²)", fmtNum(a.eta2,3), "", "hl") + (res.effsize==="both" ? metricCard("ω² (omega²)", fmtNum(a.omega2,3)) : "")
+            +'<div class="hint">教材口径：η² 0.01 小 / 0.06 中 / 0.14 大；ω² 比 η² 更保守（无偏）。</div>');
+        }
+        if(res.levene){
+          h+=resBlock('④ 方差齐性检验（Levene）',
+            metricCard("W 统计量", fmtNum(res.levene.W,3)) + metricCard("p 值", fmtNum(res.levene.p,4), "", res.levene.p<0.05?"warn":"hl")
+            +'<div class="hint">'+(res.levene.p<0.05?"p < 0.05，方差不齐，建议改用 Welch 校正或 Games-Howell 多重比较。":"p ≥ 0.05，方差齐性成立，可用经典 ANOVA。")+'</div>');
+        }
+        var chartH="";
+        res.groups.forEach(function(g){
+          chartH += '<div class="chart-box">'+svgBox(g.values, {title:escXML(g.name)+" 分布（n="+g.values.length+"）", subtitle:"中位数 / 四分位 / 均值"})+'</div>';
+        });
+        h+=resBlock('⑤ 各组分布（箱线图）', chartH);
+        if(res.comps.length){
+          var mcRows=res.comps.map(function(c){
+            return [escXML(c.g1)+" vs "+escXML(c.g2), fmtNum(c.diff,3), fmtNum(c.se,3), fmtNum(c.p,4), c.sig?"显著":"不显著"];
+          });
+          var mname = res.method==="lsd" ? "LSD" : "Bonferroni";
+          h+=resBlock('⑥ 多重比较（'+mname+'，α='+fmtNum(res.alpha,2)+'）',
+            preTable(["比较对","均值差","SE","p","结论"], mcRows)
+            +(res.method==="bonf"?'<div class="hint">Bonferroni 对两两 t 检验的 p 值按比较次数校正。</div>':''));
+        }
+        var sig=a.p<res.alpha;
+        h+=resBlock('⑦ 分层解读',
+          finding("fact","整体检验", "F("+a.dfb+", "+a.dfw+") = "+fmtNum(a.F,3)+"，p = "+fmtNum(a.p,4)+"。"+(sig?"在 α = "+fmtNum(res.alpha,2)+" 下拒绝「各组均值全相等」的原假设。":"在 α = "+fmtNum(res.alpha,2)+" 下不能拒绝「各组均值全相等」的原假设。"))+
+          (res.effsize!=="none" ? finding("anl","效应量", "η² = "+fmtNum(a.eta2,3)+"（"+(a.eta2>=0.14?"大效应":a.eta2>=0.06?"中效应":a.eta2>=0.01?"小效应":"极小效应")+"），组别解释了总变异的 "+fmtPct(a.eta2,1)+"。") : "")+
+          (sig? finding("sug","差异定位", "整体显著只说明「不全相等」，需看⑥多重比较，定位具体哪两组不同。") : finding("sug","下一步", "整体不显著时通常不必再做两两比较，除非有事先的理论假设。"))+
+          finding("warn","前提假设", "ANOVA 依赖独立、正态、方差齐性三个前提。"+(res.levene? (res.levene.p<0.05?" Levene 检验提示方差不齐，结论需谨慎，建议改用 Welch 校正。":" Levene 检验显示方差齐性成立。") : "")));
+        return h;
       }
     },
 
@@ -1962,10 +2240,10 @@ var ANALYSES = {
           +' &nbsp;<label>列变量</label>'+selHtml(opts, c0, "cfg_col2")+'</div>'
           +'<div id="cfg_fitDiv" class="cfg-row" style="display:none"><label>分类变量</label>'+selHtml(opts, r0, "cfg_cat")
           +' &nbsp;<label>理论比例</label><input type="text" id="cfg_ratio" value="等比例" style="min-width:150px"/></div>'
-          +'<div class="cfg-row"><label>Yates 连续性校正</label>'
+          +'<div id="cfg_yatesRow" class="cfg-row"><label>Yates 连续性校正</label>'
           +customSel([{v:"auto",l:"自动（2×2 表时启用）"},{v:"1",l:"始终启用"},{v:"0",l:"始终不启用"}], "auto", "cfg_yates")
           +'</div>'
-          +'<div class="cfg-row"><label>效应量</label>'
+          +'<div id="cfg_chiEffRow" class="cfg-row"><label>效应量</label>'
           +customSel([{v:"v",l:"Cramér's V（通用，含 2×2 的 φ）"},{v:"phi",l:"φ 系数（仅 2×2）"},{v:"none",l:"不给"}], "v", "cfg_eff")
           +'</div>'
           +'<div class="hint">使用提示：① 独立性检验要求期望频数 ≥5 的格子不少于 80%，否则需合并类别或用 Fisher 精确检验；② 拟合优度的理论比例可填「等比例」或「1:2:1」这类冒号分隔的形式；③ 分类列的每个取值视为一个类别。</div>';
@@ -1987,12 +2265,21 @@ var ANALYSES = {
             n++;
           });
           if(rKeys.length<2 || cKeys.length<2) throw "列联表需要行、列变量各有 ≥2 个类别（当前 "+rKeys.length+" × "+cKeys.length+"）";
-          return shellResult(CHI2_SPEC, {
-            mode:"ind", rCol:ds.headers[rIdx], cCol:ds.headers[cIdx],
-            rKeys:rKeys, cKeys:cKeys, mp:mp, N:n
-          });
+          var ind=chi2Independence(mp, rKeys, cKeys);
+          var yates = cfg.yates==="1" || (cfg.yates==="auto" && rKeys.length===2 && cKeys.length===2);
+          if(yates && rKeys.length===2 && cKeys.length===2){
+            var chi2=0;
+            rKeys.forEach(function(rk){ cKeys.forEach(function(ck){
+              var o=mp[rk][ck]||0, e=ind.exp[rk][ck], v=Math.max(0, Math.abs(o-e)-0.5); chi2+=v*v/e;
+            }); });
+            ind.chi2=chi2; ind.p=chi2P(chi2, ind.df);
+          }
+          ind.V=Math.sqrt(ind.chi2/(ind.N*Math.min(rKeys.length-1, cKeys.length-1)));
+          ind.phi=rKeys.length===2&&cKeys.length===2 ? Math.sqrt(ind.chi2/ind.N) : null;
+          ind.yates=yates;
+          return { mode:"ind", rCol:ds.headers[rIdx], cCol:ds.headers[cIdx],
+            rKeys:rKeys, cKeys:cKeys, mp:mp, ind:ind, effect:cfg.eff||"v" };
         }
-        // 拟合优度
         var kIdx=parseInt(cfg.cat,10); if(isNaN(kIdx)) kIdx=catsIdx[0];
         var keys=[], cnt={}, n=0;
         ds.rows.forEach(function(r){
@@ -2002,42 +2289,74 @@ var ANALYSES = {
           cnt[k]++; n++;
         });
         if(keys.length<2) throw "拟合优度需要分类变量有 ≥2 个类别（当前 "+keys.length+"）";
-        return shellResult(CHI2_SPEC, {
-          mode:"fit", cat:ds.headers[kIdx], keys:keys, cnt:cnt, N:n,
-          ratio:cfg.ratio||"等比例"
-        });
+        var fit=chi2GoodnessOfFit(cnt, keys, cfg.ratio||"等比例");
+        return { mode:"fit", cat:ds.headers[kIdx], keys:keys, cnt:cnt, N:n, fit:fit, ratio:cfg.ratio||"等比例" };
       },
       render:function(ds, cfg, res){
-        var pre=res.pre, preHtml="";
-        if(pre.mode==="ind"){
-          var head=["行 \\ 列"].concat(pre.cKeys.map(escXML)).concat(["合计"]);
-          var rows=pre.rKeys.map(function(rk){
+        var h="";
+        if(res.mode==="ind"){
+          var ind=res.ind;
+          var head=["行 \\ 列"].concat(res.cKeys.map(escXML)).concat(["合计"]);
+          var obsRows=res.rKeys.map(function(rk){
             var line=[escXML(rk)], rt=0;
-            pre.cKeys.forEach(function(ck){
-              var v=pre.mp[rk][ck]||0; rt+=v; line.push(String(v));
-            });
-            line.push(String(rt));
-            return line;
+            res.cKeys.forEach(function(ck){ var v=res.mp[rk][ck]||0; rt+=v; line.push(String(v)); });
+            line.push(String(rt)); return line;
           });
           var ct=["合计"], gt=0;
-          pre.cKeys.forEach(function(ck){
-            var s=0; pre.rKeys.forEach(function(rk){ s+=pre.mp[rk][ck]||0; });
-            ct.push(String(s)); gt+=s;
+          res.cKeys.forEach(function(ck){ var s=0; res.rKeys.forEach(function(rk){ s+=res.mp[rk][ck]||0; }); ct.push(String(s)); gt+=s; });
+          ct.push(String(gt)); obsRows.push(ct);
+          h+=resBlock('① 观测频数表（O）', '<div class="hint">列联表 <b>'+escXML(res.rCol)+'</b> × <b>'+escXML(res.cCol)+'</b>，'+res.rKeys.length+' × '+res.cKeys.length+' 表，N = '+ind.N+'。</div>'
+            +preTable(head, obsRows));
+          var expRows=res.rKeys.map(function(rk){
+            var line=[escXML(rk)]; res.cKeys.forEach(function(ck){ line.push(fmtNum(ind.exp[rk][ck],2)); }); return line;
           });
-          ct.push(String(gt)); rows.push(ct);
-          preHtml='<div class="ws-src">列联表 <b>'+escXML(pre.rCol)+'</b> × <b>'+escXML(pre.cCol)+'</b>，'
-            +pre.rKeys.length+' × '+pre.cKeys.length+' 表，有效样本 N = '+pre.N+'。</div>'
-            +preTable(head, rows)
-            +'<div class="ws-var-note">表中为实际观测频数 O；卡方检验将按「期望频数 E = 行合计×列合计 / N」逐格比对。</div>';
+          h+=resBlock('② 期望频数表（E）', preTable(["行 \\ 列"].concat(res.cKeys.map(escXML)), expRows)
+            +'<div class="hint">E = 行合计 × 列合计 / N，即独立性假设下的理论频数。</div>');
+          h+=resBlock('③ 卡方检验结果',
+            metricCard("χ² 统计量", fmtNum(ind.chi2,3), "", "hl") + metricCard("自由度 df", fmtNum(ind.df,0)) + metricCard("p 值", fmtNum(ind.p,4), "", ind.p<0.05?"hl":"")
+            + (ind.yates?'<div class="hint">已应用 Yates 连续性校正（2×2 表）。</div>':'')
+            + formulaCard("卡方统计量", "χ² = Σ (O−E)² / E", "对所有格子求和", fmtNum(ind.chi2,3)));
+          if(res.effect!=="none"){
+            var isPhi=res.effect==="phi" && ind.phi!==null;
+            var effectValue=isPhi ? ind.phi : ind.V;
+            var effectLabel=isPhi ? "φ 系数" : "Cramér's V";
+            h+=resBlock('④ 效应量 '+effectLabel,
+              metricCard(effectLabel, fmtNum(effectValue,3), "", "hl")
+              +'<div class="hint">'+(effectValue>=0.5?"强关联":effectValue>=0.3?"中等关联":effectValue>=0.1?"弱关联":"几乎无关联")+'（0.1 弱 / 0.3 中 / 0.5 强）。'+(res.effect==="phi"&&ind.phi===null?" 当前不是 2×2 表，已改报 Cramér's V。":"")+'</div>');
+          }
+          var maxResid=0, maxCell="—";
+          res.rKeys.forEach(function(rk){ res.cKeys.forEach(function(ck){
+            var rv=ind.resid[rk][ck]; if(Math.abs(rv)>Math.abs(maxResid)){ maxResid=rv; maxCell=rk+"×"+ck; }
+          }); });
+          h+=resBlock('⑤ 标准化残差（定位差异格）',
+            '<div class="hint">标准化残差 = (O−E) / √E；|残差| > 2 表示该格显著偏离独立性。贡献最大格：<b>'+escXML(maxCell)+'</b>（残差 '+fmtNum(maxResid,2)+'）。</div>');
+          var labels=[], obsVals=[], expVals=[];
+          res.rKeys.forEach(function(rk){ res.cKeys.forEach(function(ck){
+            labels.push(rk+"/"+ck); obsVals.push(res.mp[rk][ck]||0); expVals.push(ind.exp[rk][ck]);
+          }); });
+          h+=resBlock('⑥ 实际 vs 期望频数对比', '<div class="chart-box">'+svgGroupedBar(labels, [{name:"观测 O",values:obsVals},{name:"期望 E",values:expVals}], {title:"观测 vs 期望频数", subtitle:"对比各格 O 与 E 的偏离"})+'</div>');
+          var lowPct=ind.lowE/ind.cells, rel=ind.p<0.05;
+          h+=resBlock('⑦ 分层解读',
+            finding("fact","检验结果", "χ²("+ind.df+") = "+fmtNum(ind.chi2,3)+"，p = "+fmtNum(ind.p,4)+"。两变量"+(rel?"存在显著关联（拒绝独立性原假设）":"无显著关联（不能拒绝独立性原假设）")+"。")+
+            (res.effect!=="none" ? finding("anl","关联强度", (res.effect==="phi"&&ind.phi!==null?"φ 系数":"Cramér's V")+" = "+fmtNum(res.effect==="phi"&&ind.phi!==null?ind.phi:ind.V,3)+"。大样本下 p 值易显著，效应量更能说明实际意义。") : "")+
+            finding("warn","近似条件", "最小期望频数 "+fmtNum(ind.minE,2)+"，E < 5 的格子占 "+fmtPct(lowPct,1)+"。"+(ind.minE<1||lowPct>0.2?" 不满足卡方近似条件，建议合并类别或改用 Fisher 精确检验。":" 满足卡方近似条件。"))+
+            (rel? finding("sug","差异定位", "看⑤标准化残差：偏离独立性最明显的是「"+escXML(maxCell)+"」格，即关联的主要来源。") : finding("sug","结论", "两变量未见显著关联，报告可到此为止，或换用其他维度再检验。")));
         } else {
-          var rows2=pre.keys.map(function(k){
-            return [escXML(k), String(pre.cnt[k]), (pre.cnt[k]/pre.N*100).toFixed(1)+"%"];
+          var fit=res.fit;
+          var rows2=res.keys.map(function(k, i){
+            return [escXML(k), String(res.cnt[k]), fmtPct(res.cnt[k]/res.N,1), fmtNum(fit.ratios[i]*100,1)+"%", fmtNum(fit.exp[k],2)];
           });
-          preHtml='<div class="ws-src">拟合优度：分类变量 <b>'+escXML(pre.cat)+'</b>，'+pre.keys.length+' 个类别，有效样本 N = '+pre.N+'，理论比例设定 <b>'+escXML(pre.ratio)+'</b>。</div>'
-            +preTable(["类别","实际频数 O","实际占比"], rows2)
-            +'<div class="ws-var-note">卡方检验将按理论比例折算期望频数 E，再与实际频数 O 比对。</div>';
+          h+=resBlock('① 实际 vs 理论频数', '<div class="hint">分类变量 <b>'+escXML(res.cat)+'</b>，'+res.keys.length+' 个类别，N = '+res.N+'，理论比例 <b>'+escXML(res.ratio)+'</b>。</div>'
+            +preTable(["类别","实际 O","实际占比","理论比例","期望 E"], rows2));
+          h+=resBlock('② 拟合优度检验',
+            metricCard("χ² 统计量", fmtNum(fit.chi2,3), "", "hl") + metricCard("自由度 df", fmtNum(fit.df,0)) + metricCard("p 值", fmtNum(fit.p,4), "", fit.p<0.05?"hl":"")
+            + formulaCard("卡方统计量", "χ² = Σ (O−E)² / E", "df = k − 1 = "+fit.df, fmtNum(fit.chi2,3)));
+          h+=resBlock('③ 分层解读',
+            finding("fact","检验结果", "χ²("+fit.df+") = "+fmtNum(fit.chi2,3)+"，p = "+fmtNum(fit.p,4)+"。实际分布与理论比例"+(fit.p<0.05?"存在显著偏离":"无显著偏离")+"。")+
+            finding("anl","偏离方向", "看①表：实际占比与理论比例差距最大的类别，就是偏离的主要来源。")+
+            finding("sug","结论", (fit.p<0.05?"实际分布不符合设定比例，需结合业务解释偏离原因。":"实际分布符合设定比例，可用该比例描述总体结构。")));
         }
-        return shellBlock(CHI2_SPEC, preHtml);
+        return h;
       }
     },
 
@@ -2073,38 +2392,38 @@ var ANALYSES = {
           +'<div id="cfg_wxDiv" class="cfg-row" style="display:none"><label>列 A(前)</label>'+selHtml(opts, v0, "cfg_a")
           +' &nbsp;<label>列 B(后)</label>'+selHtml(opts, v1, "cfg_b")+'</div>'
           +'<div id="cfg_frDiv" class="cfg-row" style="display:none"><label>配对的多列</label>'+multiSelHtml(opts, [v0, v1], "cfg_multi", 5)+'</div>'
-          +'<div class="cfg-row"><label>检验方向</label>'
-          +customSel([{v:"two",l:"双尾（推荐）"},{v:"g1",l:"右尾"},{v:"g2",l:"左尾"}], "two", "cfg_alt")
+          +'<div class="cfg-row np-option"><label>检验方向</label>'
+          +customSel([{v:"two",l:"双尾（推荐）"},{v:"g1",l:"第一组/列 A 更高"},{v:"g2",l:"第二组/列 B 更高"}], "two", "cfg_alt")
           +'</div>'
-          +'<div class="cfg-row"><label>p 值算法</label>'
-          +customSel([{v:"auto",l:"自动（小样本用精确法，大样本用正态近似）"},{v:"exact",l:"强制精确法"},{v:"norm",l:"强制正态近似"}], "auto", "cfg_pmeth")
-          +'</div>'
-          +'<div class="cfg-row"><label>连续性校正</label>'
+          +'<div class="cfg-row np-option"><label>连续性校正</label>'
           +customSel([{v:"1",l:"启用（正态近似时更稳健）"},{v:"0",l:"不启用"}], "1", "cfg_cc")
           +'</div>'
-          +'<div class="hint">使用提示：① Mann-Whitney 的分组列只取前两组；② Kruskal-Wallis 取分组列的全部水平（≥3 组更合适）；③ Wilcoxon 要求两列行号对齐（同一对象前后测量）；④ Friedman 用多列配对数据（如同一被试在 3 种条件下的得分）。</div>';
+          +'<div class="hint">使用提示：① Mann-Whitney 的分组列只取前两组；② Kruskal-Wallis 取分组列的全部水平（至少 3 组）；③ Wilcoxon 要求两列行号对齐（同一对象前后测量）；④ Friedman 用多列配对数据（如同一被试在 3 种条件下的得分）。p 值采用正态近似，精确法暂未提供。</div>';
       },
       run:function(ds, cfg){
-        var type=cfg.type||"mw", pre={mode:type};
+        var type=cfg.type||"mw";
         var co=colOptions(ds);
         var numsIdx=co.filter(function(o){return o.num;}).map(function(o){return o.idx;});
         var catsIdx=co.filter(function(o){return !o.num;}).map(function(o){return o.idx;});
         var dNum=numsIdx[0], dCat=catsIdx.length? catsIdx[0] : 0;
-        if(type==="mw" || type==="kw"){
-          var yIdx=parseInt(type==="mw"?cfg.y:cfg.kw_y, 10);   if(isNaN(yIdx)) yIdx=dNum;
-          var gIdx=parseInt(type==="mw"?cfg.grp:cfg.kw_grp, 10); if(isNaN(gIdx)) gIdx=dCat;
+        var testOpts={alternative:cfg.alt||"two", continuity:cfg.cc!=="0"};
+        if(type==="mw"){
+          var yIdx=parseInt(cfg.y,10); if(isNaN(yIdx)) yIdx=dNum;
+          var gIdx=parseInt(cfg.grp,10); if(isNaN(gIdx)) gIdx=dCat;
           var g=groupBy(ds, yIdx, gIdx);
-          var need= type==="mw"? 2 : 2;
-          if(g.order.length<need) throw "分组列只有 "+g.order.length+" 个有效组，至少需要 "+need+" 组";
-          var rows=[], N=0;
-          g.order.forEach(function(k){
-            var v=g.map[k];
-            rows.push({name:k, n:v.length});
-            N+=v.length;
-          });
-          pre.yCol=ds.headers[yIdx]; pre.gCol=ds.headers[gIdx];
-          pre.groups=rows; pre.k=g.order.length; pre.N=N;
-          return shellResult(NONPARAM_SPEC, pre);
+          if(g.order.length<2) throw "分组列只有 "+g.order.length+" 个有效组，Mann-Whitney 至少需要 2 组";
+          var mw=mannWhitneyU(g.map[g.order[0]], g.map[g.order[1]], testOpts);
+          return { mode:"mw", yCol:ds.headers[yIdx], gCol:ds.headers[gIdx],
+            g1:g.order[0], g2:g.order[1], mw:mw, gm:g.map };
+        }
+        if(type==="kw"){
+          var kyIdx=parseInt(cfg.kw_y,10); if(isNaN(kyIdx)) kyIdx=dNum;
+          var kgIdx=parseInt(cfg.kw_grp,10); if(isNaN(kgIdx)) kgIdx=dCat;
+          var kg=groupBy(ds, kyIdx, kgIdx);
+          if(kg.order.length<3) throw new Error("分组列只有 "+kg.order.length+" 个有效组，Kruskal-Wallis 至少需要 3 组");
+          var kgroups=kg.order.map(function(k){ return {name:k, values:kg.map[k]}; });
+          var kw=kruskalWallisH(kgroups);
+          return { mode:"kw", yCol:ds.headers[kyIdx], gCol:ds.headers[kgIdx], kw:kw, groups:kgroups };
         }
         if(type==="wilcoxon"){
           var aIdx=parseInt(cfg.a,10); if(isNaN(aIdx)) aIdx=dNum;
@@ -2115,37 +2434,98 @@ var ANALYSES = {
             if(av==null||bv==null||isNaN(av)||isNaN(bv)) return;
             aArr.push(av); bArr.push(bv);
           });
-          if(aArr.length<3) throw "Wilcoxon 符号秩需要至少 3 对（实际 "+aArr.length+" 对）";
-          pre.aCol=ds.headers[aIdx]; pre.bCol=ds.headers[bIdx]; pre.n=aArr.length;
-          return shellResult(NONPARAM_SPEC, pre);
+          if(aArr.length<3) throw "Wilcoxon 符号秩需要至少 3 对有效配对（实际 "+aArr.length+" 对）";
+          var wx=wilcoxonSignedRank(aArr, bArr, testOpts);
+          return { mode:"wilcoxon", aCol:ds.headers[aIdx], bCol:ds.headers[bIdx], wx:wx };
         }
-        // friedman
         var idxs=(cfg.multi||[]).map(function(v){ return parseInt(v,10); });
         if(!idxs.length) idxs=[0,1];
         if(idxs.length<3) throw "Friedman 需要至少 3 列配对数据（当前 "+idxs.length+" 列）";
-        pre.cols=idxs.map(function(i){ return ds.headers[i]; });
-        pre.n=ds.rows.length;
-        return shellResult(NONPARAM_SPEC, pre);
+        var matrix=[];
+        ds.rows.forEach(function(r){
+          var row=idxs.map(function(i){ return parseNum(r[i]); });
+          if(row.some(function(v){ return v==null||isNaN(v); })) return;
+          matrix.push(row);
+        });
+        if(matrix.length<2) throw "Friedman 有效配对行不足（需 ≥2 行完整数据，实际 "+matrix.length+" 行）";
+        var fr=friedmanTest(matrix);
+        return { mode:"friedman", cols:idxs.map(function(i){ return ds.headers[i]; }), fr:fr };
       },
       render:function(ds, cfg, res){
-        var pre=res.pre, preHtml="";
-        if(pre.mode==="mw" || pre.mode==="kw"){
-          var rows=pre.groups.map(function(gp){ return [escXML(gp.name), fmtNum(gp.n,0)]; });
-          preHtml='<div class="ws-src">数值列 <b>'+escXML(pre.yCol)+'</b>，分组列 <b>'+escXML(pre.gCol)+'</b>，k = '+pre.k+' 组，有效样本 N = '+pre.N+'。</div>'
-            +preTable(["分组","n"], rows)
-            +'<div class="ws-var-note">'+(pre.mode==="mw"
-              ? 'Mann-Whitney U：只比较前两组，基于混合排序后的秩和。'
-              : (pre.k>=3? 'Kruskal-Wallis H：'+pre.k+' 组，基于混合排序后的各组秩和。'
-                        : '只有 '+pre.k+' 组，Kruskal-Wallis 通常需要 ≥3 组；两组时建议用 Mann-Whitney U。'))+'</div>';
-        } else if(pre.mode==="wilcoxon"){
-          preHtml='<div class="ws-src">配对两列：<b>'+escXML(pre.aCol)+'</b> 与 <b>'+escXML(pre.bCol)+'</b>，有效配对 n = '+pre.n+' 对。</div>'
-            +'<div class="ws-var-note">Wilcoxon 符号秩：对差值取绝对值排序赋秩，再按差值符号分正负秩和。</div>';
+        var h="";
+        if(res.mode==="mw"){
+          var mw=res.mw, N=mw.n1+mw.n2, R2=N*(N+1)/2-mw.Ra;
+          var md1=describe(res.gm[res.g1]).median, md2=describe(res.gm[res.g2]).median;
+          h+=resBlock('① 两组描述（中位数 + 秩）', '<div class="hint">数值列 <b>'+escXML(res.yCol)+'</b>，分组列 <b>'+escXML(res.gCol)+'</b>（取前两组）。</div>'
+            +preTable(["组","n","中位数","秩和 R","平均秩"],
+              [[escXML(res.g1), String(mw.n1), fmtNum(md1,3), fmtNum(mw.Ra,1), fmtNum(mw.Ra/mw.n1,2)],
+               [escXML(res.g2), String(mw.n2), fmtNum(md2,3), fmtNum(R2,1), fmtNum(R2/mw.n2,2)]]));
+          h+=resBlock('② Mann-Whitney U 检验',
+            metricCard("U 统计量", fmtNum(mw.U,3), "", "hl") + metricCard("z 值", fmtNum(mw.z,3)) + metricCard("p 值", fmtNum(mw.p,4), "", mw.p<0.05?"hl":"")
+            + formulaCard("Mann-Whitney U", "U₁ = n₁n₂ + n₁(n₁+1)/2 − R₁", "U = min(U₁, U₂)；U₁="+fmtNum(mw.U1,1)+"，U₂="+fmtNum(mw.U2,1), fmtNum(mw.U,1)));
+          h+=resBlock('③ 效应量', metricCard("秩双列相关 r", fmtNum(mw.r,3), "", "hl")
+            +'<div class="hint">r = z/√N；0.1 小 / 0.3 中 / 0.5 大。</div>');
+          var chartH="";
+          [res.g1,res.g2].forEach(function(gk){
+            chartH += '<div class="chart-box">'+svgBox(res.gm[gk], {title:escXML(gk)+" 分布（n="+res.gm[gk].length+"）", subtitle:"中位数 / 四分位"})+'</div>';
+          });
+          h+=resBlock('④ 两组分布（箱线图）', chartH);
+          h+=resBlock('⑤ 分层解读',
+            finding("fact","检验结果", "U = "+fmtNum(mw.U,3)+"，z = "+fmtNum(mw.z,3)+"，p = "+fmtNum(mw.p,4)+"。两独立样本分布位置"+(mw.p<0.05?"存在显著差异":"无显著差异")+"。")+
+            finding("anl","效应量", "秩双列相关 r = "+fmtNum(mw.r,3)+"（"+(Math.abs(mw.r)>=0.5?"大":Math.abs(mw.r)>=0.3?"中":"小")+"效应）。")+
+            finding("sug","结论", (mw.p<0.05?"两组分布位置差异显著，结合④箱线图看哪组位置更高。":"两组分布位置未见显著差异，可对照 t 检验结论报告。"))+
+            finding("warn","方法提示", "非参数检验比较的是分布位置而非均值；p 值为正态近似。"));
+        } else if(res.mode==="kw"){
+          var kw=res.kw;
+          var rows=res.groups.map(function(g, i){
+            var md=describe(g.values).median;
+            return [escXML(g.name), String(g.values.length), fmtNum(md,3), fmtNum(kw.rankSums[i],1), fmtNum(kw.rankSums[i]/g.values.length,2)];
+          });
+          h+=resBlock('① 各组描述（中位数 + 秩）', '<div class="hint">数值列 <b>'+escXML(res.yCol)+'</b>，分组列 <b>'+escXML(res.gCol)+'</b>，k = '+kw.k+' 组，N = '+kw.N+'。</div>'
+            +preTable(["组","n","中位数","秩和 R","平均秩"], rows));
+          h+=resBlock('② Kruskal-Wallis H 检验',
+            metricCard("H 统计量", fmtNum(kw.H,3), "", "hl") + metricCard("自由度 df", fmtNum(kw.df,0)) + metricCard("p 值", fmtNum(kw.p,4), "", kw.p<0.05?"hl":"")
+            + formulaCard("Kruskal-Wallis H", "H = 12/(N(N+1)) · Σ(Rⱼ²/nⱼ) − 3(N+1)", "H ~ χ²("+kw.df+")", fmtNum(kw.H,3)));
+          h+=resBlock('③ 效应量', metricCard("ε² (epsilon²)", fmtNum(kw.eps2,3), "", "hl")
+            +'<div class="hint">ε² = H/(N−1)；0.01 小 / 0.06 中 / 0.14 大。</div>');
+          var chartH2="";
+          res.groups.forEach(function(g){
+            chartH2 += '<div class="chart-box">'+svgBox(g.values, {title:escXML(g.name)+" 分布（n="+g.values.length+"）", subtitle:"中位数 / 四分位"})+'</div>';
+          });
+          h+=resBlock('④ 各组分布（箱线图）', chartH2);
+          h+=resBlock('⑤ 分层解读',
+            finding("fact","检验结果", "H("+kw.df+") = "+fmtNum(kw.H,3)+"，p = "+fmtNum(kw.p,4)+"。各独立组分布位置"+(kw.p<0.05?"存在显著差异":"无显著差异")+"。")+
+            finding("anl","效应量", "ε² = "+fmtNum(kw.eps2,3)+"（"+(kw.eps2>=0.14?"大":kw.eps2>=0.06?"中":kw.eps2>=0.01?"小":"极小")+"效应）。")+
+            finding("sug","下一步", (kw.p<0.05?"整体显著只说明「分布位置不全相同」，如需定位差异来源，可对两两组别补做 Mann-Whitney U（注意校正族系误差）。":"各组分布位置未见显著差异，可作为 ANOVA 的稳健替代结论。")));
+        } else if(res.mode==="wilcoxon"){
+          var wx=res.wx;
+          h+=resBlock('① 配对数据概况', '<div class="hint">配对两列 <b>'+escXML(res.aCol)+'</b>（前）与 <b>'+escXML(res.bCol)+'</b>（后），有效配对 n = '+wx.n+' 对（零差值已剔除）。</div>');
+          h+=resBlock('② Wilcoxon 符号秩检验',
+            metricCard("W 统计量", fmtNum(wx.W,3), "", "hl") + metricCard("z 值", fmtNum(wx.z,3)) + metricCard("p 值", fmtNum(wx.p,4), "", wx.p<0.05?"hl":"")
+            + formulaCard("Wilcoxon 符号秩", "W = min(W⁺, W⁻)", "W⁺ = "+fmtNum(wx.Wp,1)+"（正秩和），W⁻ = "+fmtNum(wx.Wn,1)+"（负秩和）", fmtNum(wx.W,1)));
+          h+=resBlock('③ 分层解读',
+            finding("fact","检验结果", "W = "+fmtNum(wx.W,3)+"，z = "+fmtNum(wx.z,3)+"，p = "+fmtNum(wx.p,4)+"。配对样本前后"+(wx.p<0.05?"存在显著差异":"无显著差异")+"。")+
+            finding("anl","方向判断", (wx.Wp===wx.Wn?"正、负秩和相同，未显示出明确变化方向。":wx.Wp>wx.Wn?"正秩和更大（W⁺="+fmtNum(wx.Wp,1)+" > W⁻="+fmtNum(wx.Wn,1)+"），多数对象「列 A / 前测 > 列 B / 后测」，呈下降趋势。":"负秩和更大（W⁻="+fmtNum(wx.Wn,1)+" > W⁺="+fmtNum(wx.Wp,1)+"），多数对象「列 B / 后测 > 列 A / 前测」，呈上升趋势。"))+
+            finding("sug","结论", (wx.p<0.05?"配对前后差异显著，可对照配对 t 检验结论（正态满足时 t 更精确）。":"配对前后未见显著差异。"))+
+            finding("warn","方法提示", "零差值已剔除（n 相应减少）；p 值为正态近似。"));
         } else {
-          preHtml='<div class="ws-src">Friedman：配对列 '+pre.cols.map(function(c){return '<b>'+escXML(c)+'</b>';}).join(" / ")
-            +'，共 '+pre.cols.length+' 个处理条件，行数 n = '+pre.n+'。</div>'
-            +'<div class="ws-var-note">Friedman：按行（被试）内部排序赋秩，再比较各处理条件的秩和。</div>';
+          var fr=res.fr;
+          h+=resBlock('① Friedman 检验概况', '<div class="hint">配对列：'+res.cols.map(function(c){ return '<b>'+escXML(c)+'</b>'; }).join(" / ")+'，共 '+fr.k+' 个处理条件，有效被试 n = '+fr.n+'。</div>');
+          var frRows=res.cols.map(function(c, i){
+            return [escXML(c), fmtNum(fr.colRankSum[i],1), fmtNum(fr.colRankSum[i]/fr.n,2)];
+          });
+          h+=resBlock('② 各处理秩和', preTable(["处理条件","秩和 Rⱼ","平均秩"], frRows));
+          h+=resBlock('③ Friedman 检验',
+            metricCard("χ²_F 统计量", fmtNum(fr.chi2,3), "", "hl") + metricCard("自由度 df", fmtNum(fr.df,0)) + metricCard("p 值", fmtNum(fr.p,4), "", fr.p<0.05?"hl":"")
+            + formulaCard("Friedman", "χ²_F = 12/(n·k(k+1)) · ΣRⱼ² − 3n(k+1)", "χ²_F ~ χ²("+fr.df+")", fmtNum(fr.chi2,3)));
+          h+=resBlock('④ 效应量 Kendall\'s W', metricCard("Kendall's W", fmtNum(fr.W,3), "", "hl")
+            +'<div class="hint">W = χ²_F/(n(k−1))；0.1 弱 / 0.3 中 / 0.5 强一致。</div>');
+          h+=resBlock('⑤ 分层解读',
+            finding("fact","检验结果", "χ²_F("+fr.df+") = "+fmtNum(fr.chi2,3)+"，p = "+fmtNum(fr.p,4)+"。各处理条件间"+(fr.p<0.05?"存在显著差异":"无显著差异")+"。")+
+            finding("anl","效应量", "Kendall's W = "+fmtNum(fr.W,3)+"（"+(fr.W>=0.5?"强":fr.W>=0.3?"中":"弱")+"一致性）。")+
+            finding("sug","结论", (fr.p<0.05?"处理条件间分布显著不同，看②秩和定位差异最大的条件。":"各处理条件间未见显著差异。")));
         }
-        return shellBlock(NONPARAM_SPEC, preHtml);
+        return h;
       }
     }
 };
@@ -2720,7 +3100,7 @@ var GROUPS = [
   { t:"关系类", keys:["regress"] },
   { t:"预测类", keys:["ts","sampling","index"] }
 ];
-var SHELL_KEYS = { anova:1, chi2:1, nonparam:1 };
+var SHELL_KEYS = {};
 
 function autoDetect(){
   var keys=Object.keys(ANALYSES), i;
@@ -2800,7 +3180,37 @@ function renderConfig(k){
   Array.prototype.forEach.call(btns, function(b){ b.classList.toggle("sel", b.getAttribute("data-k")===k); });
   $("cfgFields").innerHTML=a.config(state.ds);
   $("cfgFields").querySelectorAll("select, input").forEach(function(el){ el.style.minHeight="40px"; });
+  var typeSel=$("cfg_type");
+  if(typeSel) typeSel.addEventListener("change", function(){ syncConfigFields(k); });
+  syncConfigFields(k);
   $("cfgWrap").classList.remove("hidden");
+}
+
+function setConfigVisible(id, visible){
+  var el=$(id); if(el) el.style.display=visible ? "" : "none";
+}
+
+function syncConfigFields(k){
+  var typeSel=$("cfg_type"), type=typeSel?typeSel.value:"";
+  if(k==="ttest"){
+    setConfigVisible("cfg_indDiv", type==="ind");
+    setConfigVisible("cfg_pairedDiv", type==="paired");
+    setConfigVisible("cfg_oneDiv", type==="one");
+    setConfigVisible("cfg_welchRow", type==="ind");
+  } else if(k==="chi2"){
+    setConfigVisible("cfg_indDiv2", type==="ind");
+    setConfigVisible("cfg_fitDiv", type==="fit");
+    setConfigVisible("cfg_yatesRow", type==="ind");
+    setConfigVisible("cfg_chiEffRow", type==="ind");
+  } else if(k==="nonparam"){
+    setConfigVisible("cfg_mwDiv", type==="mw");
+    setConfigVisible("cfg_kwDiv", type==="kw");
+    setConfigVisible("cfg_wxDiv", type==="wilcoxon");
+    setConfigVisible("cfg_frDiv", type==="friedman");
+    Array.prototype.forEach.call($("cfgFields").querySelectorAll(".np-option"), function(el){
+      el.style.display=(type==="mw"||type==="wilcoxon") ? "" : "none";
+    });
+  }
 }
 
 function readCfg(){
@@ -2818,7 +3228,7 @@ function runAnalysis(){
   if(!state.analysis){ toast("请先在中间栏选择一个分析方法"); return; }
   var a=ANALYSES[state.analysis], cfg=readCfg(), res;
   try{ res=a.run(state.ds, cfg); }
-  catch(e){ toast("计算失败："+e.message); return; }
+  catch(e){ toast("计算失败："+(e&&e.message ? e.message : String(e))); return; }
   var html=a.render(state.ds, cfg, res);
   state.lastHtml=html;
   $("result").classList.remove("ws-empty");
@@ -2948,6 +3358,12 @@ var REPORT_CSS =
 "table.tbl{border-collapse:collapse;width:100%;font-size:13px}"+
 ".tbl th{background:#F1F5F9;color:#14517A;font-weight:700;text-align:left;padding:8px 12px;border-bottom:2px solid #E2E8F0}"+
 ".tbl td{padding:7px 12px;border-bottom:1px solid #EEF2F6;white-space:nowrap}"+
+"table.pre-tbl{border-collapse:collapse;width:100%;font-size:13px}"+
+".pre-tbl th{background:#F1F5F9;color:#14517A;font-weight:700;text-align:left;padding:8px 12px;border-bottom:2px solid #E2E8F0}"+
+".pre-tbl td{padding:7px 12px;border-bottom:1px solid #EEF2F6;white-space:nowrap}"+
+".rpt-ov{background:#F8FAFC;border:1px solid #E2E8F0;border-radius:12px;padding:18px 22px;margin-bottom:16px}"+
+".rpt-ov .rb-title{font-size:15.5px;font-weight:800;color:#14517A;margin-bottom:10px}"+
+".rpt-ov-line{font-size:13.5px;color:#4A5568;margin:6px 0}"+
 "@media print{body{background:#fff}.rpt-head{-webkit-print-color-adjust:exact;print-color-adjust:exact}.res-block{break-inside:avoid}}"+
 "@media (max-width:560px){.rpt-head{padding:24px 18px 22px}.rpt-head h1{font-size:21px}.rpt-body{padding:18px 12px 30px}.metric-grid{grid-template-columns:repeat(2,1fr)}}";
 
@@ -2958,13 +3374,18 @@ function exportReport(){
   var stamp=new Date().toLocaleString("zh-CN", {hour12:false});
   var tmp=document.createElement("div"); tmp.innerHTML=state.lastHtml;
   tmp.querySelectorAll(".pb-copy").forEach(function(b){ b.remove(); });
+  var overview='<div class="rpt-ov"><div class="rb-title">一、概述</div>'
+    +'<p class="rpt-ov-line"><b>数据来源：</b>'+escT(state.srcName)+'（'+escT(state.src)+'）</p>'
+    +'<p class="rpt-ov-line"><b>数据规模：</b>'+state.ds.rows.length+' 行 × '+state.ds.headers.length+' 列</p>'
+    +'<p class="rpt-ov-line"><b>分析方法：</b>'+escT(a?a.name:"分析")+(a&&a.fit?'，'+escT(a.fit):'')+'</p>'
+    +'</div>';
   var html="<!DOCTYPE html><html lang=\"zh-CN\"><head><meta charset=\"UTF-8\">"
     +"<meta name=\"viewport\" content=\"width=device-width, initial-scale=1\">"
     +"<title>"+escT(title)+"</title><style>"+REPORT_CSS+"</style></head><body>"
     +"<div class=\"rpt-head\"><span class=\"rpt-tag\">AI DATA ANALYSIS · 数据分析报告</span>"
     +"<h1>"+escT(title)+"</h1>"
     +"<div class=\"rpt-meta\">数据来源："+escT(state.src)+" · "+state.ds.rows.length+" 行 × "+state.ds.headers.length+" 列<br>生成时间："+escT(stamp)+"</div></div>"
-    +"<div class=\"rpt-body\">"+tmp.innerHTML+"</div>"
+    +"<div class=\"rpt-body\">"+overview+tmp.innerHTML+"</div>"
     +"<div class=\"rpt-foot\">本报告由数据分析工作台（确定性引擎）生成 · 数据仅在本机浏览器内处理</div>"
     +"</body></html>";
   var blob=new Blob([html], {type:"text/html;charset=utf-8"});
@@ -2974,6 +3395,44 @@ function exportReport(){
   document.body.appendChild(aEl); aEl.click(); document.body.removeChild(aEl);
   setTimeout(function(){ URL.revokeObjectURL(url); }, 3000);
   toast("报告已导出为独立 HTML（可打印 / 投影）");
+}
+
+function csvCell(s){
+  if(/[",\n]/.test(s)) return '"'+s.replace(/"/g,'""')+'"';
+  return s;
+}
+function exportCSV(){
+  if(!state.lastHtml){ toast("暂无结果可导出，请先运行一次分析"); return; }
+  var a=ANALYSES[state.analysis];
+  var title=(a?a.name:"分析结果")+" · "+state.srcName;
+  var tmp=document.createElement("div"); tmp.innerHTML=state.lastHtml;
+  var csv="\uFEFF";
+  var metrics=tmp.querySelectorAll(".metric");
+  if(metrics.length){
+    csv+="指标,值\n";
+    metrics.forEach(function(m){
+      var label=m.querySelector(".m-label");
+      var value=m.querySelector(".m-value");
+      if(label && value) csv+=csvCell(label.innerText.trim())+","+csvCell(value.innerText.trim())+"\n";
+    });
+  }
+  var tables=tmp.querySelectorAll("table.pre-tbl");
+  if(tables.length && csv.length>1) csv+="\n";
+  tables.forEach(function(tbl){
+    tbl.querySelectorAll("tr").forEach(function(tr){
+      var cells=tr.querySelectorAll("th,td");
+      var line=Array.prototype.map.call(cells, function(c){ return csvCell(c.innerText.trim()); }).join(",");
+      csv+=line+"\n";
+    });
+  });
+  if(csv.length<=1){ toast("当前结果无可导出的数据"); return; }
+  var blob=new Blob([csv], {type:"text/csv;charset=utf-8"});
+  var url=URL.createObjectURL(blob);
+  var aEl=document.createElement("a");
+  aEl.href=url; aEl.download=title.replace(/[\\\/:*?"<>|]/g,"_")+".csv";
+  document.body.appendChild(aEl); aEl.click(); document.body.removeChild(aEl);
+  setTimeout(function(){ URL.revokeObjectURL(url); }, 3000);
+  toast("结果数据已导出为 CSV（可用 Excel 打开编辑）");
 }
 
 /* ---------- 事件绑定与初始化 ---------- */
@@ -3021,6 +3480,7 @@ function init(){
   });
   $("btnRun").addEventListener("click", runAnalysis);
   $("btnExport").addEventListener("click", exportReport);
+  $("btnCSV").addEventListener("click", exportCSV);
   // 初始空态
   renderLeft(); renderAnalysis();
 }
