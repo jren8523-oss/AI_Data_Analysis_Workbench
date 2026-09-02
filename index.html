@@ -100,6 +100,10 @@ button{font-family:inherit;cursor:pointer}
 #result.no-chart .chart-box{display:none}
 #result.no-formula .formula-card{display:none}
 #result.no-finding .finding{display:none}
+.report-head{padding:13px 16px;background:var(--brand-light);border:1px solid var(--brand);border-left:4px solid var(--brand);border-radius:6px;margin-bottom:14px}
+.report-head .rh-method{font-size:15px;font-weight:700;color:var(--brand-dark)}
+.report-head .rh-sum{font-size:13px;color:var(--text);margin-top:7px;line-height:1.7}
+.report-head .rh-tag{font-size:11px;font-weight:700;color:var(--brand);background:#fff;border:1px solid var(--brand);border-radius:3px;padding:1px 7px;margin-right:8px;white-space:nowrap}
 
 /* ---------- 弹窗 ---------- */
 .modal-mask{position:fixed;inset:0;background:rgba(20,26,33,.42);z-index:50;display:flex;align-items:center;justify-content:center;padding:20px}
@@ -190,14 +194,6 @@ button{font-family:inherit;cursor:pointer}
 .f-anl{background:#FAF5EA}.f-anl .f-badge{background:#C88A10;color:#fff}
 .f-sug{background:#EDF5F0}.f-sug .f-badge{background:var(--ok);color:#fff}
 .f-warn{background:#FAEEEC}.f-warn .f-badge{background:var(--bad);color:#fff}
-.prompt-box{background:#12293E;border-radius:3px;padding:16px 18px;margin:10px 0;color:#E8F1F8}
-.prompt-box .pb-label{font-size:11.5px;font-weight:700;color:var(--accent);letter-spacing:1.5px;margin-bottom:8px;display:flex;align-items:center;gap:7px}
-.prompt-box .pb-label svg{width:15px;height:15px}
-.prompt-box .pb-text{font-size:13px;line-height:1.8;white-space:pre-wrap;font-family:"Consolas","Courier New",monospace}
-.prompt-box .pb-copy{margin-top:10px;font-size:12px;background:rgba(255,255,255,.1);color:#fff;
-  border:1px solid rgba(255,255,255,.28);border-radius:2px;padding:6px 14px;min-height:36px;font-weight:600}
-.prompt-box .pb-copy:hover{background:rgba(255,255,255,.2)}
-.prompt-box .pb-copied{color:#7FD8A8;font-size:12px;margin-left:10px}
 .qa-note{font-size:12px;color:var(--gray);margin-top:10px;display:flex;gap:8px;align-items:center}
 .qa-note svg{width:15px;height:15px;color:var(--ok);flex:0 0 15px}
 .warn-box{background:#FAEEEC;border:1px solid #E9C2BA;border-radius:2px;padding:12px 16px;
@@ -1234,10 +1230,24 @@ function svgGroupedBar(labels, series, opts){
 }
 
 /* =====================================================================
- * 10. 报告块构造器（对齐参考 PPT 风格：编号块 / 公式卡 / 结论 / Prompt）
+ * 10. 报告块构造器（编号块 / 公式卡 / 结论）
  * ===================================================================== */
 function resBlock(title, innerHtml){
   return '<div class="res-block"><div class="rb-title">'+title+'</div>'+innerHtml+'</div>';
+}
+/* 从渲染结果里抽一句结论做报告头摘要：优先「结论」，退回「洞察」，再退回「描述」 */
+function extractSummary(html){
+  var tmp=document.createElement("div");
+  tmp.innerHTML=html;
+  var f=tmp.querySelector(".finding.f-sug")||tmp.querySelector(".finding.f-anl")||tmp.querySelector(".finding.f-fact");
+  if(!f) return "";
+  var b=f.querySelector(".f-body");
+  return b? b.textContent.replace(/\s+/g," ").trim() : "";
+}
+function reportHead(methodName, summary){
+  return '<div class="report-head"><div class="rh-method">'+escXML(methodName)+'</div>'
+    +(summary?'<div class="rh-sum"><span class="rh-tag">结论</span>'+escXML(summary)+'</div>':'')
+    +'</div>';
 }
 function metricCard(label, value, unit, cls){
   cls=cls||"";
@@ -1254,29 +1264,6 @@ function formulaCard(label, expr, sub, res){
 function finding(level, title, text){
   return '<div class="finding f-'+level+'"><span class="f-badge">'+({fact:"描述",anl:"洞察",sug:"结论",warn:"风险"}[level]||level)+'</span>'
     +'<div class="f-body"><span class="f-title">'+escXML(title)+'</span>　'+escXML(text)+'</div></div>';
-}
-function promptBlock(promptText, note){
-  return '<div class="prompt-box"><div class="pb-label">'
-    +'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>'
-    +'推荐 Prompt · 学生可复制此提示词，课后用真实 AI 复现同款分析</div>'
-    +'<div class="pb-text">'+escXML(promptText)+'</div>'
-    +(note?'<div class="pb-note" style="font-size:11.5px;color:#9FB6CC;margin-top:8px">'+escXML(note)+'</div>':'')
-    +'<button class="pb-copy" onclick="copyPrompt(this)">复制 Prompt</button></div>';
-}
-function copyPrompt(btn){
-  var box=btn.closest(".prompt-box"), txt=box.querySelector(".pb-text").innerText;
-  if(navigator.clipboard && navigator.clipboard.writeText){
-    navigator.clipboard.writeText(txt).then(function(){ flashCopied(btn); }, function(){ fallbackCopy(txt, btn); });
-  } else fallbackCopy(txt, btn);
-}
-function fallbackCopy(txt, btn){
-  var ta=document.createElement("textarea"); ta.value=txt; document.body.appendChild(ta);
-  ta.select(); try{ document.execCommand("copy"); flashCopied(btn); }catch(e){}
-  document.body.removeChild(ta);
-}
-function flashCopied(btn){
-  var old=btn.textContent; btn.textContent="已复制 ✓";
-  setTimeout(function(){ btn.textContent=old; }, 1600);
 }
 function qaNote(text){
   return '<div class="qa-note"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>'+escXML(text)+'</div>';
@@ -1318,7 +1305,7 @@ function customSel(items, sel, id){
  * 11.5 壳子渲染器 —— 能力已完成 UI 与逻辑设计、数值算法待接入时，
  *      展示「设计规格 + 当前数据体检」，规格确认后再填算法，避免返工。
  *      spec = { name, metrics[], formulas[], charts[], findings[],
- *               todos[], notes[], prompt }
+ *               todos[], notes[] }
  * ===================================================================== */
 function specList(items){
   if(!items || !items.length) return '<div class="ws-empty">（无）</div>';
@@ -1363,7 +1350,6 @@ function shellBlock(spec, preHtml){
   if(spec.findings && spec.findings.length) h+=resBlock('⑤ 将给出的分层解读', specList(spec.findings));
   h+=resBlock('⑥ 待接入的算法（'+(spec.todos?spec.todos.length:0)+' 项）', todoList(spec.todos));
   if(spec.notes && spec.notes.length) h+=resBlock('⑦ 设计约定与前提假设', specList(spec.notes));
-  h+=resBlock('⑧ 推荐 Prompt 模板（课后用 AI 复现）', promptBlock(spec.prompt, "算法接入后，此处会替换为带真实统计量的 Prompt。"));
   return h;
 }
 /* 壳子 run 的统一返回：标记 __shell，附带数据体检信息 */
@@ -1438,9 +1424,6 @@ var ANALYSES = {
         finding("anl","离散程度", "标准差 "+fmtNum(st.std,2)+"，变异系数 "+fmtPct(st.cv,2)+"。CV "+(st.cv<0.15?"< 15%，数据波动小、较稳定。":st.cv<0.35?"介于 15%~35%，波动中等。":"≥ 35%，波动较大，需关注极端值影响。"))+
         finding("anl","分布形态", "峰度 "+fmtNum(st.kurt,2)+"，"+(st.kurt>0?"比正态分布更尖陡（厚尾），极端值出现概率更高。":st.kurt<0?"比正态分布更平坦（薄尾），数据更分散。":"接近正态分布。"))+
         finding("sug","使用建议", "报告均值时请同时给出标准差；若分布明显右偏，中位数比均值更适合代表一般水平。"));
-      h+=resBlock('⑥ 推荐 Prompt（课后用 AI 复现）', promptBlock(
-        "我有一列数据："+col+"，共 "+st.n+" 个观测值。\n请用 Python（pandas/numpy/scipy）计算：均值、中位数、众数、样本标准差（ddof=1）、方差、变异系数、四分位数、偏度、峰度，\n并绘制直方图和箱线图，最后用 100 字以内解释分布形态。\n数据："+vals.slice(0,8).join(", ")+" …",
-        "工作台已按教材口径（无偏方差、Excel 分位数法）给出标准答案，可与 AI 输出互相对照。"));
       return h;
     }
   },
@@ -1508,9 +1491,6 @@ var ANALYSES = {
         finding("anl","峰值定位", "最高值出现在 "+res.labels[pi]+"（"+fmtNum(peak,0)+"），可结合业务事件解释该高点。")+
         finding("sug","结构建议", "对比饼图看占比结构：占比最大序列是总量的主要贡献者，建议优先保障其投入产出。"),
         '三种分析思维提示：对比（横向比序列）、趋势（纵向看时间）、结构（饼图看占比），一次分析同时用上。');
-      h+=resBlock('⑥ 推荐 Prompt（课后用 AI 复现）', promptBlock(
-        "我有按月统计的多渠道访客数据（"+res.series.map(function(s){return s.name;}).join("、")+"），共 "+res.labels.length+" 期。\n请绘制：① 分组柱状图对比；② 多系列折线图看趋势；③ 饼图看各渠道合计占比；④ 计算"+res.series[0].name+"的环比增速表。\n最后用不超过 150 字总结：谁在增长、峰值在哪、结构如何变化。\n数据："+res.labels.slice(0,5).map(function(l,i){return l+"→"+res.series[0].values[i];}).join("，")+" …",
-        "工作台的柱/折/饼三图与环比表即标准答案，可与 AI 输出互相对照。"));
       return h;
     }
   },
@@ -1553,9 +1533,6 @@ var ANALYSES = {
         finding("fact","问题构成", "共发现 "+res.issues.length+" 项数据质量问题，其中缺失/文本数字/异常值/重复/脏名称各类均有专门处理流程。")+
         finding("anl","风险提示", "脏数据不处理就分析，会直接污染均值、方差与回归系数——尤其异常值对均值影响最大。")+
         finding("sug","清洗闭环", "清洗后务必重新做一次描述统计对比：均值、标准差在清洗前后的变化幅度，能说明脏数据的影响程度。"));
-      h+=resBlock('⑤ 推荐 Prompt（课后用 AI 复现）', promptBlock(
-        "我有一份数据表（"+ds.headers.length+" 列，"+res.nRows+" 行），列名："+ds.headers.join("、")+"。\n请用 pandas 完成数据清洗诊断并输出报告：① 缺失值统计；② 文本型数字（如 \"1,250.5\"、\"¥3200\"）检测与转换；③ IQR 异常值检测；④ 完全重复行；⑤ 分类字段首尾空格。\n对每个问题给出处理代码与建议。",
-        "工作台的清洗诊断即标准答案，重点看「处理建议」列——清洗流程在真实项目中占 60% 以上时间。"));
       return h;
     }
   },
@@ -1621,9 +1598,6 @@ var ANALYSES = {
         finding("anl","精度评价", "区间半宽（允许误差）为 "+fmtNum(mi.margin,2)+"，"+(mi.margin/mi.mean<0.1?"相对均值约 "+fmtPct(mi.margin/mi.mean,1)+"，估计精度较高。":"相对均值约 "+fmtPct(mi.margin/mi.mean,1)+"，若需更精确可增大样本量。"))+
         finding("anl","正确解读", "「95% 置信」指重复抽样 100 次约 95 次区间覆盖真值——不是「真值有 95% 概率落在区间内」，这是经典易错点。")+
         (res.pi? finding("sug","比例决策", "超过 "+fmtNum(res.thr,0)+" 的占比估计为 "+fmtPct(res.pi.p,1)+"，区间 ["+fmtPct(res.pi.lower,1)+", "+fmtPct(res.pi.upper,1)+"]，可作为业务达标判断依据。") : ""));
-      h+=resBlock('⑥ 推荐 Prompt（课后用 AI 复现）', promptBlock(
-        "我有一份样本数据（"+res.col+"，n="+mi.n+"）："+res.vals.slice(0,6).join(", ")+" …\n请用 Python（scipy.stats 或手写公式）计算：① 总体均值的 95% 置信区间（大样本 z=1.96）；② 若以阈值 "+ (res.thr!==null?res.thr:80) +" 划分，估计「大于阈值」的比例及其 95% 置信区间，并做 np≥5 检验；③ 若要控制误差在 5 以内，所需样本量。给出公式、代入过程与结论。",
-        "工作台已给出标准答案（z=1.96、无偏标准差），学生可用它校验自己的 AI 输出。"));
       return h;
     }
   },
@@ -1684,9 +1658,6 @@ var ANALYSES = {
         finding("anl","驱动拆解", "产量（拉氏）变化带来 "+fmtSigned(ia.eQ,1)+"（"+fmtPct(ia.kqL-1,1)+"），价格（帕氏）变化带来 "+fmtSigned(ia.eP,1)+"（"+fmtPct(ia.kpP-1,1)+"）。"+(Math.abs(ia.eQ)>Math.abs(ia.eP)?"产量的影响更大，是总变动的主因。":"价格的影响更大，是总变动的主因。"))+
         finding("anl","方法要点", "拉氏指数把同度量因素固定在基期（考察「纯数量」变化），帕氏指数固定在报告期（考察「纯价格」变化）；教材以拉氏产量 × 帕氏价格构成指数体系。")+
         finding("sug","决策建议", (ia.kpP>1?"成本上涨主要来自价格因素，可关注采购议价与供应链替代方案。":"成本下降主要来自价格因素，可评估是否可持续。")+(ia.kqL>1?"产量扩张带动总量上升，注意产能与库存的匹配。":"产量收缩，需关注市场份额变化。")));
-      h+=resBlock('⑤ 推荐 Prompt（课后用 AI 复现）', promptBlock(
-        "我有多产品的产量与成本数据：q0（基期产量）、q1（报告期产量）、p0（基期单位成本）、p1（报告期单位成本）。\n请计算：① 各产品产量、成本的个体指数；② 拉氏产量指数、帕氏价格指数、总成本指数；③ 因素分析：产量变动与价格变动分别对总成本的影响额；④ 验证指数体系 K总 = Kq×Kp。\n给出公式、代入过程与结论。",
-        "这是教材第 6 章核心——指数体系自洽（拉氏×帕氏=总指数）是 QA 必查项，工作台已保证。"));
       return h;
     }
   },
@@ -1742,9 +1713,6 @@ var ANALYSES = {
         finding("anl","回归解释", "x 每增加 1 单位，y 平均"+(lg.b>=0?"增加":"减少")+" "+fmtNum(Math.abs(lg.b),3)+" 单位；R²="+fmtNum(lg.r2,4)+"，模型解释了 y 变异的 "+fmtPct(lg.r2,1)+"。")+
         finding("warn","相关 ≠ 因果", "即使相关性很强，也不能证明 x 导致 y——可能存在第三个变量（混杂因素）或反向因果。本工作台只报告相关与预测，不宣示因果。")+
         finding("sug","使用边界", "预测值只适合在样本范围内做内插使用；用于决策时请结合业务知识，并注意外推风险。"));
-      h+=resBlock('⑤ 推荐 Prompt（课后用 AI 复现）', promptBlock(
-        "我有两列数据：x（"+res.xCol+"）、y（"+res.yCol+"），共 "+lg.n+" 个样本。\n请用 Python（numpy/scipy 或 statsmodels）计算：① 皮尔逊相关系数并分级；② 一元线性回归的 a、b、R²；③ 预测 x₀="+fmtNum(res.x0,2)+" 时的 ŷ；④ 绘制散点图+回归线+预测点。\n最后用 100 字解释结果，并说明为什么「相关不等于因果」。\n数据示例："+res.xs.slice(0,5).map(function(v,i){return "("+v+","+res.ys[i]+")";}).join(" ")+" …",
-        "工作台的 r/R²/预测即为标准答案；「相关≠因果」警示块是教材强调的要点，务必让学生记住。"));
       return h;
     }
   },
@@ -1822,9 +1790,6 @@ var ANALYSES = {
         finding("anl","趋势强度", "趋势方程斜率 b="+fmtNum(ta.trend.b,3)+"，每期平均增加 "+fmtNum(ta.trend.b,2)+"；R²="+fmtNum(ta.trend.r2,3)+"，线性趋势"+(ta.trend.r2>=0.85?"拟合良好，适合短期外推预测。":"拟合一般，外推需谨慎。"))+
         finding("warn","外推预警", "预测基于线性趋势外推：未来 "+fcN+" 期预测值 "+fmtNum(fcFirst,2)+" 只是趋势延续的假设值，不反映周期/政策/突发事件影响，仅适合短期参考。")+
         finding("sug","使用建议", "把预测值与下期实际值对比，持续更新趋势方程；若出现拐点，应重新拟合或改用曲线模型。"));
-      h+=resBlock('⑥ 推荐 Prompt（课后用 AI 复现）', promptBlock(
-        "我有时间序列数据（"+res.yCol+"，"+n+" 期）："+res.labels.slice(0,6).map(function(l,i){return l+"="+fmtNum(res.ys[i],1);}).join("，")+" …\n请用 Python 计算：① 平均发展水平与平均增长量；② 环比/定基发展速度与增长速度表；③ 几何平均发展速度；④ 用最小二乘法拟合线性趋势方程并预测下一期。\n给出公式、代入过程与结论，并提示外推风险。",
-        "工作台的速度表/趋势方程/预测即标准答案；外推预警是教材强调的方法边界。"));
       return h;
     }
   },
@@ -1888,9 +1853,6 @@ var ANALYSES = {
         finding("anl","结构分布", "前 3 大类别合计占比 "+top3+"，"+(res.gs.length>3?"集中度较高，资源应聚焦头部。":"分布较均匀，风险分散但缺乏规模效应。"))+
         (res.pv? finding("anl","交叉发现", "透视表观察 "+res.catCol+" 与 "+res.grpCol+" 的联合结构：若某格显著偏高，说明该组合存在协同或季节因素；若各列比例稳定，则两维度近似独立。") : "")+
         finding("sug","使用建议", "汇总排序回答「谁大谁小」，占比饼图回答「结构如何」，透视表回答「两个维度如何交叉」——三层递进是描述性分析的完整路径。"));
-      h+=resBlock('⑤ 推荐 Prompt（课后用 AI 复现）', promptBlock(
-        "我有一份数据表（"+res.catCol+"、"+res.valCol+(res.pv?("、"+res.grpCol):"")+"），共 "+ds.rows.length+" 行。\n请用 pandas：① 按 "+res.catCol+" 分组对 "+res.valCol+" 做分类汇总（合计/均值/最值/笔数）并按合计降序；② 绘制柱状图与占比饼图；③ "+(res.pv?("生成数据透视表（行="+res.catCol+"，列="+res.grpCol+"，值="+res.valCol+" 求和）"):"若还有一列类别则生成数据透视表")+"；④ 用 100 字总结结构特征。",
-        "工作台的汇总表/柱饼图/透视表即标准答案；透视表对应教材第 9 章可视化的数据组织。"));
       return h;
     }
   },
@@ -2104,18 +2066,6 @@ var ANALYSES = {
           finding("sug", "报告建议",
             "SPSS/教材要求 t 检验报告同时给出 t(df)=?, p, 均值差 ± SE, 95% CI, 效应量 d。本工作台全部给出，可在论文/作业中直接引用。")
         );
-        // ⑤ 推荐 Prompt
-        var dStr;
-        if(res.kind==="ind"){
-          dStr = "两组数据：组 A="+res.groupA+"（n="+res.n1+"，x̄="+fmtNum(res.m1,3)+"，s="+fmtNum(res.s1,3)+"）；组 B="+res.groupB+"（n="+res.n2+"，x̄="+fmtNum(res.m2,3)+"，s="+fmtNum(res.s2,3)+"）";
-        } else if(res.kind==="paired"){
-          dStr = "配对数据：列 A="+res.aCol+"，列 B="+res.bCol+"，n="+res.n+" 对，差值 d̄="+fmtNum(res.diff,3)+"，s_d="+fmtNum(res.sd,3);
-        } else {
-          dStr = "单样本：列="+res.yCol+"，n="+res.n+"，x̄="+fmtNum(res.mean,3)+"，s="+fmtNum(res.std,3)+"，μ₀="+fmtNum(res.mu0,3);
-        }
-        h+=resBlock('⑤ 推荐 Prompt（课后用 AI 复现）', promptBlock(
-          "我有一份数据："+dStr+"。\n请用 scipy.stats 跑"+kindLabel+"（"+altLabel+"，α="+fmtNum(1-res.conf,2)+"，"+(res.kind==="ind"?(res.welch?"Welch 版（equal_var=False）":"Student 等方差版（equal_var=True）"):"标准版")+"），输出 t、df、p 值（双尾）、均值差、标准误 SE、95% CI、Cohen's d 效应量；用 100 字以内解释结论。",
-          "工作台即标准答案；Welch 为 SPSS 与 R 默认。"));
         return h;
       }
     },
@@ -2579,8 +2529,7 @@ var ANOVA_SPEC = {
     {k:"组数要求", v:"k ≥ 2 即可计算，但 k = 2 时 F = t²，教材建议直接用 t 检验", note:"壳子已按组数给出提示"},
     {k:"缺失处理", v:"成对剔除（某行因变量或分组为空则整行跳过）", note:"与 ttest 现有逻辑一致"},
     {k:"LLM 不心算", v:"全部统计量由 JS 确定性计算，并与 Python 引擎 engine/ 口径对齐", note:"铁律，与既有 9 项能力一致"}
-  ],
-  prompt:"我有一份数据：一个数值型因变量 + 一个分组因子（k 组）。\n请用 scipy.stats 做单因素方差分析：输出方差分析表（SS / df / MS / F / p）、Levene 方差齐性检验、效应量 η² 与 ω²；\n若整体显著，再做 Tukey HSD 多重比较并输出两两比较矩阵；\n最后用 150 字以内解释结论，并说明前提假设（正态性、方差齐性）是否满足。\n（附数据，或各组 n / 均值 / 标准差）"
+  ]
 };
 
 var CHI2_SPEC = {
@@ -2626,8 +2575,7 @@ var CHI2_SPEC = {
     {k:"适用条件", v:"期望频数 ≥5 的格子不少于 80%，且没有 E < 1 的格子", note:"不满足时提示合并类别或改用 Fisher"},
     {k:"Yates 校正", v:"仅 2×2 表启用；是否启用在参数里可选（自动 / 始终 / 从不）", note:"保守做法默认 2×2 自动启用"},
     {k:"数据类型", v:"要求分类（定性）列；数值列若取值极少（如 1/2/3 编码）需由用户手动指定为分类", note:"detect 目前只认文本列"}
-  ],
-  prompt:"我有一份两个分类变量的列联表数据。\n请用 scipy.stats.chi2_contingency 做独立性检验：输出列联表（观测频数）、期望频数表、χ²、df、p 值、Cramér's V 效应量、标准化残差；\n检查是否有期望频数 < 5 的格子（超过 20% 需提示改用 Fisher 精确检验）；\n最后用 150 字以内解释两变量是否相关及相关模式。\n（附列联表数据）"
+  ]
 };
 
 var NONPARAM_SPEC = {
@@ -2673,8 +2621,7 @@ var NONPARAM_SPEC = {
     {k:"并列秩处理", v:"并列观测取平均秩；并列较多时对统计量做校正", note:"影响方差计算，必须实现"},
     {k:"精确 vs 近似", v:"n 较小用精确分布，n 较大（各组 ≥10~20）用正态近似", note:"参数里可选自动 / 强制精确 / 强制近似"},
     {k:"LLM 不心算", v:"秩次与统计量全部由 JS 确定性计算，与 Python 引擎 engine/ 对齐", note:"铁律"}
-  ],
-  prompt:"我有一份数据（不满足正态分布，或样本量较小）。\n请用 scipy.stats 做非参数检验：根据场景选 Mann-Whitney U（两独立样本）/ Kruskal-Wallis H（多独立样本）/ Wilcoxon 符号秩（两配对）/ Friedman（多配对）；\n输出检验统计量、z 值、p 值、各组秩和与中位数、效应量；\n最后用 150 字以内解释结论，并说明为何用非参数方法而非 t 检验 / ANOVA。\n（附数据）"
+  ]
 };
 
 
@@ -3232,7 +3179,7 @@ function runAnalysis(){
   var html=a.render(state.ds, cfg, res);
   state.lastHtml=html;
   $("result").classList.remove("ws-empty");
-  $("result").innerHTML=html;
+  $("result").innerHTML=reportHead(a.name, extractSummary(html))+html;
   $("result").classList.toggle("no-metric", !$("optMetric").checked);
   $("result").classList.toggle("no-chart", !$("optChart").checked);
   $("result").classList.toggle("no-formula", !$("optFormula").checked);
@@ -3348,10 +3295,6 @@ var REPORT_CSS =
 ".f-anl{background:#FFF7E6}.f-anl .f-badge{background:#DD8B00}"+
 ".f-sug{background:#EAF6F0}.f-sug .f-badge{background:#1E8E5A}"+
 ".f-warn{background:#FBEEEC}.f-warn .f-badge{background:#C0392B}"+
-".prompt-box{background:#0F2B45;border-radius:11px;padding:16px 18px;margin:10px 0;color:#E8F1F8}"+
-".pb-label{font-size:11.5px;font-weight:800;color:#D89A1E;letter-spacing:1.5px;margin-bottom:8px}"+
-".pb-text{font-size:13px;line-height:1.8;white-space:pre-wrap;font-family:'Consolas','Courier New',monospace}"+
-".pb-note{font-size:11.5px;color:#9FB6CC;margin-top:8px}"+
 ".qa-note{font-size:12px;color:#8A94A0;margin-top:10px;display:flex;gap:8px;align-items:center}"+
 ".warn-box{background:#FBEEEC;border:1px solid #F2C4BD;border-radius:9px;padding:12px 16px;margin:10px 0;font-size:13px;display:flex;gap:10px}"+
 ".table-wrap{overflow-x:auto;margin:12px 0 14px;border:1px solid #E2E8F0;border-radius:9px}"+
@@ -3373,7 +3316,6 @@ function exportReport(){
   var title=(a?a.name:"分析结果")+" · "+state.srcName;
   var stamp=new Date().toLocaleString("zh-CN", {hour12:false});
   var tmp=document.createElement("div"); tmp.innerHTML=state.lastHtml;
-  tmp.querySelectorAll(".pb-copy").forEach(function(b){ b.remove(); });
   var overview='<div class="rpt-ov"><div class="rb-title">一、概述</div>'
     +'<p class="rpt-ov-line"><b>数据来源：</b>'+escT(state.srcName)+'（'+escT(state.src)+'）</p>'
     +'<p class="rpt-ov-line"><b>数据规模：</b>'+state.ds.rows.length+' 行 × '+state.ds.headers.length+' 列</p>'
