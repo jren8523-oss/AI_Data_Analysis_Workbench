@@ -41,12 +41,26 @@ let fail = 0;
 const ok = (cond, msg) => { if (cond) console.log('  PASS', msg); else { console.error('  FAIL', msg); fail++; } };
 
 console.log('== 1. 分析类型完整性 ==');
-ok(Object.keys(AN).length === 12, 'ANALYSES 12 项均已接入计算');
+ok(Object.keys(AN).length === 13, 'ANALYSES 13 项均已接入计算');
 Object.keys(AN).forEach(k => {
   const a = AN[k];
   ok(typeof a.detect === 'function' && typeof a.config === 'function' &&
      typeof a.run === 'function' && typeof a.render === 'function', k + ' 四件套齐全');
 });
+
+console.log('== 1b. 相关分析（corr，真实 iris 数据）==');
+const corrA = AN.corr;
+const irisDs = ctx.parseCSV(SM.iris.csv);
+ok(corrA.detect(irisDs), 'corr detect 命中 iris（4 列数值）');
+const corrCfg = { cols: ['0', '1', '2', '3'] };
+const corrRes = corrA.run(irisDs, corrCfg);
+ok(corrRes.names.length === 4, 'corr 矩阵 4 列：' + corrRes.names.join(','));
+ok(Math.abs(corrRes.pMat[2][3] - 0.9629) < 1e-3, 'corr petal_length×petal_width r=' + corrRes.pMat[2][3].toFixed(4) + ' (公认 0.9629)');
+ok(Math.abs(corrRes.pMat[0][0] - 1) < 1e-9, 'corr 对角线 = 1');
+ok(corrRes.pMat[1][2] < 0, 'corr sepal_width×petal_length 负相关 r=' + corrRes.pMat[1][2].toFixed(4));
+ok(corrRes.sMat[2][3] > 0.9, 'corr Spearman petal_length×petal_width ρ=' + corrRes.sMat[2][3].toFixed(4));
+const corrOut = corrA.render(irisDs, corrCfg, corrRes);
+ok(corrOut.includes('相关矩阵') && corrOut.includes('Spearman'), 'corr render 含相关矩阵与 Spearman');
 
 console.log('== 1.5 推断统计真实计算（ANOVA / 卡方 / 非参数）==');
 // task09：数值列=访客数，分类列=日期、商品类目

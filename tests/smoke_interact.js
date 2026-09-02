@@ -41,7 +41,7 @@ const ok = (cond, msg) => { if (cond) console.log('  PASS', msg); else { console
 console.log('== 1. 当前工作台结构 ==');
 ok(html.includes('class="topbar"') && html.includes('class="workbench"'), '顶栏 + 三栏工作台存在');
 ok((html.match(/<section class="col">/g) || []).length === 3 && html.includes('id="anGroups"') && html.includes('id="result"'), '数据、分析、结果三区存在');
-ok(html.includes('雏形 v0.1') && !html.includes('class="appbar"'), '测试的是当前 v0.1 页面，而非旧 v2 平台壳');
+ok(html.includes('教学版') && !html.includes('class="appbar"'), '测试的是当前工作台页面，而非旧 v2 平台壳');
 
 console.log('== 2. 响应式与配置切换 ==');
 ok(/@media \(max-width:768px\)[\s\S]*?\.workbench\{display:block/.test(html), '手机端三栏纵向堆叠');

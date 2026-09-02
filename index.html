@@ -367,6 +367,51 @@ function corrStrength(r){
   if(a>=0.3) return "低度相关";
   return "弱相关（几乎不相关）";
 }
+/* 成对剔除空值，取两列数值数组 */
+function pairValues(rows, ci, cj){
+  var xs=[], ys=[], i;
+  for(i=0;i<rows.length;i++){
+    var x=parseNum(rows[i][ci]), y=parseNum(rows[i][cj]);
+    if(x==null||y==null||isNaN(x)||isNaN(y)) continue;
+    xs.push(x); ys.push(y);
+  }
+  return {xs:xs, ys:ys};
+}
+/* 皮尔逊相关系数（输入等长、已清洗的数值数组） */
+function pearson(xs, ys){
+  var n=xs.length;
+  if(n<3) return null;
+  var mx=mean(xs), my=mean(ys), sxx=0, syy=0, sxy=0, i;
+  for(i=0;i<n;i++){ var dx=xs[i]-mx, dy=ys[i]-my; sxx+=dx*dx; syy+=dy*dy; sxy+=dx*dy; }
+  var den=Math.sqrt(sxx*syy);
+  return den===0? null : sxy/den;
+}
+/* 斯皮尔曼等级相关系数（秩相关，对异常值/非正态更稳健） */
+function spearman(xs, ys){
+  var rx=rankAll(xs), ry=rankAll(ys);
+  return pearson(rx, ry);
+}
+/* 相关矩阵表格（带相关性色阶） */
+function corrTableHtml(names, mat){
+  var h='<table class="pre-tbl"><tr><th></th>';
+  names.forEach(function(n){ h+='<th style="text-align:center">'+escXML(n)+'</th>'; });
+  h+='</tr>';
+  for(var i=0;i<names.length;i++){
+    h+='<tr><th>'+escXML(names[i])+'</th>';
+    for(var j=0;j<names.length;j++){
+      var r=mat[i][j];
+      var bg = r==null? '' : ('background:'+corrColor(r));
+      h+='<td class="num" style="'+bg+';text-align:center">'+(r==null?'·':fmtNum(r,2))+'</td>';
+    }
+    h+='</tr>';
+  }
+  h+='</table>';
+  return h;
+}
+function corrColor(r){
+  var a=0.08+0.72*Math.abs(r);
+  return r>=0? 'rgba(29,111,163,'+a.toFixed(3)+')' : 'rgba(210,60,50,'+a.toFixed(3)+')';
+}
 
 /* =====================================================================
  * 4. 时间序列分析（发展水平/增长量/环比定基速度/几何平均/趋势方程/预测）
@@ -1661,6 +1706,72 @@ var ANALYSES = {
     }
   },
 
+  corr: {
+    name:"相关分析", short:"多列数值 · 相关矩阵 + Spearman",
+    desc:"计算多列数值两两的皮尔逊相关系数（Pearson r）与斯皮尔曼等级相关系数（Spearman ρ），输出带色阶的相关矩阵，识别最强关联，并给出相关≠因果警示。",
+    fit:"适合 ≥2 列数值型数据（如鸢尾花的 4 个形态指标）",
+    icon:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="8" cy="8" r="2"/><circle cx="16" cy="6" r="2"/><circle cx="7" cy="16" r="2"/><circle cx="15" cy="15" r="2"/><circle cx="19" cy="11" r="2"/><circle cx="12" cy="12" r="2"/></svg>',
+    detect:function(ds){
+      var nums=colOptions(ds).filter(function(o){return o.num;});
+      return nums.length>=2;
+    },
+    config:function(ds){
+      var c=colOptions(ds);
+      var numIdx=c.filter(function(o){return o.num;}).slice(0,6).map(function(o){return o.idx;});
+      return '<div class="cfg-row"><label>数值列（可多选）</label>'+multiSelHtml(c, numIdx, "cfg_cols", 6)+'</div>'
+        +'<div class="hint">按住 Ctrl 多选，最多 6 列。相关系数在 −1（完全负相关）到 +1（完全正相关）之间，0 表示无线性相关。</div>';
+    },
+    run:function(ds, cfg){
+      var idxs=[].concat(cfg.cols||[]).map(function(x){return parseInt(x,10);});
+      if(!idxs.length){
+        idxs=colOptions(ds).filter(function(o){return o.num;}).slice(0,6).map(function(o){return o.idx;});
+      }
+      var names=idxs.map(function(k){return ds.headers[k];});
+      var k=idxs.length, i, j;
+      var pMat=[], sMat=[];
+      for(i=0;i<k;i++){
+        pMat[i]=[]; sMat[i]=[];
+        for(j=0;j<k;j++){
+          var pv=pairValues(ds.rows, idxs[i], idxs[j]);
+          pMat[i][j]=pearson(pv.xs, pv.ys);
+          sMat[i][j]=spearman(pv.xs, pv.ys);
+        }
+      }
+      var best=[];
+      for(i=0;i<k;i++){
+        for(j=i+1;j<k;j++){
+          if(pMat[i][j]==null) continue;
+          best.push({i:i, j:j, r:pMat[i][j], rho:sMat[i][j]});
+        }
+      }
+      best.sort(function(a,b){ return Math.abs(b.r)-Math.abs(a.r); });
+      return {names:names, pMat:pMat, sMat:sMat, best:best.slice(0,3)};
+    },
+    render:function(ds, cfg, res){
+      var h="", i;
+      h+=resBlock('① 皮尔逊相关矩阵（Pearson r）',
+        corrTableHtml(res.names, res.pMat) +
+        '<div class="hint">颜色越深 |r| 越大、线性关系越强；蓝色 = 正相关，红色 = 负相关。</div>');
+      h+=resBlock('② 斯皮尔曼等级相关矩阵（Spearman ρ）',
+        corrTableHtml(res.names, res.sMat) +
+        '<div class="hint">基于秩次，对异常值与非正态分布更稳健，也适合有序数据。</div>');
+      var topHtml='';
+      for(i=0;i<res.best.length;i++){
+        var b=res.best[i];
+        topHtml+=metricCard((i+1)+" · "+res.names[b.i]+" × "+res.names[b.j], fmtNum(b.r,3), "", "hl");
+      }
+      h+=resBlock('③ 最强关联（按 |r| 排序）', '<div class="metric-grid">'+topHtml+'</div>');
+      var b0=res.best[0];
+      h+=resBlock('④ 分层解读',
+        finding("fact","最强相关对", b0? res.names[b0.i]+" 与 "+res.names[b0.j]+" 的 r="+fmtNum(b0.r,3)+"（"+corrStrength(b0.r)+"），Spearman ρ="+fmtNum(b0.rho,3)+"。" : "有效数值列不足，无法计算相关。")+
+        finding("anl","方向与强度", b0? "两者呈"+(b0.r>=0?"正":"负")+"相关：一个增大，另一个"+(b0.r>=0?"也增大":"减小")+"；|r|="+fmtNum(Math.abs(b0.r),3)+"，属"+corrStrength(b0.r)+"。":"")+
+        finding("anl","Pearson 与 Spearman", b0? "若两者接近，说明线性关系稳健、受异常值影响小；若差异大，提示存在异常值或非线性关系，应以 Spearman 为准。":"")+
+        finding("warn","相关 ≠ 因果", "相关系数只度量线性关联强度，不能证明因果关系——可能存在第三变量（混杂因素）或反向因果。")+
+        finding("sug","使用边界", "相关矩阵适合初步筛查变量关系；正式建模前请结合散点图（可用「相关与回归」方法查看）与领域知识判断。"));
+      return h;
+    }
+  },
+
   ts: {
     name:"时间序列分析", short:"时间 + 数值 · 发展速度/趋势/预测",
     desc:"计算平均发展水平、平均增长量、环比/定基发展速度、几何平均发展速度，拟合线性趋势方程并外推预测下一期。",
@@ -2813,7 +2924,159 @@ var SAMPLES = {
 2024,11,华北办事处,695.3
 2024,12,华东办事处,1295.3
 2024,12,华南办事处,1007.0
-2024,12,华北办事处,725.1` }
+2024,12,华北办事处,725.1` },
+  iris: { no:"★", name:"鸢尾花（Iris）形态数据", desc:"150 株 × 4 形态指标 + 品种 · Fisher 经典真实数据集", type:"相关分析", analysis:"corr",
+    csv:`sepal_length,sepal_width,petal_length,petal_width,species
+5.1,3.5,1.4,0.2,setosa
+4.9,3.0,1.4,0.2,setosa
+4.7,3.2,1.3,0.2,setosa
+4.6,3.1,1.5,0.2,setosa
+5.0,3.6,1.4,0.2,setosa
+5.4,3.9,1.7,0.4,setosa
+4.6,3.4,1.4,0.3,setosa
+5.0,3.4,1.5,0.2,setosa
+4.4,2.9,1.4,0.2,setosa
+4.9,3.1,1.5,0.1,setosa
+5.4,3.7,1.5,0.2,setosa
+4.8,3.4,1.6,0.2,setosa
+4.8,3.0,1.4,0.1,setosa
+4.3,3.0,1.1,0.1,setosa
+5.8,4.0,1.2,0.2,setosa
+5.7,4.4,1.5,0.4,setosa
+5.4,3.9,1.3,0.4,setosa
+5.1,3.5,1.4,0.3,setosa
+5.7,3.8,1.7,0.3,setosa
+5.1,3.8,1.5,0.3,setosa
+5.4,3.4,1.7,0.2,setosa
+5.1,3.7,1.5,0.4,setosa
+4.6,3.6,1.0,0.2,setosa
+5.1,3.3,1.7,0.5,setosa
+4.8,3.4,1.9,0.2,setosa
+5.0,3.0,1.6,0.2,setosa
+5.0,3.4,1.6,0.4,setosa
+5.2,3.5,1.5,0.2,setosa
+5.2,3.4,1.4,0.2,setosa
+4.7,3.2,1.6,0.2,setosa
+4.8,3.1,1.6,0.2,setosa
+5.4,3.4,1.5,0.4,setosa
+5.2,4.1,1.5,0.1,setosa
+5.5,4.2,1.4,0.2,setosa
+4.9,3.1,1.5,0.2,setosa
+5.0,3.2,1.2,0.2,setosa
+5.5,3.5,1.3,0.2,setosa
+4.9,3.6,1.4,0.1,setosa
+4.4,3.0,1.3,0.2,setosa
+5.1,3.4,1.5,0.2,setosa
+5.0,3.5,1.3,0.3,setosa
+4.5,2.3,1.3,0.3,setosa
+4.4,3.2,1.3,0.2,setosa
+5.0,3.5,1.6,0.6,setosa
+5.1,3.8,1.9,0.4,setosa
+4.8,3.0,1.4,0.3,setosa
+5.1,3.8,1.6,0.2,setosa
+4.6,3.2,1.4,0.2,setosa
+5.3,3.7,1.5,0.2,setosa
+5.0,3.3,1.4,0.2,setosa
+7.0,3.2,4.7,1.4,versicolor
+6.4,3.2,4.5,1.5,versicolor
+6.9,3.1,4.9,1.5,versicolor
+5.5,2.3,4.0,1.3,versicolor
+6.5,2.8,4.6,1.5,versicolor
+5.7,2.8,4.5,1.3,versicolor
+6.3,3.3,4.7,1.6,versicolor
+4.9,2.4,3.3,1.0,versicolor
+6.6,2.9,4.6,1.3,versicolor
+5.2,2.7,3.9,1.4,versicolor
+5.0,2.0,3.5,1.0,versicolor
+5.9,3.0,4.2,1.5,versicolor
+6.0,2.2,4.0,1.0,versicolor
+6.1,2.9,4.7,1.4,versicolor
+5.6,2.9,3.6,1.3,versicolor
+6.7,3.1,4.4,1.4,versicolor
+5.6,3.0,4.5,1.5,versicolor
+5.8,2.7,4.1,1.0,versicolor
+6.2,2.2,4.5,1.5,versicolor
+5.6,2.5,3.9,1.1,versicolor
+5.9,3.2,4.8,1.8,versicolor
+6.1,2.8,4.0,1.3,versicolor
+6.3,2.5,4.9,1.5,versicolor
+6.1,2.8,4.7,1.2,versicolor
+6.4,2.9,4.3,1.3,versicolor
+6.6,3.0,4.4,1.4,versicolor
+6.8,2.8,4.8,1.4,versicolor
+6.7,3.0,5.0,1.7,versicolor
+6.0,2.9,4.5,1.5,versicolor
+5.7,2.6,3.5,1.0,versicolor
+5.5,2.4,3.8,1.1,versicolor
+5.5,2.4,3.7,1.0,versicolor
+5.8,2.7,3.9,1.2,versicolor
+6.0,2.7,5.1,1.6,versicolor
+5.4,3.0,4.5,1.5,versicolor
+6.0,3.4,4.5,1.6,versicolor
+6.7,3.1,4.7,1.5,versicolor
+6.3,2.3,4.4,1.3,versicolor
+5.6,3.0,4.1,1.3,versicolor
+5.5,2.5,4.0,1.3,versicolor
+5.5,2.6,4.4,1.2,versicolor
+6.1,3.0,4.6,1.4,versicolor
+5.8,2.6,4.0,1.2,versicolor
+5.0,2.3,3.3,1.0,versicolor
+5.6,2.7,4.2,1.3,versicolor
+5.7,3.0,4.2,1.2,versicolor
+5.7,2.9,4.2,1.3,versicolor
+6.2,2.9,4.3,1.3,versicolor
+5.1,2.5,3.0,1.1,versicolor
+5.7,2.8,4.1,1.3,versicolor
+6.3,3.3,6.0,2.5,virginica
+5.8,2.7,5.1,1.9,virginica
+7.1,3.0,5.9,2.1,virginica
+6.3,2.9,5.6,1.8,virginica
+6.5,3.0,5.8,2.2,virginica
+7.6,3.0,6.6,2.1,virginica
+4.9,2.5,4.5,1.7,virginica
+7.3,2.9,6.3,1.8,virginica
+6.7,2.5,5.8,1.8,virginica
+7.2,3.6,6.1,2.5,virginica
+6.5,3.2,5.1,2.0,virginica
+6.4,2.7,5.3,1.9,virginica
+6.8,3.0,5.5,2.1,virginica
+5.7,2.5,5.0,2.0,virginica
+5.8,2.8,5.1,2.4,virginica
+6.4,3.2,5.3,2.3,virginica
+6.5,3.0,5.5,1.8,virginica
+7.7,3.8,6.7,2.2,virginica
+7.7,2.6,6.9,2.3,virginica
+6.0,2.2,5.0,1.5,virginica
+6.9,3.2,5.7,2.3,virginica
+5.6,2.8,4.9,2.0,virginica
+7.7,2.8,6.7,2.0,virginica
+6.3,2.7,4.9,1.8,virginica
+6.7,3.3,5.7,2.1,virginica
+7.2,3.2,6.0,1.8,virginica
+6.2,2.8,4.8,1.8,virginica
+6.1,3.0,4.9,1.8,virginica
+6.4,2.8,5.6,2.1,virginica
+7.2,3.0,5.8,1.6,virginica
+7.4,2.8,6.1,1.9,virginica
+7.9,3.8,6.4,2.0,virginica
+6.4,2.8,5.6,2.2,virginica
+6.3,2.8,5.1,1.5,virginica
+6.1,2.6,5.6,1.4,virginica
+7.7,3.0,6.1,2.3,virginica
+6.3,3.4,5.6,2.4,virginica
+6.4,3.1,5.5,1.8,virginica
+6.0,3.0,4.8,1.8,virginica
+6.9,3.1,5.4,2.1,virginica
+6.7,3.1,5.6,2.4,virginica
+6.9,3.1,5.1,2.3,virginica
+5.8,2.7,5.1,1.9,virginica
+6.8,3.2,5.9,2.3,virginica
+6.7,3.3,5.7,2.5,virginica
+6.7,3.0,5.2,2.3,virginica
+6.3,2.5,5.0,1.9,virginica
+6.5,3.0,5.2,2.0,virginica
+6.2,3.4,5.4,2.3,virginica
+5.9,3.0,5.1,1.8,virginica` }
 };
 
 /* =====================================================================
