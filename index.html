@@ -817,6 +817,31 @@ function leveneTest(groups){
   var a=anovaOneWay(trans);
   return {W:a.F, df1:a.dfb, df2:a.dfw, p:a.p};
 }
+/* Cronbach's α 信度：items = [{name, values}]，values 已 listwise 对齐 */
+function cronbachAlpha(items){
+  var k=items.length, n=k>0? items[0].values.length : 0, i, j;
+  var vars=items.map(function(it){ return variance(it.values); });
+  var totals=[];
+  for(i=0;i<n;i++){ var s=0; for(j=0;j<k;j++) s+=items[j].values[i]; totals.push(s); }
+  var sumVar=sum(vars), totalVar=variance(totals);
+  var alpha = (k>1 && totalVar>0) ? (k/(k-1))*(1 - sumVar/totalVar) : null;
+  var itemStats=items.map(function(it, idx){
+    var restTotals=[];
+    for(i=0;i<n;i++) restTotals.push(totals[i] - it.values[i]);
+    var restTotalVar=variance(restTotals);
+    var alphaIfDel = (k>2 && restTotalVar>0) ? ((k-1)/(k-2))*(1 - (sumVar-vars[idx])/restTotalVar) : null;
+    var st=describe(it.values);
+    return {name:it.name, mean:st.mean, sd:st.std, alphaIfDel:alphaIfDel};
+  });
+  return {alpha:alpha, k:k, n:n, vars:vars, sumVar:sumVar, totalVar:totalVar, itemStats:itemStats};
+}
+function alphaGrade(a){
+  if(a==null) return "无法计算（题项过少或总方差为 0）。";
+  if(a>=0.9) return "信度优秀，量表内部一致性很高。";
+  if(a>=0.8) return "信度良好，可用于正式研究。";
+  if(a>=0.7) return "信度可接受（探索性研究可用，验证性建议 ≥ 0.8）。";
+  return "信度偏低，建议修订或增删题项。";
+}
 function posthocTest(groups, MSw, dfw, method, alpha){
   var k=groups.length, comps=[], i, j;
   var ncmp=k*(k-1)/2;
@@ -2125,6 +2150,110 @@ var ANALYSES = {
       }
     },
 
+    levene: {
+      name:"方差齐性检验（Levene）", short:"分组数值 · 方差是否齐性",
+      desc:"检验两个及以上独立组的方差是否相等（方差齐性）。基于各观测值与其组中位数绝对离差的单因素 ANOVA，是 t 检验与 ANOVA 的前置诊断。",
+      fit:"适合 1 列数值（因变量）+ 1 列分组（≥2 组）",
+      icon:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 3v18h18"/><path d="M7 14l4-4 3 3 5-6"/></svg>',
+      detect:function(ds){
+        var opts=colOptions(ds), i;
+        var nums=opts.filter(function(o){return o.num;});
+        var cats=opts.filter(function(o){return !o.num;});
+        if(nums.length<1 || cats.length<1) return false;
+        for(i=0;i<cats.length;i++){ if(levelCount(ds, cats[i].idx)>=2) return true; }
+        return false;
+      },
+      config:function(ds){
+        var opts=colOptions(ds);
+        var nums=opts.filter(function(o){return o.num;}).map(function(o){return o.idx;});
+        var cats=opts.filter(function(o){return !o.num;});
+        return '<div class="cfg-row"><label>数值列</label>'+selHtml(opts, nums[0], "cfg_y")+'</div>'
+          +'<div class="cfg-row"><label>分组列</label>'+selHtml(opts, cats.length?cats[0].idx:0, "cfg_grp")+'</div>'
+          +'<div class="hint">Levene 检验比较各组的方差是否齐性；p < 0.05 表示方差不齐。</div>';
+      },
+      run:function(ds, cfg){
+        var co=colOptions(ds);
+        var numsIdx=co.filter(function(o){return o.num;}).map(function(o){return o.idx;});
+        var catsIdx=co.filter(function(o){return !o.num;}).map(function(o){return o.idx;});
+        var yIdx=parseInt(cfg.y,10); if(isNaN(yIdx)) yIdx=numsIdx[0];
+        var gIdx=parseInt(cfg.grp,10); if(isNaN(gIdx)) gIdx=catsIdx.length?catsIdx[0]:0;
+        var g=groupBy(ds, yIdx, gIdx);
+        if(g.order.length<2) throw new Error("分组列只有 "+g.order.length+" 个有效组，需要至少 2 组");
+        var groups=g.order.map(function(k){ return {name:k, values:g.map[k]}; });
+        var lev=leveneTest(groups);
+        var stats=groups.map(function(gr){ var st=describe(gr.values); return {name:gr.name, n:gr.values.length, mean:st.mean, sd:st.std, varr:st.variance}; });
+        return {yCol:ds.headers[yIdx], gCol:ds.headers[gIdx], levene:lev, stats:stats};
+      },
+      render:function(ds, cfg, res){
+        var h="";
+        var rows=res.stats.map(function(s){ return [escXML(s.name), fmtNum(s.n,0), fmtNum(s.mean,3), fmtNum(s.sd,3), fmtNum(s.varr,3)]; });
+        h+=resBlock('① 各组方差概况', '<div class="hint">数值列 <b>'+escXML(res.yCol)+'</b>，分组列 <b>'+escXML(res.gCol)+'</b></div>'
+          +preTable(["分组","n","均值","标准差","方差"], rows));
+        h+=resBlock('② Levene 检验',
+          metricCard("W 统计量", fmtNum(res.levene.W,3), "", "hl") +
+          metricCard("p 值", fmtNum(res.levene.p,4), "", res.levene.p<0.05?"warn":"hl") +
+          formulaCard("Levene W", "W = 对 |x − 组中位数| 做 ANOVA 的 F 值", "df1="+fmtNum(res.levene.df1,0)+"，df2="+fmtNum(res.levene.df2,0), fmtNum(res.levene.W,3)));
+        h+=resBlock('③ 分层解读',
+          finding("fact","检验结论", "Levene 检验 W="+fmtNum(res.levene.W,3)+"，p="+fmtNum(res.levene.p,4)+"。"+(res.levene.p<0.05?"p < 0.05，拒绝方差齐性假设，各组方差不齐。":"p ≥ 0.05，未拒绝方差齐性假设，可认为各组方差齐性。"))+
+          finding("warn","方差不齐的影响", "方差不齐时，经典 t 检验与 ANOVA 的第一类错误率会偏离名义水平，结论需谨慎。")+
+          finding("sug","后续选择", "方差不齐时：两两比较改用 Welch t 检验；多组比较改用 Welch ANOVA 或 Games-Howell 事后检验。"));
+        return h;
+      }
+    },
+
+    reliability: {
+      name:"信度分析（Cronbach's α）", short:"多题项量表 · 内部一致性",
+      desc:"评估量表 / 问卷多个题项的内部一致性。α 越接近 1，题项测量同一构念的一致性越高；输出 α 系数、分项统计与「删除该项后的 α」以定位拖后腿的题。",
+      fit:"适合 ≥3 列同量纲的题项得分（如 Likert 量表 1–5 分）",
+      icon:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 11l3 3L22 4"/><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/></svg>',
+      detect:function(ds){
+        var nums=colOptions(ds).filter(function(o){return o.num;});
+        return nums.length>=3;
+      },
+      config:function(ds){
+        var c=colOptions(ds);
+        var numIdx=c.filter(function(o){return o.num;}).slice(0,8).map(function(o){return o.idx;});
+        return '<div class="cfg-row"><label>题项列（可多选）</label>'+multiSelHtml(c, numIdx, "cfg_cols", 8)+'</div>'
+          +'<div class="hint">按住 Ctrl 多选各题项列（每列一题，同量纲）。至少 3 题；只保留所有题项都作答的样本（listwise）。</div>';
+      },
+      run:function(ds, cfg){
+        var idxs=[].concat(cfg.cols||[]).map(function(x){return parseInt(x,10);});
+        if(!idxs.length){
+          idxs=colOptions(ds).filter(function(o){return o.num;}).slice(0,8).map(function(o){return o.idx;});
+        }
+        var names=idxs.map(function(k){return ds.headers[k];});
+        var k=idxs.length, cols=[], r, j;
+        for(j=0;j<k;j++) cols.push([]);
+        for(r=0;r<ds.rows.length;r++){
+          var vals=[], ok=true;
+          for(j=0;j<k;j++){ var v=parseNum(ds.rows[r][idxs[j]]); if(v==null||isNaN(v)){ ok=false; break; } vals.push(v); }
+          if(ok){ for(j=0;j<k;j++) cols[j].push(vals[j]); }
+        }
+        var items=names.map(function(nm,j){ return {name:nm, values:cols[j]}; });
+        var ca=cronbachAlpha(items);
+        return {items:items, ca:ca};
+      },
+      render:function(ds, cfg, res){
+        var ca=res.ca, h="";
+        h+=resBlock("① Cronbach's α 系数",
+          metricCard("α 系数", ca.alpha==null?"—":fmtNum(ca.alpha,3), "", "hl") +
+          metricCard("题项数 k", fmtNum(ca.k,0)) +
+          metricCard("有效样本 n", fmtNum(ca.n,0)) +
+          formulaCard("Cronbach's α", "α = k/(k−1) × (1 − Σsᵢ²/sₜ²)", "k="+ca.k+"，Σsᵢ²="+fmtNum(ca.sumVar,3)+"，sₜ²="+fmtNum(ca.totalVar,3), ca.alpha==null?"—":fmtNum(ca.alpha,3)));
+        var rows=ca.itemStats.map(function(it){ return [escXML(it.name), fmtNum(it.mean,2), fmtNum(it.sd,2), it.alphaIfDel==null?"—":fmtNum(it.alphaIfDel,3)]; });
+        h+=resBlock('② 分项统计（删除该项后的 α）',
+          preTable(["题项","均值","标准差","删除后 α"], rows) +
+          '<div class="hint">「删除后 α」若高于整体 α，说明该题与其余题项一致性较弱，可考虑修订或删除。</div>');
+        var worst=null;
+        ca.itemStats.forEach(function(it){ if(it.alphaIfDel!=null && (worst==null || it.alphaIfDel>worst.alphaIfDel)) worst=it; });
+        h+=resBlock('③ 分层解读',
+          finding("fact","信度结论", "Cronbach's α = "+(ca.alpha==null?"—":fmtNum(ca.alpha,3))+"。"+alphaGrade(ca.alpha))+
+          finding("anl","题项表现", (worst && ca.alpha!=null && worst.alphaIfDel>ca.alpha) ? "删除「"+worst.name+"」后 α 可提升至 "+fmtNum(worst.alphaIfDel,3)+"，该题与整体一致性较弱，可考虑修订措辞或删除。" : "各题删除后 α 均未明显提升，题项整体一致性良好，无需删题。")+
+          finding("sug","使用边界", "α 是内部一致性的下界估计，不代表单维性；维度结构请结合因子分析判断。α 高也可能是题项冗余（表述雷同），需结合内容效度审视。"));
+        return h;
+      }
+    },
+
     anova: {
       name:"单因素方差分析（ANOVA）", short:"多组均值比较 · F 检验 + 多重比较",
       desc:"比较三个及以上独立组的均值是否全相等：先做整体 F 检验（方差分析表），显著后再做多重比较（事后检验）定位究竟哪两组不同。配套方差齐性检验（Levene）与效应量（η² / ω²）。",
@@ -3076,7 +3205,39 @@ var SAMPLES = {
 6.3,2.5,5.0,1.9,virginica
 6.5,3.0,5.2,2.0,virginica
 6.2,3.4,5.4,2.3,virginica
-5.9,3.0,5.1,1.8,virginica` }
+5.9,3.0,5.1,1.8,virginica` },
+  scale: { no:"★", name:"员工满意度量表（模拟）", desc:"6 题 × 30 人 · Likert 1–5 · 信度分析示例", type:"信度分析", analysis:"reliability",
+    csv:`q1,q2,q3,q4,q5,q6
+2,2,2,2,3,2
+3,3,2,3,3,3
+2,3,2,2,3,1
+2,1,2,2,3,1
+3,3,3,2,2,3
+4,3,4,3,3,4
+3,4,4,4,3,3
+3,2,3,2,3,3
+4,4,4,5,3,5
+3,3,4,2,3,3
+2,3,3,3,2,2
+3,3,3,3,4,3
+5,4,4,4,4,5
+4,3,4,4,4,3
+3,2,3,2,3,1
+4,2,3,3,4,3
+3,3,4,3,3,3
+2,2,4,3,2,4
+4,5,3,3,2,4
+4,3,3,2,3,3
+2,2,2,2,2,3
+3,2,3,3,2,3
+2,1,3,3,3,3
+3,3,3,2,2,2
+5,4,5,4,4,5
+3,2,2,1,3,3
+4,4,3,4,3,5
+2,1,2,2,1,2
+2,3,3,2,2,2
+3,2,2,3,3,3` }
 };
 
 /* =====================================================================

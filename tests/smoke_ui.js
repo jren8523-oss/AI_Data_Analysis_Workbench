@@ -41,7 +41,7 @@ let fail = 0;
 const ok = (cond, msg) => { if (cond) console.log('  PASS', msg); else { console.error('  FAIL', msg); fail++; } };
 
 console.log('== 1. 分析类型完整性 ==');
-ok(Object.keys(AN).length === 13, 'ANALYSES 13 项均已接入计算');
+ok(Object.keys(AN).length === 15, 'ANALYSES 15 项均已接入计算');
 Object.keys(AN).forEach(k => {
   const a = AN[k];
   ok(typeof a.detect === 'function' && typeof a.config === 'function' &&
@@ -61,6 +61,25 @@ ok(corrRes.pMat[1][2] < 0, 'corr sepal_width×petal_length 负相关 r=' + corrR
 ok(corrRes.sMat[2][3] > 0.9, 'corr Spearman petal_length×petal_width ρ=' + corrRes.sMat[2][3].toFixed(4));
 const corrOut = corrA.render(irisDs, corrCfg, corrRes);
 ok(corrOut.includes('相关矩阵') && corrOut.includes('Spearman'), 'corr render 含相关矩阵与 Spearman');
+
+console.log('== 1c. 方差齐性（levene）与信度（reliability）==');
+const levA = AN.levene;
+ok(levA.detect(irisDs), 'levene detect 命中 iris（数值列 + 分类列）');
+const levCfg = { y: '2', grp: '4' };
+const levRes = levA.run(irisDs, levCfg);
+ok(isFinite(levRes.levene.W) && isFinite(levRes.levene.p), 'levene W=' + levRes.levene.W.toFixed(3) + ' p=' + levRes.levene.p.toFixed(4));
+const levOut = levA.render(irisDs, levCfg, levRes);
+ok(levOut.includes('Levene'), 'levene render 含 Levene 检验');
+
+const relA = AN.reliability;
+const relDs = ctx.parseCSV('i1,i2,i3,i4,i5\n1,1,1,1,1\n2,2,2,2,2\n3,3,3,3,3\n4,4,4,4,4\n5,5,5,5,5');
+ok(relA.detect(relDs), 'reliability detect 命中 5 题');
+const relRes = relA.run(relDs, { cols: ['0', '1', '2', '3', '4'] });
+ok(Math.abs(relRes.ca.alpha - 1) < 1e-9, 'reliability 完全一致题项 α=1，实际=' + relRes.ca.alpha);
+ok(relRes.ca.itemStats.length === 5, 'reliability 分项统计 5 项');
+const relOut = relA.render(relDs, { cols: ['0', '1', '2', '3', '4'] }, relRes);
+ok(relOut.includes('α') && relOut.includes('删除后 α'), 'reliability render 含 α 与删除后 α');
+
 
 console.log('== 1.5 推断统计真实计算（ANOVA / 卡方 / 非参数）==');
 // task09：数值列=访客数，分类列=日期、商品类目
